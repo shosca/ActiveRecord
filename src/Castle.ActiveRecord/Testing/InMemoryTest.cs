@@ -33,7 +33,7 @@ namespace Castle.ActiveRecord.Testing
 		/// </summary>
 		public virtual void SetUp()
 		{
-			ActiveRecordStarter.ResetInitializationFlag();
+			ActiveRecord.ResetInitializationFlag();
 			Dictionary<string, string> properties = new Dictionary<string, string>();
 			properties.Add("connection.driver_class", "NHibernate.Driver.SQLite20Driver");
 			properties.Add("dialect", "NHibernate.Dialect.SQLiteDialect");
@@ -46,7 +46,7 @@ namespace Castle.ActiveRecord.Testing
 			}
 
 			var config = new InPlaceConfigurationSource();
-			config.Add(typeof(ActiveRecordBase), properties);
+			config.Add(typeof(ActiveRecord), properties);
 			foreach (var type in GetAdditionalBaseClasses())
 			{
 				config.Add(type, properties);
@@ -59,8 +59,8 @@ namespace Castle.ActiveRecord.Testing
 			if (types == null) types = new Type[0];
 			if (assemblies == null) assemblies = new Assembly[0];
 
-			ActiveRecordStarter.Initialize(assemblies,config,types);
-			ActiveRecordStarter.CreateSchema();
+			ActiveRecord.Initialize(assemblies,config,types);
+			ActiveRecord.CreateSchema();
 		}
 
 		/// <summary>
@@ -69,7 +69,7 @@ namespace Castle.ActiveRecord.Testing
 		/// </summary>
 		public virtual void TearDown()
 		{
-			ActiveRecordStarter.ResetInitializationFlag();
+			ActiveRecord.ResetInitializationFlag();
 			InMemoryConnectionProvider.Restart();
 		}
 

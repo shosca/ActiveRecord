@@ -1,4 +1,4 @@
-﻿// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
+// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using NHibernate.Proxy;
+
 namespace Castle.ActiveRecord.ByteCode
 {
 	using System;
@@ -20,7 +22,7 @@ namespace Castle.ActiveRecord.ByteCode
 	using NHibernate.Engine;
 	using NHibernate.Type;
 
-    class LazyInitializer : NHibernate.ByteCode.Castle.LazyInitializer 
+    public class LazyInitializer : DefaultLazyInitializer
     {
         public LazyInitializer(string entityName, Type persistentClass, object id, 
                                MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod, 
@@ -36,14 +38,14 @@ namespace Castle.ActiveRecord.ByteCode
             {
                 //If the session has been disconnected, reconnect before continuing with the initialization.
                 if (Session == null || !Session.IsOpen || !Session.IsConnected) {
-                    newSession = ActiveRecordMediator.GetSessionFactoryHolder().CreateSession(PersistentClass);
+                    newSession = ActiveRecord.Holder.CreateSession(PersistentClass);
                     Session = newSession.GetSessionImplementation();
                 }
                 base.Initialize();
             }
             finally 
             {
-                if (newSession != null) ActiveRecordMediator.GetSessionFactoryHolder().ReleaseSession(newSession);
+                if (newSession != null) ActiveRecord.Holder.ReleaseSession(newSession);
             }
         }
     }

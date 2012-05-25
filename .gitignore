@@ -9,5 +9,6 @@ src/*/bin
 _ReSharper*
 *ReSharper.*
 *.suo
+*.user
 *.cache
 * Thumbs.db

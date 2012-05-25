@@ -12,63 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using NHibernate.Intercept;
+
 namespace Castle.ActiveRecord.ByteCode 
 {
 	using System;
-	using DynamicProxy;
 	using NHibernate;
-	using NHibernate.ByteCode.Castle;
 	using NHibernate.Engine;
+	using NHibernate.Intercept;
 	using NHibernate.Proxy;
+	using NHibernate.Proxy.DynamicProxy;
 
-    class ProxyFactory : AbstractProxyFactory 
+    class ProxyFactory : DefaultProxyFactory 
     {
-		protected static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(ProxyFactory));
-        private static readonly ProxyGenerator ProxyGenerator = new ProxyGenerator();
+		private readonly NHibernate.Proxy.DynamicProxy.ProxyFactory _factory = new NHibernate.Proxy.DynamicProxy.ProxyFactory();
 
-        protected static ProxyGenerator DefaultProxyGenerator 
-        {
-            get { return ProxyGenerator; }
-        }
+		public override INHibernateProxy GetProxy(object id, ISessionImplementor session)
+		{
+			try
+			{
+				var initializer = new LazyInitializer(EntityName, PersistentClass, id, GetIdentifierMethod, SetIdentifierMethod, ComponentIdType, session);
 
-        /// <summary>
-		/// Build a proxy using the Castle.DynamicProxy library, that overrides the default <see cref="NHibernate.ByteCode.Castle.LazyInitializer"/>
-        /// </summary>
-        /// <param name="id">The value for the Id.</param>
-        /// <param name="session">The Session the proxy is in.</param>
-        /// <returns>A fully built <c>INHibernateProxy</c>.</returns>
-        public override INHibernateProxy GetProxy(object id, ISessionImplementor session) 
-        {
-            try
-            {
-            	var initializer = new LazyInitializer(EntityName, PersistentClass, id, GetIdentifierMethod,
-            	                                      SetIdentifierMethod, ComponentIdType, session);
+				object proxyInstance = IsClassProxy
+										? _factory.CreateProxy(PersistentClass, initializer, Interfaces)
+										: _factory.CreateProxy(Interfaces[0], initializer, Interfaces);
 
-                object generatedProxy = IsClassProxy
-                                            ? ProxyGenerator.CreateClassProxy(PersistentClass, Interfaces, initializer)
-                                            : ProxyGenerator.CreateInterfaceProxyWithoutTarget(Interfaces[0], Interfaces,
-                                                                                                initializer);
+				return (INHibernateProxy)proxyInstance;
+			}
+			catch (Exception ex)
+			{
+				log.Error("Creating a proxy instance failed", ex);
+				throw new HibernateException("Creating a proxy instance failed", ex);
+			}
+		}
 
-                initializer._constructed = true;
-                return (INHibernateProxy)generatedProxy;
-            } 
-            catch (Exception e) 
-            {
-                log.Error("Creating a proxy instance failed", e);
-                throw new HibernateException("Creating a proxy instance failed", e);
-            }
-        }
+		public override object GetFieldInterceptionProxy(object instanceToWrap)
+		{
+			var interceptor = new DefaultDynamicLazyFieldInterceptor(instanceToWrap);
+			return _factory.CreateProxy(PersistentClass, interceptor, new[] { typeof(IFieldInterceptorAccessor) });
+		}
 
-		/// <summary>
-		/// Returns a proxy capable of field interception.
-		/// </summary>
-		/// <returns></returns>
-        public override object GetFieldInterceptionProxy() 
-        {
-            var proxyGenerationOptions = new ProxyGenerationOptions();
-            var interceptor = new LazyFieldInterceptor();
-            proxyGenerationOptions.AddMixinInstance(interceptor);
-            return ProxyGenerator.CreateClassProxy(PersistentClass, proxyGenerationOptions, interceptor);
-        }
     }
 }
