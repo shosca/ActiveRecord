@@ -14,14 +14,33 @@
 
 using Iesi.Collections.Generic;
 using System;
+using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
+	public class ProductMapping : ClassMapping<Product> {
+		public ProductMapping() {
+			Id(x => x.Id, m => m.Generator(Generators.Native));
+			Set(x => x.Categories, m => m.Cascade(Cascade.All));
+		}
+	}
+
 	public class Product : ActiveRecordBase<Product>
 	{
-		public int Id { get; set; }
+		public Product() {
+			Categories = new HashedSet<Category>();
+		}
 
-		public ISet<Category> Categories { get; set; }
+		public virtual int Id { get; set; }
+
+		public virtual ISet<Category> Categories { get; set; }
+	}
+
+	public class CategotyMapping : ClassMapping<Category> {
+		public CategotyMapping() {
+			Id(x => x.Id, m => m.Generator(Generators.Native));
+		}
 	}
 
 	public class Category: ActiveRecordBase<Category> {
@@ -29,10 +48,10 @@ namespace Castle.ActiveRecord.Tests.Models
 
 		public Category(String name) { this.Name = name; }
 
-		public int Id { get; set; }
+		public virtual int Id { get; set; }
 
-		public string Name { get; set; }
+		public virtual string Name { get; set; }
 
-		public Product Product { get; set; }
+		public virtual Product Product { get; set; }
 	}
 }

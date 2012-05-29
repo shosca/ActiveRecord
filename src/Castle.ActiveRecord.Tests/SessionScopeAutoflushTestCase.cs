@@ -15,6 +15,7 @@
 using System.Linq;
 using Castle.ActiveRecord.Scopes;
 using Castle.ActiveRecord.Tests.Models;
+using NHibernate.Linq;
 
 namespace Castle.ActiveRecord.Tests
 {
@@ -88,7 +89,7 @@ namespace Castle.ActiveRecord.Tests
 			Assert.AreEqual(0, SSAFEntity.FindAll().Count());
 		}
 
-		[Test][Ignore("This is worth debate")]
+		[Test][Ignore("Need to clean up scopes.")]
 		public void ActiveRecordUsingTransactionScopeWithRollbackAndInnerSessionScope()
 		{
 			InitModel();
@@ -96,7 +97,7 @@ namespace Castle.ActiveRecord.Tests
 			{
 				using (new SessionScope())
 				{
-					new SSAFEntity("example").Save();
+					new SSAFEntity("example").SaveAndFlush();
 					Assert.AreEqual(1, SSAFEntity.FindAll().Count());
 				}
 				Assert.AreEqual(1, SSAFEntity.FindAll().Count());
@@ -105,6 +106,7 @@ namespace Castle.ActiveRecord.Tests
 			Assert.AreEqual(0, SSAFEntity.FindAll().Count());
 		}
 
+		[Test]
 		public void ActiveRecordUsingNestedTransactionScopesWithRollback()
 		{
 			InitModel();
@@ -112,7 +114,7 @@ namespace Castle.ActiveRecord.Tests
 			{
 				using (new TransactionScope(TransactionMode.Inherits))
 				{
-					new SSAFEntity("example").Save();
+					new SSAFEntity("example").SaveAndFlush();
 					Assert.AreEqual(1, SSAFEntity.FindAll().Count());
 				}
 				Assert.AreEqual(1, SSAFEntity.FindAll().Count());
@@ -121,6 +123,7 @@ namespace Castle.ActiveRecord.Tests
 			Assert.AreEqual(0, SSAFEntity.FindAll().Count());
 		}
 
+		[Test]
 		public void ActiveRecordUsingTransactionScopeWithCommitAndInnerSessionScope()
 		{
 			InitModel();
@@ -128,7 +131,7 @@ namespace Castle.ActiveRecord.Tests
 			{
 				using (new SessionScope())
 				{
-					new SSAFEntity("example").Save();
+					new SSAFEntity("example").SaveAndFlush();
 					Assert.AreEqual(1, SSAFEntity.FindAll().Count());
 				}
 				//Assert.AreEqual(1, SSAFEntity.FindAll().Length);
@@ -142,39 +145,39 @@ namespace Castle.ActiveRecord.Tests
 		public void NHibernateVerification()
 		{
 			InitModel();
-			using (ISession session = ActiveRecord.Holder.GetSessionFactory(typeof(ActiveRecord)).OpenSession())
-			using (ITransaction tx = session.BeginTransaction())
-			{
-				session.Save(new SSAFEntity("example"));
-				Assert.AreEqual(1, session.CreateQuery("from SSAFEntity").List<SSAFEntity>().Count);
-			}
+			ActiveRecordMediator<SSAFEntity>.Execute(session => {
+				using (session.BeginTransaction())
+				{
+					session.Save(new SSAFEntity("example"));
+					Assert.AreEqual(1, session.CreateQuery("from " + typeof(SSAFEntity).FullName).List<SSAFEntity>().Count);
+				}
+			});
 		}
 
 		[Test]
 		public void SessionTxVerification()
 		{
 			InitModel();
-			using (ISession session = ActiveRecord.Holder.GetSessionFactory(typeof(ActiveRecord)).OpenSession())
-			{
+			ActiveRecordMediator<SSAFEntity>.Execute(session => {
 				Assert.IsFalse(session.Transaction.IsActive);
 				using (ITransaction tx = session.BeginTransaction())
 				{
 					Assert.AreSame(tx, session.BeginTransaction());
 					Assert.AreSame(tx, session.Transaction);
 				}
-			}
+			});
 		}
 
 
 		[Test]
-		[Ignore("Expected to fail")]
 		public void NHibernateNoTxVerification()
 		{
 			InitModel();
-			using (ISession session = ActiveRecord.Holder.GetSessionFactory(typeof(ActiveRecord)).OpenSession())
+			using (ISession session = ActiveRecord.Holder.GetSessionFactory(typeof(SSAFEntity)).OpenSession())
 			{
 				session.Save(new SSAFEntity("example"));
-				Assert.AreEqual(1, session.CreateQuery("from SSAFEntity").List<SSAFEntity>().Count);
+				session.Flush();
+				Assert.AreEqual(1, session.Query<SSAFEntity>().ToList<SSAFEntity>().Count);
 			}
 		}
 
@@ -185,8 +188,4 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 	}
-
-	#region Model
-
-	#endregion
 }

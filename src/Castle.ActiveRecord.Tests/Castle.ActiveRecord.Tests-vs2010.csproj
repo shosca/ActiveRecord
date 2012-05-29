@@ -148,7 +148,6 @@
     <Compile Include="Models\Ship.cs" />
     <Compile Include="DifferentDatabaseScopeTestCase.cs" />
     <Compile Include="Models\SSAFEntity.cs" />
-    <Compile Include="Models\Test2ARBase.cs" />
     <Compile Include="Models\UserDB.cs" />
     <Compile Include="MultipleDatabasesTestCase.cs">
       <SubType>Code</SubType>
@@ -209,6 +208,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Castle.ActiveRecord.Tests.Model\Castle.ActiveRecord.Tests.Model-vs2010.csproj">
+      <Project>{DC2D80AC-4641-4798-B059-C90AA162D2AB}</Project>
+      <Name>Castle.ActiveRecord.Tests.Model-vs2010</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Castle.ActiveRecord.Web\Castle.ActiveRecord.Web.csproj">
       <Project>{3A0B9A64-8140-429E-A3F0-5B1617CEB466}</Project>
       <Name>Castle.ActiveRecord.Web</Name>

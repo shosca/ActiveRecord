@@ -50,6 +50,17 @@ namespace Castle.ActiveRecord {
 		/// </summary>
 		public static event MapperDelegate MapperCreated;
 
+		/// <summary>
+		/// Allows other frameworks to modify the ActiveRecordModel
+		/// before the generation of the NHibernate configuration.
+		/// As an example, this may be used to rewrite table names to
+		/// conform to an application-specific standard.  Since the
+		/// configuration source is passed in, it is possible to
+		/// determine the underlying database type and make changes
+		/// if necessary.
+		/// </summary>
+		public static event MapperDelegate AfterMappingsAdded;
+
 
 		/// <summary>
 		/// Initialize the mappings using the configuration and 
@@ -97,11 +108,11 @@ namespace Castle.ActiveRecord {
 
 				ConfigurationSource = source;
 
-				ConventionModelMapper mapper = new ConventionModelMapper();
-				if (MapperCreated != null)
-					MapperCreated(mapper, source);
-
 				foreach (var key in source.GetAllConfigurationKeys()) {
+					ConventionModelMapper mapper = new ConventionModelMapper();
+					if (MapperCreated != null)
+						MapperCreated(mapper, source);
+
 					var config = source.GetConfiguration(key);
 					var assemblies = config.Children.Where(c => c.Name.Equals("assembly")).Select(c => Assembly.Load(c.Value)).ToArray();
 					var mappingtypes = assemblies.SelectMany(a => a.GetExportedTypes()).Where(t => IsClassMapperType(t)).ToArray();
@@ -110,6 +121,10 @@ namespace Castle.ActiveRecord {
 						                                "mappings.");
 					}
 					mapper.AddMappings(mappingtypes);
+
+					if (AfterMappingsAdded != null)
+						AfterMappingsAdded(mapper, source);
+
 					var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 					var cfg = CreateConfiguration(config);
 					cfg.AddMapping(mapping);

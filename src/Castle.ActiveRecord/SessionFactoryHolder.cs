@@ -77,7 +77,7 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		public ISessionFactory GetSessionFactory(Type type)
 		{
-			if (type == null)
+			if (type == null || !type2SessFactory.ContainsKey(type))
 			{
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
@@ -133,8 +133,14 @@ namespace Castle.ActiveRecord
 				var sf = cfg.BuildSessionFactory();
 
 				foreach (var classMetadata in sf.GetAllClassMetadata()) {
-					type2SessFactory[classMetadata.Value.GetMappedClass(EntityMode.Poco)] = sf;
-					type2Conf[classMetadata.Value.GetMappedClass(EntityMode.Poco)] = cfg;
+					var entitytype = classMetadata.Value.GetMappedClass(EntityMode.Poco);
+
+					if (!type2SessFactory.ContainsKey(entitytype))
+						type2SessFactory[entitytype] = sf;
+
+					if (!type2Conf.ContainsKey(entitytype))
+						type2Conf[entitytype] = cfg;
+
 				}
 			}
 			finally 

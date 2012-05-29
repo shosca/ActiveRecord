@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
-using Castle.ActiveRecord.Tests.Models;
-
-namespace Castle.ActiveRecord.Tests.Model
+namespace Castle.ActiveRecord.Tests.Models
 {
 	public class Hand : Test2ARBase<Hand> {
 		public int Id { get; set; }

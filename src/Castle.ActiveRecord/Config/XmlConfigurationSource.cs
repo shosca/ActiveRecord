@@ -142,10 +142,8 @@ namespace Castle.ActiveRecord.Framework.Config
 
 					if (typeNameAtt != null)
 					{
-						String typeName = typeNameAtt.Value;
-
-						if (!string.IsNullOrEmpty(typeName))
-							targetkey = Type.GetType(typeName, false, false).FullName;
+						if (!string.IsNullOrEmpty(typeNameAtt.Value))
+							targetkey = typeNameAtt.Value;
 					}
 
 					var databaseName = node.Attributes["database"] ?? node.Attributes["db"];

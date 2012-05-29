@@ -12,20 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
+using System.Collections.Generic;
+using Castle.ActiveRecord.Tests.Models;
 using NHibernate.Mapping.ByCode;
 using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	public class ActiveRecordClass
-	{
-		public virtual int Id { get; set; }
-	}
-
-	public class ActiveRecordClassMapping : ClassMapping<ActiveRecordClass> {
-		public ActiveRecordClassMapping() {
+	public class OtherDbBlogMapping : ClassMapping<OtherDbBlog> {
+		public OtherDbBlogMapping() {
 			Id(x => x.Id, m => m.Generator(Generators.Native));
 		}
-		
+	}
+
+	public class OtherDbBlog : Test2ARBase<OtherDbBlog>
+	{
+		public virtual int Id { get; set; }
+
+		public virtual string Name { get; set; }
+
+		public virtual string Author { get; set; }
+
+		public virtual IList<OtherDbPost> Posts { get; set; }
 	}
 }

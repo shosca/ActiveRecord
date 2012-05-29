@@ -107,7 +107,10 @@
     <Compile Include="ActiveRecordClass.cs" />
     <Compile Include="NHibernateClass.cs" />
     <Compile Include="NonAttributedPreLoadListener.cs" />
+    <Compile Include="OtherDbBlog.cs" />
+    <Compile Include="OtherDbPost.cs" />
     <Compile Include="RegisterNHibernateClassMapping.cs" />
+    <Compile Include="Test2ARBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Readme.txt" />
