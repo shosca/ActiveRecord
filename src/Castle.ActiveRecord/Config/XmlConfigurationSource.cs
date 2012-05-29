@@ -121,7 +121,7 @@ namespace Castle.ActiveRecord.Framework.Config
 		private void PopulateConfigNodes(XmlNode section)
 		{
 			const string Config_Node_Name = "config";
-			Type targetType = null;
+			string targetkey = string.Empty;
 
 			foreach(XmlNode node in section.ChildNodes)
 			{
@@ -145,7 +145,7 @@ namespace Castle.ActiveRecord.Framework.Config
 						String typeName = typeNameAtt.Value;
 
 						if (!string.IsNullOrEmpty(typeName))
-							targetType = Type.GetType(typeName, false, false);
+							targetkey = Type.GetType(typeName, false, false).FullName;
 					}
 
 					var databaseName = node.Attributes["database"] ?? node.Attributes["db"];
@@ -163,7 +163,7 @@ namespace Castle.ActiveRecord.Framework.Config
 					}
 				}
 
-				Add(targetType, BuildProperties(node, defaults));
+				Add(targetkey, BuildProperties(node, defaults));
 			}
 		}
 

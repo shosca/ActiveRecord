@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Scopes;
+
 namespace Castle.ActiveRecord.Tests.Config
 {
 	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Scopes;
 	using NUnit.Framework;
 	using Castle.ActiveRecord.Framework.Config;
 	using Castle.ActiveRecord.ByteCode;
@@ -45,34 +46,6 @@ namespace Castle.ActiveRecord.Tests.Config
 			Assert.That(configuration.Lazy, Is.True);
 			Assert.That(configuration.Verification, Is.True);
 			Assert.That(configuration.Searchable, Is.True);
-		}
-
-		[Test]
-		public void BasicSyntaxStorageConfiguration()
-		{
-			IStorageConfiguration configuration = Configure.Storage
-				.For
-				.AllOtherTypes()
-				.MappedBy(new XmlNhibernateMapping().InAssemblyOf<OneOfMyEntities>())
-				.As
-				.ConnectionStringName("a_string")
-				.Driver<SqlClientDriver>()
-				.ConnectionProvider<DriverConnectionProvider>()
-				.Dialect<MsSql2005Dialect>()
-				.ProxiedBy<ProxyFactoryFactory>()
-				.ShowSql();
-
-			IStorageConfiguration auditConfiguration = Configure.Storage
-				.For
-				.SubtypesOf<AuditType>()
-				.InNamespaceOf<DefaultAuditorType>() // Logical and - we are narrowing our 
-				.MappedBy(new FluentNHibernateMapping().InAssemblyOf<MyMappingClass>())
-				.And // Logical or - we start the next StorageTypeSelection
-				.TypesInAssemblyOf<MessagingImpl>()
-				// No MappedBy defaults to ActiveRecord attributes
-				.As
-				.DefaultsFor<MsSqlServer2000Configuration>()
-				.ConnectionString("server=bla;...");
 		}
 	}
 

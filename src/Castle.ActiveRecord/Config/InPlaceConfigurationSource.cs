@@ -25,7 +25,7 @@ namespace Castle.ActiveRecord.Framework.Config
 	/// </summary>
 	public class InPlaceConfigurationSource : IConfigurationSource
 	{
-		private readonly IDictionary<Type, IConfiguration> _type2Config = new Dictionary<Type, IConfiguration>();
+		private readonly IDictionary<string, IConfiguration> _type2Config = new Dictionary<string, IConfiguration>();
 		private Type threadScopeInfoImplementation;
 		private Type sessionFactoryHolderImplementation;
 		private Type namingStrategyImplementation;
@@ -80,13 +80,18 @@ namespace Castle.ActiveRecord.Framework.Config
 		/// <summary>
 		/// Return an <see cref="IConfiguration"/> for the specified type.
 		/// </summary>
-		/// <param name="type"></param>
+		/// <param name="key"></param>
 		/// <returns></returns>
-		public IConfiguration GetConfiguration(Type type)
+		public IConfiguration GetConfiguration(string key)
 		{
+			key = string.IsNullOrEmpty(key) ? string.Empty : key;
 			IConfiguration configuration;
-			_type2Config.TryGetValue(type, out configuration);
+			_type2Config.TryGetValue(key, out configuration);
 			return configuration;
+		}
+
+		public IEnumerable<string> GetAllConfigurationKeys() {
+			return _type2Config.Keys;
 		}
 
 		/// <summary>
@@ -195,7 +200,7 @@ namespace Castle.ActiveRecord.Framework.Config
 
 			var parameters = new DefaultDatabaseConfiguration().For(database);
 			parameters["connection.connection_string"] = connectionString;
-			config.Add(typeof(ActiveRecord), parameters);
+			config.Add(string.Empty, parameters);
 
 			return config;
 		}
@@ -214,23 +219,24 @@ namespace Castle.ActiveRecord.Framework.Config
 		/// <summary>
 		/// Adds the specified type with the properties
 		/// </summary>
-		/// <param name="type">The type.</param>
+		/// <param name="key">The type.</param>
 		/// <param name="properties">The properties.</param>
-		public void Add(Type type, IDictionary<string,string> properties)
+		public void Add(string key, IDictionary<string,string> properties)
 		{
-			Add(type, ConvertToConfiguration(properties));
+			Add(key, ConvertToConfiguration(properties));
 		}
 
 		/// <summary>
 		/// Adds the specified type with configuration
 		/// </summary>
-		/// <param name="type">The type.</param>
+		/// <param name="key">The type.</param>
 		/// <param name="config">The config.</param>
-		public void Add(Type type, IConfiguration config)
+		public void Add(string key, IConfiguration config)
 		{
+			key = string.IsNullOrEmpty(key) ? string.Empty : key;
 			ProcessConfiguration(config);
 
-			_type2Config[type] = config;
+			_type2Config[key] = config;
 		}
 
 		/// <summary>
@@ -244,7 +250,7 @@ namespace Castle.ActiveRecord.Framework.Config
 
 			if (isWeb)
 			{
-				threadInfoType = Type.GetType("Castle.ActiveRecord.Framework.Scopes.WebThreadScopeInfo, Castle.ActiveRecord.Web");
+				threadInfoType = Type.GetType("Castle.ActiveRecord.Scopes.WebThreadScopeInfo, Castle.ActiveRecord.Web");
 			}
 
 			if (!string.IsNullOrEmpty(customType))

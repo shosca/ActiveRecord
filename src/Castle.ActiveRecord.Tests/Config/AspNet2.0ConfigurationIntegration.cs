@@ -30,7 +30,7 @@ namespace Castle.ActiveRecord.Tests.Config
         {
 			IConfigurationSource source = ConfigurationManager.GetSection("activerecord-asp-net-2.0") as IConfigurationSource;
 
-            IConfiguration config = source.GetConfiguration(typeof(ActiveRecordBase));
+            IConfiguration config = source.GetConfiguration(string.Empty);
 
             string expected = config.Children["connection.connection_string"].Value;
             

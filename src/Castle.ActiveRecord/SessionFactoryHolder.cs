@@ -38,26 +38,6 @@ namespace Castle.ActiveRecord
 		private IThreadScopeInfo threadScopeInfo;
 
 		/// <summary>
-		/// Raised when a root type is registered.
-		/// </summary>
-		public event RootTypeHandler OnRootTypeRegistered;
-
-		/// <summary>
-		/// Associates a Configuration object to a root type
-		/// </summary>
-		/// <param name="rootType"></param>
-		/// <param name="cfg"></param>
-		public void Register(Type rootType, Configuration cfg)
-		{
-			type2Conf.Add(rootType, cfg);
-
-			if (OnRootTypeRegistered != null)
-			{
-				OnRootTypeRegistered(this, rootType);
-			}
-		}
-
-		/// <summary>
 		/// Requests the Configuration associated to the type.
 		/// </summary>
 		public Configuration GetConfiguration(Type type)
@@ -102,9 +82,7 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		public ISessionFactory GetSessionFactory(Type type)
 		{
-			Type normalizedtype = GetRootType(type);
-
-			if (normalizedtype == null)
+			if (type == null)
 			{
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
@@ -113,7 +91,7 @@ namespace Castle.ActiveRecord
 
 			try
 			{
-				ISessionFactory sessFactory = type2SessFactory[normalizedtype] as ISessionFactory;
+				ISessionFactory sessFactory = type2SessFactory[type] as ISessionFactory;
 
 				if (sessFactory != null)
 				{
@@ -124,17 +102,17 @@ namespace Castle.ActiveRecord
 
 				try
 				{
-					sessFactory = type2SessFactory[normalizedtype] as ISessionFactory;
+					sessFactory = type2SessFactory[type] as ISessionFactory;
 
 					if (sessFactory != null)
 					{
 						return sessFactory;
 					}
-					Configuration cfg = GetConfiguration(normalizedtype);
+					Configuration cfg = GetConfiguration(type);
 
 					sessFactory = cfg.BuildSessionFactory();
 
-					type2SessFactory[normalizedtype] = sessFactory;
+					type2SessFactory[type] = sessFactory;
 
 					return sessFactory;
 				}
@@ -150,20 +128,19 @@ namespace Castle.ActiveRecord
 		}
 
 		///<summary>
-		/// This method allows direct registration
-		/// of a session factory to a type, bypassing the normal preperation that AR
-		/// usually does. 
-		/// The main usage is in testing, so you would be able to switch the session factory
-		/// for each test.
-		/// Note that this will override the current session factory for the baseType.
+		/// This method allows direct registration of Configuration
 		///</summary>
-		public void RegisterSessionFactory(ISessionFactory sessionFactory, Type baseType)
+		public void RegisterConfiguration(Configuration cfg)
 		{
 			readerWriterLock.AcquireWriterLock(-1);
 
-			try 
-			{
-				type2SessFactory[baseType] = sessionFactory;
+			try {
+				var sf = cfg.BuildSessionFactory();
+
+				foreach (var classMetadata in sf.GetAllClassMetadata()) {
+					type2SessFactory[classMetadata.Value.GetMappedClass(EntityMode.Poco)] = sf;
+					type2Conf[classMetadata.Value.GetMappedClass(EntityMode.Poco)] = cfg;
+				}
 			}
 			finally 
 			{
@@ -187,47 +164,6 @@ namespace Castle.ActiveRecord
 			ISession session = OpenSession(sessionFactory);
 
 			return session;
-		}
-
-		/// <summary>
-		/// Gets the type of the root.
-		/// </summary>
-		/// <param name="type">The type.</param>
-		/// <returns></returns>
-		public Type GetRootType(Type type)
-		{
-			while(type != typeof(object))
-			{
-				if (type2Conf.ContainsKey(type))
-				{
-					return type;
-				}
-
-				type = type.BaseType;
-
-				//to enable multiple database support for generic types
-				if (type.IsGenericType)
-				{
-					Type genericTypeDef = type.GetGenericTypeDefinition();
-
-					if (type2Conf.ContainsKey(genericTypeDef))
-					{
-						return genericTypeDef;
-					}
-				}
-
-				// check implemented interfaces of class
-				Type[] interfaces = type.GetInterfaces();
-				foreach (Type interfaceType in interfaces)
-				{
-					if (type2Conf.ContainsKey(interfaceType))
-					{
-						return interfaceType;
-					}
-				}
-			}
-
-			return null;
 		}
 
 		private static ISession OpenSession(ISessionFactory sessionFactory)

@@ -94,9 +94,9 @@
     <Compile Include="..\..\buildscripts\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Framework\Scopes\HybridWebThreadScopeInfo.cs" />
-    <Compile Include="Framework\Scopes\WebThreadScopeInfo.cs" />
-    <Compile Include="Framework\SessionScopeWebModule.cs" />
+    <Compile Include="Scopes\HybridWebThreadScopeInfo.cs" />
+    <Compile Include="Scopes\WebThreadScopeInfo.cs" />
+    <Compile Include="SessionScopeWebModule.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Castle.ActiveRecord\Castle.ActiveRecord-vs2010.csproj">

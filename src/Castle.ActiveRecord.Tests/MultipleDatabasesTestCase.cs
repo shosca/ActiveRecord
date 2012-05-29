@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using System.Reflection;
+using Castle.ActiveRecord.Tests.Model;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests
 {
-	using Model;
 	using NUnit.Framework;
 
 	[TestFixture]
@@ -25,8 +29,7 @@ namespace Castle.ActiveRecord.Tests
 		{
 			Init();
 
-			ActiveRecordStarter.Initialize(GetConfigSource(),
-			                               typeof(Blog), typeof(Post), typeof(Hand), typeof(Test2ARBase));
+			ActiveRecord.Initialize(GetConfigSource());
 
 			Recreate();
 		}
@@ -34,13 +37,13 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void OperateOne()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 
 			CreateBlog();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 		}
 
@@ -56,13 +59,13 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void OperateTheOtherOne()
 		{
-			Hand[] hands = Hand.FindAll();
+			Hand[] hands = Hand.FindAll().ToArray();
 
 			Assert.AreEqual(0, hands.Length);
 
 			CreateHand();
 
-			hands = Hand.FindAll();
+			hands = Hand.FindAll().ToArray();
 
 			Assert.AreEqual(1, hands.Length);
 		}
@@ -79,8 +82,8 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void OperateBoth()
 		{
-			Blog[] blogs = Blog.FindAll();
-			Hand[] hands = Hand.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
+			Hand[] hands = Hand.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 			Assert.AreEqual(0, hands.Length);
@@ -88,8 +91,8 @@ namespace Castle.ActiveRecord.Tests
 			CreateBlog();
 			CreateHand();
 
-			blogs = Blog.FindAll();
-			hands = Hand.FindAll();
+			blogs = Blog.FindAll().ToArray();
+			hands = Hand.FindAll().ToArray();
 
 			Assert.AreEqual(1, blogs.Length);
 			Assert.AreEqual(1, hands.Length);

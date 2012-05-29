@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using System.Reflection;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
 	using System.Data.SqlClient;
 	
 	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Scopes;
-	using Castle.ActiveRecord.Tests.Model;
 	using Castle.Core.Configuration;
 	
 	using NHibernate;
@@ -33,10 +36,8 @@ namespace Castle.ActiveRecord.Tests
 		public void Setup()
 		{
 			base.Init();
-			
-			ActiveRecordStarter.Initialize( GetConfigSource(), 
-				typeof(Blog), typeof(Post), 
-				typeof(OtherDbBlog), typeof(OtherDbPost), typeof(Test2ARBase) );
+
+			ActiveRecord.Initialize(GetConfigSource());
 			
 			Recreate();
 		}
@@ -61,11 +62,11 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.IsNotNull( blogs );
 			Assert.AreEqual( 1, blogs.Length );
 
-			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll();
+			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll().ToArray();
 			Assert.IsNotNull( blogs2 );
 			Assert.AreEqual( 1, blogs2.Length );
 		}
@@ -103,11 +104,11 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.IsNotNull( blogs );
 			Assert.AreEqual( 1, blogs.Length );
 
-			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll();
+			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll().ToArray();
 			Assert.IsNotNull( blogs2 );
 			Assert.AreEqual( 1, blogs2.Length );
 		}
@@ -158,11 +159,11 @@ namespace Castle.ActiveRecord.Tests
 			Assert.IsTrue(trans2.WasCommitted);
 			Assert.IsFalse(trans2.WasRolledBack);
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.IsNotNull( blogs );
 			Assert.AreEqual( 1, blogs.Length );
 
-			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll();
+			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll().ToArray();
 			Assert.IsNotNull( blogs2 );
 			Assert.AreEqual( 1, blogs2.Length );
 		}
@@ -215,11 +216,11 @@ namespace Castle.ActiveRecord.Tests
 			Assert.IsFalse(trans2.WasCommitted);
 			Assert.IsTrue(trans2.WasRolledBack);
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.IsNotNull( blogs );
 			Assert.AreEqual( 0, blogs.Length );
 
-			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll();
+			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll().ToArray();
 			Assert.IsNotNull( blogs2 );
 			Assert.AreEqual( 0, blogs2.Length );
 		}
@@ -246,11 +247,11 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll();
+			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll().ToArray();
 			Assert.IsNotNull( blogs2 );
 			Assert.AreEqual( 1, blogs2.Length );
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.IsNotNull( blogs );
 			Assert.AreEqual( 1, blogs.Length );
 		}
@@ -264,7 +265,7 @@ namespace Castle.ActiveRecord.Tests
 			ITransaction trans1, trans2;
 			using(new SessionScope())
 			{
-				using(TransactionScope scope = new TransactionScope())
+				using(new TransactionScope())
 				{
 					Blog blog = new Blog();
 					blog.Name = "hammett's blog";
@@ -323,11 +324,11 @@ namespace Castle.ActiveRecord.Tests
 			Assert.IsTrue(trans2.WasCommitted);
 			Assert.IsFalse(session2.Transaction.WasRolledBack);
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.IsNotNull( blogs );
 			Assert.AreEqual( 1, blogs.Length );
 
-			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll();
+			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll().ToArray();
 			Assert.IsNotNull( blogs2 );
 			Assert.AreEqual( 2, blogs2.Length );
 		}
@@ -341,7 +342,7 @@ namespace Castle.ActiveRecord.Tests
 			ITransaction trans1, trans2;
 			using(new SessionScope())
 			{
-				using(TransactionScope scope = new TransactionScope())
+				using(new TransactionScope())
 				{
 					Blog blog = new Blog();
 					blog.Name = "hammett's blog";
@@ -394,7 +395,7 @@ namespace Castle.ActiveRecord.Tests
 
 				conn.Close();
 
-				using(TransactionScope scope = new TransactionScope())
+				using(new TransactionScope())
 				{
 					Blog blog = new Blog();
 					blog.Name = "another blog";
@@ -410,11 +411,11 @@ namespace Castle.ActiveRecord.Tests
 			Assert.IsTrue(trans2.WasCommitted);
 			Assert.IsFalse(trans2.WasRolledBack);
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.IsNotNull( blogs );
 			Assert.AreEqual( 2, blogs.Length );
 
-			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll();
+			OtherDbBlog[] blogs2 = OtherDbBlog.FindAll().ToArray();
 			Assert.IsNotNull( blogs2 );
 			Assert.AreEqual( 2, blogs2.Length );
 		}
@@ -423,7 +424,7 @@ namespace Castle.ActiveRecord.Tests
 		{
 			IConfigurationSource config = GetConfigSource();
 	
-			IConfiguration db2 = config.GetConfiguration( typeof(Test2ARBase) );
+			IConfiguration db2 = config.GetConfiguration(string.Empty);
 	
 			SqlConnection conn = null;
 	
@@ -441,8 +442,8 @@ namespace Castle.ActiveRecord.Tests
 		private SqlConnection CreateSqlConnection2()
 		{
 			IConfigurationSource config = GetConfigSource();
-	
-			IConfiguration db2 = config.GetConfiguration( typeof(ActiveRecordBase) );
+
+			IConfiguration db2 = config.GetConfiguration(string.Empty);
 	
 			SqlConnection conn = null;
 	

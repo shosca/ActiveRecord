@@ -17,7 +17,7 @@ namespace Castle.ActiveRecord.Tests.Model
 	using System;
 	using NHibernate.Event;
 
-	[EventListener]
+	///[EventListener]
 	public class AttributedPreLoadListener : IPreLoadEventListener
 	{
 		public void OnPreLoad(PreLoadEvent @event){}

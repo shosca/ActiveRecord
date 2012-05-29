@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests.Conversation
 {
 	using System;
@@ -24,7 +27,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
 	{
 		public override Type[] GetTypes()
 		{
-			return new[] { typeof(BlogLazy), typeof(PostLazy) };
+			return new[] { typeof(Blog), typeof(Post) };
 		}
 		
 		[Test]
@@ -35,16 +38,16 @@ namespace Castle.ActiveRecord.Tests.Conversation
 
 			using (new ConversationalScope(conversation))
 			{
-				BlogLazy.FindAll();
-				session = BlogLazy.Holder.CreateSession(typeof (BlogLazy));
+				Blog.FindAll();
+				session = ActiveRecord.Holder.CreateSession(typeof (Blog));
 			}
 
 			Assert.That(session.IsOpen);
 
 			using (new ConversationalScope(conversation))
 			{
-				BlogLazy.FindAll();
-				Assert.That(BlogLazy.Holder.CreateSession(typeof(BlogLazy)), Is.SameAs(session));
+				Blog.FindAll();
+				Assert.That(ActiveRecord.Holder.CreateSession(typeof(Blog)), Is.SameAs(session));
 			}
 
 			conversation.Dispose();
@@ -61,7 +64,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
 				var ex = Assert.Throws<ActiveRecordException>(() =>
 				                                              	{
 				                                              		using (new ConversationalScope(conversation))
-				                                              			BlogLazy.FindAll();
+				                                              			Blog.FindAll();
 				                                              	}
 					);
 
@@ -99,7 +102,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
 			{
 				using (new ConversationalScope(c))
 				{
-					BlogLazy.FindAll();
+					Blog.FindAll();
 				}
 
 				var ex = Assert.Throws<ActiveRecordException>(
@@ -141,7 +144,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
 		{
 			using (var c = new ScopedConversation())
 			{
-				Assert.Throws<ApplicationException>(() => c.Execute(() => new PostLazy().SaveWithException()));
+				Assert.Throws<ApplicationException>(() => c.Execute(() => new Post().SaveWithException()));
 				Assert.That(c.IsCanceled);
 			}
 		}
@@ -151,7 +154,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
 		{
 			using (var c = new ScopedConversation())
 			{
-				c.ExecuteSilently(() => new PostLazy().SaveWithException());
+				c.ExecuteSilently(() => new Post().SaveWithException());
 				Assert.That(c.IsCanceled);
 			}
 		}
@@ -200,7 +203,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
 					triggered = true;
 					ex = args.Exception;
 				};
-				c.ExecuteSilently(()=>new PostLazy().SaveWithException());
+				c.ExecuteSilently(()=>new Post().SaveWithException());
 			}
 
 			Assert.That(triggered);

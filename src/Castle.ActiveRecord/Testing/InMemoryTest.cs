@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Framework.Config;
+using Castle.Core.Configuration;
+
 namespace Castle.ActiveRecord.Testing
 {
 	using System;
@@ -19,7 +22,6 @@ namespace Castle.ActiveRecord.Testing
 	using System.Collections.Generic;
 
 	using Castle.ActiveRecord;
-	using Castle.ActiveRecord.Framework.Config;
 
 	/// <summary>
 	/// Base class for in memory unit tests. This class does not contain any
@@ -34,32 +36,29 @@ namespace Castle.ActiveRecord.Testing
 		public virtual void SetUp()
 		{
 			ActiveRecord.ResetInitializationFlag();
-			Dictionary<string, string> properties = new Dictionary<string, string>();
-			properties.Add("connection.driver_class", "NHibernate.Driver.SQLite20Driver");
-			properties.Add("dialect", "NHibernate.Dialect.SQLiteDialect");
-			properties.Add("connection.provider", typeof(InMemoryConnectionProvider).AssemblyQualifiedName);
-			properties.Add("connection.connection_string", "Data Source=:memory:;Version=3;New=True");
-            properties.Add("proxyfactory.factory_class", "Castle.ActiveRecord.ByteCode.ProxyFactoryFactory, Castle.ActiveRecord");
-			foreach (var p in GetProperties())
-			{
-				properties[p.Key] = p.Value; 
-			}
-
 			var config = new InPlaceConfigurationSource();
-			config.Add(typeof(ActiveRecord), properties);
-			foreach (var type in GetAdditionalBaseClasses())
-			{
-				config.Add(type, properties);
+
+			MutableConfiguration conf = new MutableConfiguration("Config");
+			conf.Children.Add(new MutableConfiguration("assembly", Assembly.GetCallingAssembly().FullName));
+
+			foreach (var a in GetAssemblies()) {
+				conf.Children.Add(new MutableConfiguration("assembly", a.FullName));
 			}
+
+			conf.Children.Add(new MutableConfiguration("connection.driver_class", "NHibernate.Driver.SQLite20Driver"));
+			conf.Children.Add(new MutableConfiguration("dialect", "NHibernate.Dialect.SQLiteDialect"));
+			conf.Children.Add(new MutableConfiguration("connection.provider", typeof (InMemoryConnectionProvider).AssemblyQualifiedName));
+			conf.Children.Add(new MutableConfiguration("connection.connection_string", "Data Source=:memory:;Version=3;New=True"));
+			conf.Children.Add(new MutableConfiguration("proxyfactory.factory_class", "Castle.ActiveRecord.ByteCode.ProxyFactoryFactory, Castle.ActiveRecord"));
+			foreach (var p in GetProperties()) {
+				conf.Children.Add(new MutableConfiguration(p.Key, p.Value));
+			}
+			config.Add(string.Empty, conf);
+
+
 			Configure(config);
-			
-			var types = GetTypes();
-			var assemblies = GetAssemblies();
 
-			if (types == null) types = new Type[0];
-			if (assemblies == null) assemblies = new Assembly[0];
-
-			ActiveRecord.Initialize(assemblies,config,types);
+			ActiveRecord.Initialize(config);
 			ActiveRecord.CreateSchema();
 		}
 

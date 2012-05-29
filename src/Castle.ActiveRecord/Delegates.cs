@@ -28,4 +28,9 @@ namespace Castle.ActiveRecord
 	/// Delegate for use in <see cref="ActiveRecord.MapperCreated"/>
 	/// </summary>
 	public delegate void MapperDelegate(ModelMapper mapper, IConfigurationSource source);
+
+	/// <summary>
+	/// Delegate for use in <see cref="ActiveRecord.NHibernateConfigurationCreated"/>
+	/// </summary>
+	public delegate void ConfigurationDelegate(NHibernate.Cfg.Configuration configuration);
 }

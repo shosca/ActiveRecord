@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Castle.ActiveRecord.Framework;
 using Castle.ActiveRecord.Framework.Config;
@@ -9,6 +10,7 @@ using Castle.ActiveRecord.Scopes;
 using Castle.Core.Configuration;
 using Iesi.Collections.Generic;
 using NHibernate.Cfg;
+using NHibernate.Cfg.MappingSchema;
 using NHibernate.Mapping.ByCode;
 using NHibernate.Tool.hbm2ddl;
 using Environment = NHibernate.Cfg.Environment;
@@ -23,17 +25,13 @@ namespace Castle.ActiveRecord {
 	public static class ActiveRecord
 	{
 		private static readonly Object lockConfig = new object();
-		private static bool isInitialized = false;
+
+		public static IConfigurationSource ConfigurationSource { get; private set; }
 
 		/// <summary>
 		/// The global holder for the session factories.
 		/// </summary>
 		public static ISessionFactoryHolder Holder { get; private set; }
-
-		/// <summary>
-		/// This is saved so one can invoke <c>RegisterTypes</c> later
-		/// </summary>
-		private static IConfigurationSource configSource;
 
 		/// <summary>
 		/// So others frameworks can intercept the 
@@ -52,77 +50,14 @@ namespace Castle.ActiveRecord {
 		/// </summary>
 		public static event MapperDelegate MapperCreated;
 
-		/// <summary>
-		/// Initialize the mappings using the configuration and 
-		/// the list of types
-		/// </summary>
-		public static void Initialize(IConfigurationSource source, params Type[] types)
-		{
-			lock(lockConfig)
-			{
-				if (isInitialized)
-				{
-					throw new ActiveRecordInitializationException("You can't invoke ActiveRecordStarter.Initialize more than once");
-				}
-
-				if (source == null)
-				{
-					throw new ArgumentNullException("source");
-				}
-
-				if (types == null)
-				{
-					throw new ArgumentNullException("types");
-				}
-
-				configSource = source;
-
-				// First initialization
-				Holder = CreateSessionFactoryHolderImplementation(source);
-
-				Holder.ThreadScopeInfo = CreateThreadScopeInfoImplementation(source);
-
-				RaiseSessionFactoryHolderCreated(Holder);
-
-				RegisterEventListeners(types);
-
-				if (configSource.Searchable)
-				{
-					// contributors.Add(new NHSearchContributor());
-				}
-
-				// Sets up base configuration
-				SetupConfiguration(source, null, Holder);
-
-				//RegisterTypes(holder, source, types, true);
-
-				isInitialized = true;
-			}
-		}
-
-		/// <summary>
-		/// Initialize the mappings using the configuration and 
-		/// checking all the types on the specified <c>Assembly</c>
-		/// </summary>
-		public static void Initialize(Assembly assembly, IConfigurationSource source)
-		{
-			Initialize(new Assembly[] {assembly}, source);
-		}
 
 		/// <summary>
 		/// Initialize the mappings using the configuration and 
 		/// checking all the types on the specified Assemblies
 		/// </summary>
-		public static void Initialize(Assembly[] assemblies, IConfigurationSource source, params Type[] additionalTypes)
+		public static void Initialize(IConfigurationSource source)
 		{
-			List<Type> list = new List<Type>(additionalTypes);
-
-			foreach(Assembly assembly in assemblies)
-			{
-				CollectValidActiveRecordTypesFromAssembly(assembly, list, source);
-			}
-
-			Initialize(source, list.ToArray());
+			CreateSessionFactoryAndRegisterToHolder(source);
 		}
 
 		/// <summary>
@@ -133,34 +68,51 @@ namespace Castle.ActiveRecord {
 		{
 			IConfigurationSource source = ActiveRecordSectionHandler.Instance;
 
-			Initialize(Assembly.GetCallingAssembly(), source);
+			Initialize(source);
+		}
+
+		static bool IsClassMapperType(Type t) {
+			return t.Name.ToLower().EndsWith("mapping");
 		}
 
 		/// <summary>
-		/// Registers new assemblies in ActiveRecord
-		/// Usefull for dynamic assembly-adding after initialization
+		/// Initialize the mappings using the configuration and 
+		/// the list of types
 		/// </summary>
-		/// <param name="assemblies"></param>
-		public static void RegisterAssemblies(params Assembly[] assemblies)
+		static void CreateSessionFactoryAndRegisterToHolder(IConfigurationSource source)
 		{
-			List<Type> types = new List<Type>();
-
-			foreach(Assembly assembly in assemblies)
+			if (source == null)
 			{
-				CollectValidActiveRecordTypesFromAssembly(assembly, types, configSource);
+				throw new ArgumentNullException("source");
 			}
 
-			RegisterTypes(types.ToArray());
-		}
+			lock(lockConfig)
+			{
+				if (Holder == null) {
+					// First initialization
+					Holder = CreateSessionFactoryHolderImplementation(source);
+					Holder.ThreadScopeInfo = CreateThreadScopeInfoImplementation(source);
+					RaiseSessionFactoryHolderCreated(Holder);
+				}
 
-		/// <summary>
-		/// Registers new types in ActiveRecord
-		/// Usefull for dynamic type-adding after initialization
-		/// </summary>
-		/// <param name="types"></param>
-		public static void RegisterTypes(params Type[] types)
-		{
-			//RegisterTypes(ActiveRecordBase.holder, configSource, types, false);
+				ConfigurationSource = source;
+
+				ConventionModelMapper mapper = new ConventionModelMapper();
+				if (MapperCreated != null)
+					MapperCreated(mapper, source);
+
+				foreach (var key in source.GetAllConfigurationKeys()) {
+					var config = source.GetConfiguration(key);
+					var assemblies = config.Children.Where(c => c.Name.Equals("assembly")).Select(c => Assembly.Load(c.Value));
+					var mappingtypes = assemblies.SelectMany(a => a.GetExportedTypes()).Where(t => IsClassMapperType(t));
+					mapper.AddMappings(mappingtypes);
+					var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
+					var cfg = CreateConfiguration(config);
+					cfg.AddMapping(mapping);
+					Holder.RegisterConfiguration(cfg);
+				}
+
+			}
 		}
 
 		/// <summary>
@@ -420,7 +372,6 @@ namespace Castle.ActiveRecord {
 		{
 			// Make sure we start with it enabled
 			Environment.UseReflectionOptimizer = true;
-			isInitialized = false;
 		}
 
 		/// <summary>
@@ -431,47 +382,7 @@ namespace Castle.ActiveRecord {
 		/// </value>
 		public static bool IsInitialized
 		{
-			get { return isInitialized; }
-		}
-
-		/// <summary>
-		/// The current <see cref="IConfigurationSource"/>.
-		/// </summary>
-		public static IConfigurationSource ConfigurationSource
-		{
-			get { return configSource; }
-		}
-
-		private static ModelMapper BuildModels(ISessionFactoryHolder holder, IConfigurationSource source, IEnumerable<Type> mappingtypes)
-		{
-			ModelMapper mapper = new ConventionModelMapper();
-
-			foreach(Type type in mappingtypes)
-			{
-				mapper.AddMapping(type);
-
-			}
-
-			// SetupConfiguration(source, type, holder);
-
-			if (MapperCreated != null)
-			{
-				MapperCreated(mapper, source);
-			}
-
-			return mapper;
-		}
-
-		private static Type[] GetExportedTypesFromAssembly(Assembly assembly)
-		{
-			try
-			{
-				return assembly.GetExportedTypes();
-			}
-			catch(Exception ex)
-			{
-				throw new ActiveRecordInitializationException("Error while loading the exported types from the assembly: " + assembly.FullName, ex);
-			}
+			get { return Holder != null; }
 		}
 
 		private static SchemaExport CreateSchemaExport(Configuration cfg)
@@ -483,14 +394,6 @@ namespace Castle.ActiveRecord {
 		private static SchemaUpdate CreateSchemaUpdate(Configuration cfg)
 		{
 			return new SchemaUpdate(cfg);
-		}
-
-		/// <summary>
-		/// Return true if the type has a [ActiveRecord] attribute
-		/// </summary>
-		private static bool IsActiveRecordType(ICustomAttributeProvider type)
-		{
-			return false;
 		}
 
 		private static void CheckInitialized()
@@ -512,32 +415,6 @@ namespace Castle.ActiveRecord {
 			}
 
 			return cfg;
-		}
-
-		private static void SetupConfiguration(IConfigurationSource source, Type type, ISessionFactoryHolder holder)
-		{
-			IConfiguration config = source.GetConfiguration(type);
-
-			if (config != null)
-			{
-				Configuration nconf = CreateConfiguration(config);
-
-				if (source.NamingStrategyImplementation != null)
-				{
-					Type namingStrategyType = source.NamingStrategyImplementation;
-
-					if (!typeof(INamingStrategy).IsAssignableFrom(namingStrategyType))
-					{
-						String message = String.Format("The specified type {0} does " + "not implement the interface INamingStrategy", namingStrategyType.FullName);
-
-						throw new ActiveRecordException(message);
-					}
-
-					nconf.SetNamingStrategy((INamingStrategy) Activator.CreateInstance(namingStrategyType));
-				}
-
-				holder.Register(type, nconf);
-			}
 		}
 
 		private static void RaiseSessionFactoryHolderCreated(ISessionFactoryHolder holder)
@@ -571,10 +448,6 @@ namespace Castle.ActiveRecord {
 			}
 		}
 
-		private static void RegisterEventListeners(IEnumerable<Type> types)
-		{
-		}
-
 		private static IThreadScopeInfo CreateThreadScopeInfoImplementation(IConfigurationSource source)
 		{
 			if (source.ThreadScopeInfoImplementation != null)
@@ -595,26 +468,6 @@ namespace Castle.ActiveRecord {
 			else
 			{
 				return new ThreadScopeInfo();
-			}
-		}
-
-		/// <summary>
-		/// Retrieve all classes decorated with ActiveRecordAttribute or that have been configured
-		/// as a AR base class.
-		/// </summary>
-		/// <param name="assembly">Assembly to retrieve types from</param>
-		/// <param name="list">Array to store retrieved types in</param>
-		/// <param name="source">IConfigurationSource to inspect AR base declarations from</param>
-		private static void CollectValidActiveRecordTypesFromAssembly(Assembly assembly, ICollection<Type> list, IConfigurationSource source)
-		{
-			Type[] types = GetExportedTypesFromAssembly(assembly);
-
-			foreach(Type type in types)
-			{
-				if (IsActiveRecordType(type) || source.GetConfiguration(type) != null)
-				{
-					list.Add(type);
-				}
 			}
 		}
 

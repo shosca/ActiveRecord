@@ -14,12 +14,12 @@
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	[ActiveRecord]
+	//zzzz [ActiveRecord]
 	public class ActiveRecordClass
 	{
 		private int id;
 
-		[PrimaryKey]
+		//zzzz [PrimaryKey]
 		public virtual int Id
 		{
 			get { return id; }

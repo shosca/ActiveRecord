@@ -19,7 +19,6 @@ namespace Castle.ActiveRecord.Tests
 	using NUnit.Framework;
 
     using Castle.ActiveRecord.Tests.Model.RulesModel;
-    using Castle.ActiveRecord.Framework.Internal;
 
     [TestFixture]
     public class ActiveRecordWithoutBaseTestCase : AbstractActiveRecordTest

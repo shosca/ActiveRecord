@@ -20,31 +20,11 @@ using NHibernate.Cfg;
 namespace Castle.ActiveRecord
 {
 	/// <summary>
-	/// Type of delegate that is called when a root type is registered.
-	/// </summary>
-	/// <param name="sender"></param>
-	/// <param name="rootType"></param>
-	public delegate void RootTypeHandler(object sender, Type rootType);
-
-	/// <summary>
 	/// Keeps an association of SessionFactories to a object model 
 	/// tree;
 	/// </summary>
 	public interface ISessionFactoryHolder
 	{
-		/// <summary>
-		/// Raised when a new root type is registered. 
-		/// A new root type creates a new <c>ISessionFactory</c>
-		/// </summary>
-		event RootTypeHandler OnRootTypeRegistered;
-
-		/// <summary>
-		/// Associates a Configuration object to a root type
-		/// </summary>
-		/// <param name="rootType"></param>
-		/// <param name="cfg"></param>
-		void Register(Type rootType, Configuration cfg);
-
 		/// <summary>
 		/// Pendent
 		/// </summary>
@@ -91,25 +71,13 @@ namespace Castle.ActiveRecord
 		void FailSession(ISession session);
 
 		/// <summary>
-		/// Gets the type of the root.
-		/// </summary>
-		/// <param name="type">The type.</param>
-		/// <returns></returns>
-		Type GetRootType(Type type);
-
-		/// <summary>
 		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
 		/// </summary>
 		IThreadScopeInfo ThreadScopeInfo { get; set; }
 
 		///<summary>
-		/// This method allows direct registration
-		/// of a session factory to a type, bypassing the normal preperation that AR
-		/// usually does. 
-		/// The main usage is in testing, so you would be able to switch the session factory
-		/// for each test.
-		/// Note that this will override the current session factory for the baseType.
+		/// This method allows direct registration of Configuration
 		///</summary>
-		void RegisterSessionFactory(ISessionFactory sessionFactory, Type baseType);
+		void RegisterConfiguration(Configuration cfg);
 	}
 }

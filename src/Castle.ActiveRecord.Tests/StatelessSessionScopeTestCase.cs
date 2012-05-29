@@ -12,20 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+using System.Linq;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Model;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
 	using Castle.ActiveRecord;
 	using Castle.ActiveRecord.Framework;
 	using Castle.ActiveRecord.Framework.Config;
-	using Castle.ActiveRecord.Framework.Scopes;
-	using Castle.ActiveRecord.Tests.Model;
-	using Castle.ActiveRecord.Tests.Model.LazyModel;
 	using NHibernate;
 	using NHibernate.Criterion;
 	using NUnit.Framework;
 	using System.Collections;
-	using Castle.ActiveRecord.Queries;
 
 	[TestFixture]
 	public class StatelessSessionScopeTestCase : AbstractActiveRecordTest
@@ -36,7 +38,7 @@ namespace Castle.ActiveRecord.Tests
 			Initialize();
 			using (new StatelessSessionScope())
 			{
-				Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), Blog.Holder.CreateSession(typeof(Blog)));
+				Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), ActiveRecord.Holder.CreateSession(typeof(Blog)));
 			}
 		}
 
@@ -48,7 +50,7 @@ namespace Castle.ActiveRecord.Tests
 			{
 				try
 				{
-					Blog.Holder.CreateSession(typeof(Blog)).Merge(null);
+					ActiveRecord.Holder.CreateSession(typeof(Blog)).Merge(null);
 					Assert.Fail();
 				}
 				catch (NotImplementedException ex)
@@ -67,15 +69,15 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 			using (new StatelessSessionScope())
 				CreateBlog();
 
-			Blog[] blogs = Blog.FindAll();
-			Assert.AreEqual(1, blogs.Length);
-			Assert.AreEqual("Mort", blogs[0].Author);
+			var blogs = Blog.FindAll();
+			Assert.AreEqual(1, blogs.Count());
+			Assert.AreEqual("Mort", blogs.First().Author);
 		}
 
 		[Test]
 		public void A_simple_object_can_be_read()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Ship));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
 			using (new SessionScope())
@@ -91,17 +93,17 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 		[Test]
 		public void Get_with_lazy_classes_does_work()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(BlogLazy), typeof(PostLazy));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
 			using (new SessionScope())
-				new BlogLazy { Author = "Mort", Name = "Hourglass" }.Create();
+				new Blog { Author = "Mort", Name = "Hourglass" }.Create();
 
 			using (new StatelessSessionScope())
 			{
-				Assert.AreEqual("Mort", BlogLazy.Find(1).Author);
+				Assert.AreEqual("Mort", Blog.Find(1).Author);
 				// The assert below cannot work, stateless sessions cannot serve proxies.
-				// Assert.AreEqual(0, BlogLazy.Find(1).Posts.Count);
+				// Assert.AreEqual(0, Blog.Find(1).Posts.Count);
 			}
 		}
 
@@ -138,13 +140,13 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 
 			using (new StatelessSessionScope())
 			{
-				var blog = BlogLazy.Find(1);
+				var blog = Blog.Find(1);
 				Assert.AreEqual("Hourglass", blog.Name);
 				blog.Name = "HOURGLASS";
 				blog.Update();
 			}
 
-			Assert.AreEqual("HOURGLASS", BlogLazy.Find(1).Name);
+			Assert.AreEqual("HOURGLASS", Blog.Find(1).Name);
 		}
 
 		[Test]
@@ -208,7 +210,7 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 
 			using (new StatelessSessionScope())
 			{
-				blog.Posts = new ArrayList();
+				blog.Posts = new List<Post>();
 
 				for (int i = 0; i < 10; i++)
 				{
@@ -238,115 +240,28 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 		}
 
 		[Test]
-		public void Querying_works_with_HQL()
-		{
-			InitializeLazy();
-			using (new SessionScope())
-				CreateLazyBlog();
-
-			var query = new SimpleQuery<BlogLazy>("from BlogLazy b where b.Author = ?", "Mort");
-			using (new StatelessSessionScope())
-				Assert.AreEqual(1, query.Execute().Length);
-
-		}
-
-		[Test]
-		public void Enumerating_with_queries_doesnt_work()
-		{
-			InitializeLazy();
-			using (new SessionScope())
-				CreateLazyBlog();
-
-			var query = new SimpleQuery<BlogLazy>("from BlogLazy b where b.Author = ?", "Mort");
-			using (new StatelessSessionScope())
-				query.Enumerate();
-		}
-
-		[Test]
-		public void Can_delete_instances()
-		{
-			InitializeLazy();
-			using (new SessionScope())
-				CreateLazyBlog();
-
-			var query = new SimpleQuery<BlogLazy>("from BlogLazy b where b.Author = ?", "Mort");
-			using (new StatelessSessionScope())
-			{
-				foreach (var blog in query.Execute())
-					blog.Delete();
-			}
-
-			Assert.AreEqual(0, BlogLazy.FindAll().Length);
-		}
-
-		[Test]
 		public void Querying_works_with_Detached_Criteria()
 		{
 			InitializeLazy();
 			using (new SessionScope())
 				CreateLazyBlog();
 
-			var crit = DetachedCriteria.For<BlogLazy>().Add(Expression.Eq("Author", "Mort"));
+			var crit = DetachedCriteria.For<Blog>().Add(Expression.Eq("Author", "Mort"));
 			using (new StatelessSessionScope())
-				Assert.AreEqual(1, ActiveRecordMediator<BlogLazy>.FindAll(crit).Length);
+				Assert.AreEqual(1, ActiveRecordMediator<Blog>.FindAll(crit).Count());
 
 		}
 
-		[Test]
-		public void Collections_can_be_fetched_with_queries()
-		{
-			InitializeLazy();
-
-			var blog = new BlogLazy { Author = "Mort", Name = "Hourglass" };
-			var post = new PostLazy { Blog = blog, Title = "...", Created = DateTime.Now };
-
-			blog.Save();
-			post.Save();
-
-			var query = new SimpleQuery<BlogLazy>("from BlogLazy b join fetch b.Posts");
-
-			using (new StatelessSessionScope())
-			{
-				var result = query.Execute();
-				Assert.AreEqual(1, result.Length);
-				Assert.AreEqual(1, result[0].Posts.Count);
-				var queriedPost = result[0].Posts[0] as PostLazy;
-				Assert.AreEqual("...", queriedPost.Title);
-			}
-		}
-
-		[Test]
-		public void Nonlazy_collections_can_be_fetched_with_queries()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(SimpleBlog), typeof(SimplePost));
-			Recreate();
-
-			var blog = new SimpleBlog { Name = "Blog" };
-			var post = new SimplePost { Blog = blog, Title = "Post" };
-			blog.Save();
-			post.Save();
-
-			var query = new SimpleQuery<SimpleBlog>("from SimpleBlog b join fetch b.Posts");
-
-			using (new StatelessSessionScope())
-			{
-				var result = query.Execute();
-				Assert.AreEqual(1, result.Length);
-				Assert.AreEqual(1, result[0].Posts.Count);
-				Assert.AreEqual("Post", result[0].Posts[0].Title);
-				Assert.AreSame(result[0], result[0].Posts[0].Blog);
-			}
-		}
 
 		private void Initialize()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 		}
 
 		private void InitializeLazy()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(PostLazy), typeof(BlogLazy));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 		}
 
@@ -358,7 +273,7 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 
 		private void CreateLazyBlog()
 		{
-			new BlogLazy { Author = "Mort", Name = "Hourglass" }.Create();
+			new Blog { Author = "Mort", Name = "Hourglass" }.Create();
 		}
 	}
 }

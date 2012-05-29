@@ -18,9 +18,6 @@ namespace Castle.ActiveRecord.Tests
 
 	using NUnit.Framework;
 
-	using Castle.ActiveRecord.Tests.Model.StrictModel;
-
-
 	[TestFixture]
 	public class StrictModelTestCase : AbstractActiveRecordTest
 	{

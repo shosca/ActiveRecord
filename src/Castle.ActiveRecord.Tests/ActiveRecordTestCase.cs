@@ -17,8 +17,6 @@ namespace Castle.ActiveRecord.Tests
 	using System;
 	using System.Threading;
 	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Tests.Model;
-	using Castle.ActiveRecord.Tests.Model.CompositeModel;
 	using NHibernate.Criterion;
 	using NUnit.Framework;
 

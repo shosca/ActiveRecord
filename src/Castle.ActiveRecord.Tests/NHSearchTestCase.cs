@@ -17,7 +17,6 @@ namespace Castle.ActiveRecord.Tests
 	using System;
 	using Castle.ActiveRecord.Framework;
 	using Castle.ActiveRecord.Framework.Config;
-	using Castle.ActiveRecord.Framework.Scopes;
 	using Castle.ActiveRecord.Tests.Model;
 	using Castle.ActiveRecord.Tests.Model.LazyModel;
 	using NHibernate;

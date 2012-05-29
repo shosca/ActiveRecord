@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
 	using Castle.ActiveRecord;
 	using Castle.ActiveRecord.Framework;
 	using Castle.ActiveRecord.Framework.Config;
-	using Castle.ActiveRecord.Framework.Scopes;
-	using Castle.ActiveRecord.Tests.Model;
-	using Castle.ActiveRecord.Tests.Model.LazyModel;
 	using NHibernate;
 	using NUnit.Framework;
 
@@ -49,30 +50,30 @@ namespace Castle.ActiveRecord.Tests
 		{
 			ISession session1, session2, session3, session4;
 
-			ActiveRecordStarter.Initialize( GetConfigSource(), typeof(Post), typeof(Blog) );
+			ActiveRecord.Initialize( GetConfigSource() );
 			Recreate();
 
 			// No scope here
 			// So no optimization, thus different sessions
 
-			session1 = Blog.Holder.CreateSession( typeof(Blog) );
-			session2 = Blog.Holder.CreateSession( typeof(Blog) );
+			session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+			session2 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
 
 			Assert.IsNotNull( session1 );
 			Assert.IsNotNull( session2 );
 			Assert.IsTrue( session1 != session2 );
 
-			Blog.Holder.ReleaseSession(session1);
-			Blog.Holder.ReleaseSession(session2);
+			ActiveRecord.Holder.ReleaseSession(session1);
+			ActiveRecord.Holder.ReleaseSession(session2);
 
 			// With scope
 
 			using(new SessionScope())
 			{
-				session1 = Blog.Holder.CreateSession( typeof(Blog) );
-				session2 = Blog.Holder.CreateSession( typeof(Post) );
-				session3 = Blog.Holder.CreateSession( typeof(Blog) );
-				session4 = Blog.Holder.CreateSession( typeof(Post) );
+				session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+				session2 = ActiveRecord.Holder.CreateSession( typeof(Post) );
+				session3 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+				session4 = ActiveRecord.Holder.CreateSession( typeof(Post) );
 
 				Assert.IsNotNull( session1 );
 				Assert.IsNotNull( session2 );
@@ -83,15 +84,15 @@ namespace Castle.ActiveRecord.Tests
 				Assert.IsTrue( session3 == session1 );
 				Assert.IsTrue( session4 == session1 );
 
-				Blog.Holder.ReleaseSession(session1);
-				Blog.Holder.ReleaseSession(session2);
-				Blog.Holder.ReleaseSession(session3);
-				Blog.Holder.ReleaseSession(session4);
+				ActiveRecord.Holder.ReleaseSession(session1);
+				ActiveRecord.Holder.ReleaseSession(session2);
+				ActiveRecord.Holder.ReleaseSession(session3);
+				ActiveRecord.Holder.ReleaseSession(session4);
 
-				session1 = Blog.Holder.CreateSession( typeof(Post) );
-				session2 = Blog.Holder.CreateSession( typeof(Post) );
-				session3 = Blog.Holder.CreateSession( typeof(Blog) );
-				session4 = Blog.Holder.CreateSession( typeof(Blog) );
+				session1 = ActiveRecord.Holder.CreateSession( typeof(Post) );
+				session2 = ActiveRecord.Holder.CreateSession( typeof(Post) );
+				session3 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+				session4 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
 
 				Assert.IsNotNull( session1 );
 				Assert.IsNotNull( session2 );
@@ -105,21 +106,21 @@ namespace Castle.ActiveRecord.Tests
 
 			// Back to the old behavior
 
-			session1 = Blog.Holder.CreateSession( typeof(Blog) );
-			session2 = Blog.Holder.CreateSession( typeof(Blog) );
+			session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+			session2 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
 
 			Assert.IsNotNull( session1 );
 			Assert.IsNotNull( session2 );
 			Assert.IsTrue( session1 != session2 );
 
-			Blog.Holder.ReleaseSession(session1);
-			Blog.Holder.ReleaseSession(session2);
+			ActiveRecord.Holder.ReleaseSession(session1);
+			ActiveRecord.Holder.ReleaseSession(session2);
 		}
 
 		[Test]
 		public void SessionScopeUsage()
 		{
-			ActiveRecordStarter.Initialize( GetConfigSource(), typeof(Post), typeof(Blog) );
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
 			Post.DeleteAll();
@@ -136,17 +137,17 @@ namespace Castle.ActiveRecord.Tests
 				post.Save();
 			}
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual( 1, blogs.Length );
 
-			Post[] posts = Post.FindAll();
+			Post[] posts = Post.FindAll().ToArray();
 			Assert.AreEqual( 1, posts.Length );
 		}
 
 		[Test]
 		public void NestedSessionScopeUsage()
 		{
-			ActiveRecordStarter.Initialize( GetConfigSource(), typeof(Post), typeof(Blog) );
+			ActiveRecord.Initialize( GetConfigSource());
 			Recreate();
 
 			Post.DeleteAll();
@@ -170,43 +171,43 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual( 1, blogs.Length );
 
-			Post[] posts = Post.FindAll();
+			Post[] posts = Post.FindAll().ToArray();
 			Assert.AreEqual( 1, posts.Length );
 		}
 
 		[Test]
 		public void NestedSessionScopeAndLazyLoad()
 		{
-			ActiveRecordStarter.Initialize( GetConfigSource(), typeof(ProductLazy), typeof(CategoryLazy) );
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
-			ProductLazy product = new ProductLazy();
+			Product product = new Product();
 
-			product.Categories.Add( new CategoryLazy("x") );
-			product.Categories.Add( new CategoryLazy("y") );
-			product.Categories.Add( new CategoryLazy("z") );
+			product.Categories.Add( new Category("x") );
+			product.Categories.Add( new Category("y") );
+			product.Categories.Add( new Category("z") );
 
 			product.Save();
 
 			using(new SessionScope())
 			{
-				ProductLazy product1 = ProductLazy.Find(product.Id);
+				Product product1 = Product.Find(product.Id);
 				Assert.AreEqual( 3, product1.Categories.Count );
 
-				foreach(CategoryLazy cat in product1.Categories)
+				foreach(Category cat in product1.Categories)
 				{
 					object dummy = cat.Name;
 				}
 
-				ProductLazy product2 = ProductLazy.Find(product.Id);
+				Product product2 = Product.Find(product.Id);
 				Assert.AreEqual( 3, product2.Categories.Count );
 
 				using(new SessionScope())
 				{
-					foreach(CategoryLazy cat in product2.Categories)
+					foreach(Category cat in product2.Categories)
 					{
 						object dummy = cat.Name;
 					}
@@ -214,10 +215,10 @@ namespace Castle.ActiveRecord.Tests
 
 				using(new SessionScope())
 				{
-					ProductLazy product3 = ProductLazy.Find(product.Id);
+					Product product3 = Product.Find(product.Id);
 					Assert.AreEqual( 3, product3.Categories.Count );
 
-					foreach(CategoryLazy cat in product3.Categories)
+					foreach(Category cat in product3.Categories)
 					{
 						object dummy = cat.Name;
 					}
@@ -228,7 +229,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void AnExceptionInvalidatesTheScopeAndPreventItsFlushing()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
 			Post.DeleteAll();
@@ -272,7 +273,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SessionScopeFlushModeNever()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
 			Post.DeleteAll();
@@ -287,7 +288,7 @@ namespace Castle.ActiveRecord.Tests
 				//This gets flushed automatically because of the identity field
 				blog.Save();
 
-				Blog[] blogs = Blog.FindAll();
+				Blog[] blogs = Blog.FindAll().ToArray();
 				Assert.AreEqual(1, blogs.Length);
 
 				//This change won't be saved to the db
@@ -295,13 +296,13 @@ namespace Castle.ActiveRecord.Tests
 				blog.Save();
 
 				//The change should not be in the db
-				blogs = Blog.FindByProperty("Author", "A New Author");
+				blogs = Blog.FindByProperty("Author", "A New Author").ToArray();
 				Assert.AreEqual(0, blogs.Length);
 								
 				SessionScope.Current.Flush();
 
 				//The change should now be in the db
-				blogs = Blog.FindByProperty("Author", "A New Author");
+				blogs = Blog.FindByProperty("Author", "A New Author").ToArray();
 				Assert.AreEqual(1, blogs.Length);
 
 				//This change will be save to the db because it uses the SaveNow method
@@ -309,19 +310,19 @@ namespace Castle.ActiveRecord.Tests
 				blog.SaveAndFlush();
 
 				//The change should now be in the db
-				blogs = Blog.FindByProperty("Name", "A New Name");
+				blogs = Blog.FindByProperty("Name", "A New Name").ToArray();
 				Assert.AreEqual(1, blogs.Length);
 
 				//This deletion should not get to the db
 				blog.Delete();
 
-				blogs = Blog.FindAll();
+				blogs = Blog.FindAll().ToArray();
 				Assert.AreEqual(1, blogs.Length);
 				
 				SessionScope.Current.Flush();
 
 				//The deletion should now be in the db
-				blogs = Blog.FindAll();
+				blogs = Blog.FindAll().ToArray();
 				Assert.AreEqual(0, blogs.Length);
 			}
 		}
@@ -329,7 +330,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void DifferentSessionScopesUseDifferentCaches()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
 			Post.DeleteAll();
@@ -353,10 +354,10 @@ namespace Castle.ActiveRecord.Tests
 
 				//Assert.AreEqual(FlushMode.Auto, blog.CurrentSession.FlushMode);
 				//Assert.IsTrue(blog.CurrentSession.Transaction.IsActive);
-				Assert.AreEqual(DefaultFlushType.Classic, ActiveRecordStarter.ConfigurationSource.DefaultFlushType);
+				Assert.AreEqual(DefaultFlushType.Classic, ActiveRecord.ConfigurationSource.DefaultFlushType);
 
 				// Flushes automatically
-				Assert.AreEqual(1, Blog.FindByProperty("Name", "FooBarBaz").Length);
+				Assert.AreEqual(1, Blog.FindByProperty("Name", "FooBarBaz").Count());
 			}
 
 			using (new SessionScope())
@@ -367,11 +368,11 @@ namespace Castle.ActiveRecord.Tests
 				using (new SessionScope())
 				{
 					// Not flushed here
-					Assert.AreEqual(0, Blog.FindByProperty("Name", "FooBar").Length);
+					Assert.AreEqual(0, Blog.FindByProperty("Name", "FooBar").Count());
 				}
 			}
 			// Here it is flushed
-			Assert.AreEqual(1, Blog.FindByProperty("Name", "FooBar").Length);
+			Assert.AreEqual(1, Blog.FindByProperty("Name", "FooBar").Count());
 		}
 	}
 }

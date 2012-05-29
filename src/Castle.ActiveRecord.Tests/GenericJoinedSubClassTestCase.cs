@@ -14,10 +14,7 @@
 
 namespace Castle.ActiveRecord.Tests
 {
-	using Castle.ActiveRecord.Tests.Model;
 	using NUnit.Framework;
-	using CompanyEntity=Castle.ActiveRecord.Tests.Model.GenericModel.CompanyEntity;
-	using PersonEntity=Castle.ActiveRecord.Tests.Model.GenericModel.PersonEntity;
 
 	[TestFixture]
 	public class GenericJoinedSubClassTestCase : AbstractActiveRecordTest

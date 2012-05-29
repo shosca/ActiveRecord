@@ -14,58 +14,59 @@
 
 namespace Castle.ActiveRecord.Tests.Model.CompositeUserType
 {
-	[ActiveRecord]
+	//zzzz [ActiveRecord]
 	public class BadProduct_WithNoType
 	{
-		[PrimaryKey]
+		//zzzz [PrimaryKey]
 		public int Id { get; set; }
 
-		[CompositeUserType]
+		//zzzz [CompositeUserType]
 		public string[] ManufacturerName { get; set; }
 	}
 
-	[ActiveRecord]
+	//zzzz [ActiveRecord]
 	public class BadProduct_WithBadType 
 	{
-		[PrimaryKey]
+		//zzzz [PrimaryKey]
 		public int Id { get; set; }
 
+		/*zzzz
 		[CompositeUserType(CompositeType = typeof(string),
 				ColumnNames = new[] { "Manufacturer_FirstName" },
-				Length = new[] {1,2,3})]
+				Length = new[] {1,2,3})] */
 		public string[] ManufacturerName { get; set; }
 	}
 
-	[ActiveRecord]
+	//zzzz [ActiveRecord]
 	public class BadProduct_WithNoColumnNames 
 	{
-		[PrimaryKey]
+		//zzzz [PrimaryKey]
 		public int Id { get; set; }
 
-		[CompositeUserType(CompositeType = typeof(DoubleStringType))]
+		//zzzz [CompositeUserType(CompositeType = typeof(DoubleStringType))]
 		public string[] ManufacturerName { get; set; }
 	}
 
-	[ActiveRecord]
+	//zzzz [ActiveRecord]
 	public class BadProduct_WithNoColumnLength 
 	{
-		[PrimaryKey]
+		//zzzz [PrimaryKey]
 		public int Id { get; set; }
 
-		[CompositeUserType(CompositeType = typeof(DoubleStringType), 
-				ColumnNames = new[] { "Manufacturer_FirstName" })]
+		//zzzz [CompositeUserType(CompositeType = typeof(DoubleStringType), 
+				//zzzz ColumnNames = new[] { "Manufacturer_FirstName" })]
 		public string[] ManufacturerName { get; set; }
 	}
 
-	[ActiveRecord]
+	//zzzz [ActiveRecord]
 	public class BadProduct_WithBadColumnLength
 	{
-		[PrimaryKey]
+		//zzzz [PrimaryKey]
 		public int Id { get; set; }
 
-		[CompositeUserType(CompositeType = typeof(DoubleStringType), 
-				ColumnNames = new[] { "Manufacturer_FirstName" },
-				Length = new[] {1,2,3})]
+		//zzzz [CompositeUserType(CompositeType = typeof(DoubleStringType), 
+				//zzzz ColumnNames = new[] { "Manufacturer_FirstName" },
+				//zzzz Length = new[] {1,2,3})]
 		public string[] ManufacturerName { get; set; }
 	}
 

@@ -21,7 +21,6 @@ namespace Castle.ActiveRecord.Tests
 	using System.Reflection;
 	using System.Text.RegularExpressions;
 	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Tests.Model.CompositeUserType;
 	using NUnit.Framework;
 
 	[TestFixture]

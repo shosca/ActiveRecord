@@ -411,5 +411,44 @@ namespace Castle.ActiveRecord
 			return NHibernate.Criterion.QueryOver.Of(entityname, alias);
 		}
 
+		public virtual void Create() {
+			ActiveRecordMediator<T>.Create(this);
+		}
+
+		public virtual void CreateAndFlush() {
+			ActiveRecordMediator<T>.CreateAndFlush(this);
+		}
+
+		public virtual void Update() {
+			ActiveRecordMediator<T>.Update(this);
+		}
+
+		public virtual void UpdateAndFlush() {
+			ActiveRecordMediator<T>.UpdateAndFlush(this);
+		}
+
+		public virtual void Save() {
+			ActiveRecordMediator<T>.Save(this);
+		}
+
+		public virtual void SaveAndFlush() {
+			ActiveRecordMediator<T>.SaveAndFlush(this);
+		}
+
+		public virtual void Delete() {
+			ActiveRecordMediator<T>.Delete(this);
+		}
+
+		public virtual void DeleteAndFlush() {
+			ActiveRecordMediator<T>.DeleteAndFlush(this);
+		}
+
+		public virtual void Refresh() {
+			ActiveRecordMediator<T>.Refresh(this);
+		}
+
+		public static IEnumerable<T> FindByProperty(string property, object value) {
+			return ActiveRecordMediator<T>.FindAllByProperty(property, value);
+		}
 	}
 }

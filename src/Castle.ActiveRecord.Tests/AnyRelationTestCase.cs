@@ -16,8 +16,6 @@ namespace Castle.ActiveRecord.Tests
 {
 	using System;
 	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Internal;
-	using Castle.ActiveRecord.Tests.Model.AnyModel;
 	using NUnit.Framework;
 
 	[TestFixture]

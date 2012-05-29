@@ -14,13 +14,6 @@
 
 namespace Castle.ActiveRecord.Tests
 {
-	using System;
-	using System.Diagnostics;
-
-	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Queries;
-
-	using Castle.ActiveRecord.Tests.Model;
 
 	using NHibernate.Criterion;
 

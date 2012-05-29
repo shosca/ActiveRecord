@@ -16,7 +16,6 @@ namespace Castle.ActiveRecord.Tests
 {
 	using NUnit.Framework;
 
-	using Castle.ActiveRecord.Tests.Model;
 
 	[TestFixture]
 	public class LazyTestCase : AbstractActiveRecordTest

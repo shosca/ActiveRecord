@@ -14,12 +14,12 @@
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	[ActiveRecord("ModelClassWithBrokenField")]
+	//zzzz [ActiveRecord("ModelClassWithBrokenField")]
 	public class ModelClassUsedToCreateTableForClassWithBrokenField : ActiveRecordBase
 	{
 		private int _id;
 
-		[PrimaryKey]
+		//zzzz [PrimaryKey]
 		public int Id
 		{
 			get { return _id; }
@@ -27,12 +27,12 @@ namespace Castle.ActiveRecord.Tests.Model
 		}
 	}
 
-	[ActiveRecord("ModelClassWithBrokenField")]
+	//zzzz [ActiveRecord("ModelClassWithBrokenField")]
 	public class ModelClassWithBrokenField : ModelClassUsedToCreateTableForClassWithBrokenField
 	{
 		private bool broken;
 
-		[Property]
+		//zzzz [Property]
 		public bool Broken
 		{
 			get { return broken; }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests.Testing
 {
 	using System;
@@ -19,9 +21,6 @@ namespace Castle.ActiveRecord.Tests.Testing
 
 	using NUnit.Framework;
 
-	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Testing;
-	using Castle.ActiveRecord.Tests.Model;
 	using System.Reflection;
 	using System.Collections.Generic;
 
@@ -35,17 +34,10 @@ namespace Castle.ActiveRecord.Tests.Testing
 		}
 
 		[Test]
-		public void TypesAreInitialized()
-		{
-			Assert.IsTrue(Array.Exists(ActiveRecordStarter.GetRegisteredTypes(),t=>t.Equals(typeof(Blog))));
-			Assert.IsTrue(Array.Exists(ActiveRecordStarter.GetRegisteredTypes(),t=>t.Equals(typeof(Post))));
-		}
-
-		[Test]
 		public void BasicUsageIsPossible()
 		{
 			new Blog() { Author = "Me", Name = "Titles" }.Save();
-			Assert.AreEqual(1, Blog.FindAll().Length);
+			Assert.AreEqual(1, Blog.FindAll().ToArray().Length);
 		}
 	}
 
@@ -54,13 +46,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 	{
 		public override System.Reflection.Assembly[] GetAssemblies()
 		{
-			return new []{ Assembly.GetAssembly(typeof(ActiveRecordClass))};
-		}
-
-		[Test]
-		public void TypeIsInitialized()
-		{
-			Assert.IsTrue(Array.Exists(ActiveRecordStarter.GetRegisteredTypes(), t => t.Equals(typeof(ActiveRecordClass))));
+			return new []{ Assembly.GetAssembly(typeof(ActiveRecord))};
 		}
 	}
 
@@ -69,20 +55,14 @@ namespace Castle.ActiveRecord.Tests.Testing
 	{
 		public override Type[] GetTypes()
 		{
-			return new[] { typeof(Blog), typeof(Post), typeof(Test2ARBase), typeof(OtherDbBlog), typeof(OtherDbPost) };
+			return new[] { typeof(Blog), typeof(Post), typeof(Test2ARBase<>), typeof(OtherDbBlog), typeof(OtherDbPost) };
 		}
 
 		public override Type[] GetAdditionalBaseClasses()
 		{
-			return new[] { typeof(Test2ARBase) };
+			return new[] { typeof(Test2ARBase<>) };
 		}
 
-		[Test]
-		public void TypesAreInitialized()
-		{
-			Assert.IsTrue(Array.Exists(ActiveRecordStarter.GetRegisteredTypes(), t => t.Equals(typeof(Blog))));
-			Assert.IsTrue(Array.Exists(ActiveRecordStarter.GetRegisteredTypes(), t => t.Equals(typeof(OtherDbBlog))));
-		}
 	}
 
 	[TestFixture]
@@ -104,7 +84,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 		public void PropertiesAreCarriesOver()
 		{
 			Blog.FindAll();
-			Assert.AreEqual("true", Blog.Holder.GetConfiguration(typeof(ActiveRecordBase)).Properties["show_sql"]);
+			Assert.AreEqual("true", ActiveRecord.Holder.GetConfiguration(typeof(Blog)).Properties["show_sql"]);
 		}
 
 	}

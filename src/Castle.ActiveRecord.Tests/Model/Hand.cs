@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+
 namespace Castle.ActiveRecord.Tests.Model
 {
-	[ActiveRecord("Hands")]
+	//zzzz [ActiveRecord("Hands")]
 	public class Hand : Test2ARBase
 	{
 		private int _id;
@@ -24,23 +26,23 @@ namespace Castle.ActiveRecord.Tests.Model
 		{
 		}
 
-		[PrimaryKey(PrimaryKeyType.Identity)]
+		//zzzz [PrimaryKey(PrimaryKeyType.Identity)]
 		public int Id
 		{
 			get { return _id; }
 			set { _id = value; }
 		}
 
-		[Property]
+		//zzzz [Property]
 		public string Side
 		{
 			get { return _side; }
 			set { _side = value; }
 		}
 
-		public static Hand[] FindAll()
+		public static IEnumerable<Hand> FindAll()
 		{
-			return (Hand[]) ActiveRecordBase.FindAll(typeof (Hand));
+			return ActiveRecordMediator<Hand>.FindAll();
 		}
 	}
 }

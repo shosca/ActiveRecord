@@ -15,7 +15,6 @@
 namespace Castle.ActiveRecord.Tests
 {
 	using Castle.ActiveRecord.Framework.Config;
-	using Castle.ActiveRecord.Framework.Internal;
 	using Castle.ActiveRecord.Tests.Model;
 	using NUnit.Framework;
 

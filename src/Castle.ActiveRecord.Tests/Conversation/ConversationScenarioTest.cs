@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests.Conversation
 {
     using System;
@@ -24,7 +27,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
     {
         public override Type[] GetTypes()
         {
-            return new[] {typeof (BlogLazy), typeof (PostLazy)};
+            return new[] {typeof (Blog), typeof (Post)};
         }
 
         [Test]
@@ -35,27 +38,13 @@ namespace Castle.ActiveRecord.Tests.Conversation
 
         	// Act
             IScopeConversation conversation = new ScopedConversation();
-            BlogLazy queriedBlog;
+            Blog queriedBlog;
             using (new ConversationalScope(conversation))
             {
-                queriedBlog = BlogLazy.Find(1);
+                queriedBlog = Blog.Find(1);
             }
 
             // No scope here
-            var fetchedPosts = queriedBlog.PublishedPosts;
-            var firstPost = fetchedPosts[0] as PostLazy;
-            firstPost.Published = false;
-
-            using (new ConversationalScope(conversation))
-            {
-                firstPost.SaveAndFlush();
-                queriedBlog.Refresh();
-            }
-
-            // Assert
-
-            // Again, we're querying lazy properties out of scope
-            Assert.That(queriedBlog.PublishedPosts, Is.Empty);
             Assert.That(queriedBlog.Posts, Is.Not.Empty);
 
             conversation.Dispose();
@@ -67,10 +56,10 @@ namespace Castle.ActiveRecord.Tests.Conversation
 			ArrangeRecords();
     		using (var conversation = new ScopedConversation())
     		{
-    			BlogLazy blog = null;
+    			Blog blog = null;
     			using (new ConversationalScope(conversation))
     			{
-    				blog = BlogLazy.FindAll().First();
+    				blog = Blog.FindAll().First();
     			}
 
     			blog.Author = "Somebody else";
@@ -82,7 +71,7 @@ namespace Castle.ActiveRecord.Tests.Conversation
 
     			conversation.Cancel();
     		}
-			Assert.That(BlogLazy.FindAll().First().Author, Is.EqualTo("Markus"));
+			Assert.That(Blog.FindAll().First().Author, Is.EqualTo("Markus"));
 		}
 
 		[Test]
@@ -92,24 +81,24 @@ namespace Castle.ActiveRecord.Tests.Conversation
 
 			using (var conversation = new ScopedConversation(ConversationFlushMode.Explicit))
 			{
-				BlogLazy blog;
+				Blog blog;
 				using (new ConversationalScope(conversation))
 				{
-					blog = BlogLazy.FindAll().First();
+					blog = Blog.FindAll().First();
 					blog.Author = "Anonymous";
 					blog.Save();
-					BlogLazy.FindAll(); // Triggers flushing if allowed
+					Blog.FindAll(); // Triggers flushing if allowed
 				}
 
 				Assert.That(blog.Author, Is.EqualTo("Anonymous"));
 
 				// Outside any ConversationalScope session-per-request is used
-				Assert.That(BlogLazy.FindAll().First().Author, Is.EqualTo("Markus"));
+				Assert.That(Blog.FindAll().First().Author, Is.EqualTo("Markus"));
 
 				conversation.Flush();
 			}
 
-			Assert.That(BlogLazy.FindAll().First().Author, Is.EqualTo("Anonymous"));
+			Assert.That(Blog.FindAll().First().Author, Is.EqualTo("Anonymous"));
 		}
 
 		[Test]
@@ -119,24 +108,24 @@ namespace Castle.ActiveRecord.Tests.Conversation
 
 			using (var conversation = new ScopedConversation(ConversationFlushMode.OnClose))
 			{
-				BlogLazy blog;
+				Blog blog;
 				using (new ConversationalScope(conversation))
 				{
-					blog = BlogLazy.FindAll().First();
+					blog = Blog.FindAll().First();
 					blog.Author = "Anonymous";
 					blog.Save();
-					BlogLazy.FindAll(); // Triggers flushing if allowed
+					Blog.FindAll(); // Triggers flushing if allowed
 				}
 
 				Assert.That(blog.Author, Is.EqualTo("Anonymous"));
 
 				// Outside any ConversationalScope session-per-request is used
-				Assert.That(BlogLazy.FindAll().First().Author, Is.EqualTo("Markus"));
+				Assert.That(Blog.FindAll().First().Author, Is.EqualTo("Markus"));
 
 				// conversation.Flush(); // Only needed when set to explicit
 			}
 
-			Assert.That(BlogLazy.FindAll().First().Author, Is.EqualTo("Anonymous"));
+			Assert.That(Blog.FindAll().First().Author, Is.EqualTo("Anonymous"));
 		}
 
     	[Test]
@@ -147,16 +136,16 @@ namespace Castle.ActiveRecord.Tests.Conversation
     		{
     			using (new ConversationalScope(c))
     			{
-    				BlogLazy.FindAll();
-    				s1 = BlogLazy.Holder.CreateSession(typeof (BlogLazy));
+    				Blog.FindAll();
+    				s1 = ActiveRecord.Holder.CreateSession(typeof (Blog));
     			}
 				
 				c.Restart();
 
 				using (new ConversationalScope(c))
 				{
-					BlogLazy.FindAll();
-					s2 = BlogLazy.Holder.CreateSession(typeof(BlogLazy));
+					Blog.FindAll();
+					s2 = ActiveRecord.Holder.CreateSession(typeof(Blog));
 				}    			
 
 				Assert.That(s1, Is.Not.SameAs(s2));
@@ -172,14 +161,14 @@ namespace Castle.ActiveRecord.Tests.Conversation
 
     		using (IConversation conversation = new ScopedConversation())
     		{
-    			BlogLazy blog = null;
-    			conversation.Execute(() => { blog = BlogLazy.FindAll().First(); });
+    			Blog blog = null;
+    			conversation.Execute(() => { blog = Blog.FindAll().First(); });
 
 				Assert.That(blog, Is.Not.Null);
 				Assume.That(blog.Author, Is.EqualTo("Markus"));
 
 				// Lazy access
-				Assert.That(blog.PublishedPosts.Count, Is.EqualTo(1));
+				Assert.That(blog.Posts.Count, Is.EqualTo(1));
 
     			blog.Author = "Anonymous";
 
@@ -187,19 +176,19 @@ namespace Castle.ActiveRecord.Tests.Conversation
 				
     		}
 
-			Assert.That(BlogLazy.FindAll().First().Author, Is.EqualTo("Anonymous"));
+			Assert.That(Blog.FindAll().First().Author, Is.EqualTo("Anonymous"));
     	}
 
 
 
     	private void ArrangeRecords()
     	{
-    		BlogLazy blog = new BlogLazy()
+    		Blog blog = new Blog()
     		                	{
     		                		Author = "Markus",
     		                		Name = "Conversations"
     		                	};
-    		PostLazy post = new PostLazy()
+    		Post post = new Post()
     		                	{
     		                		Blog = blog,
     		                		Category = "Scenario",

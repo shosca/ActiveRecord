@@ -15,7 +15,6 @@
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
-	using Castle.ActiveRecord.Tests.Model.CompositeNested;
 	using NUnit.Framework;
 	
 	

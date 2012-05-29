@@ -15,7 +15,6 @@
 namespace Castle.ActiveRecord.Tests
 {
 	using Framework.Config;
-	using Model;
 	using NUnit.Framework;
 
 	[TestFixture]
@@ -27,8 +26,8 @@ namespace Castle.ActiveRecord.Tests
 			
 			XmlConfigurationSource config = (XmlConfigurationSource)GetConfigSource();
 
-			ActiveRecordStarter.Initialize(config, typeof(EnumModel));
-			ActiveRecordStarter.CreateSchema();
+			ActiveRecord.Initialize(config, typeof(EnumModel));
+			ActiveRecord.CreateSchema();
 		}
 
 		[Test]

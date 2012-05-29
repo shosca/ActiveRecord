@@ -109,13 +109,12 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Castle.Components.Validator, Version=0.0.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\$(BuildConfigKey)\Castle.Components.Validator.dll</HintPath>
+    <Reference Include="Castle.Components.Validator, Version=2.5.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Castle.Components.Validator.2.5.0\lib\NET40\Castle.Components.Validator.dll</HintPath>
     </Reference>
-    <Reference Include="Castle.Core, Version=0.0.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+    <Reference Include="Castle.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\$(BuildConfigKey)\Castle.Core.dll</HintPath>
+      <HintPath>..\..\packages\Castle.Core.3.0.0.4001\lib\net40-client\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="Iesi.Collections, Version=1.0.1.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>
@@ -217,17 +216,12 @@
     <Compile Include="Config\DefaultFlushType.cs" />
     <Compile Include="Config\DefaultStorageConfiguration.cs" />
     <Compile Include="Config\FluentActiveRecordConfiguration.cs" />
-    <Compile Include="Config\FluentNHibernateMapping.cs" />
-    <Compile Include="Config\FluentStorageConfiguration.cs" />
-    <Compile Include="Config\FluentStorageTypeSelection.cs" />
     <Compile Include="Config\IActiveRecordConfiguration.cs" />
     <Compile Include="Config\IDatabaseConfiguration.cs" />
-    <Compile Include="Config\IMappingSpecification.cs" />
     <Compile Include="Config\IStorageConfiguration.cs" />
     <Compile Include="Config\MsSqlServer2000Configuration.cs" />
     <Compile Include="Config\MsSqlServer2005Configuration.cs" />
     <Compile Include="Config\StorageTypeSelection.cs" />
-    <Compile Include="Config\XmlNhibernateMapping.cs" />
     <Compile Include="Scopes\ConversationalScope.cs" />
     <Compile Include="Scopes\ConversationCanceledEventArgs.cs" />
     <Compile Include="Scopes\IConversation.cs" />

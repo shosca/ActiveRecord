@@ -18,7 +18,6 @@ namespace Castle.ActiveRecord.Tests
 
 	using NUnit.Framework;
 
-	using Model.Nested;
 
 
 	[TestFixture]

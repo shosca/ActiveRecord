@@ -13,20 +13,20 @@
 // limitations under the License.
 
 namespace Castle.ActiveRecord.Tests.Model {
-	[ActiveRecord(Lazy = true)]
+	//zzzz [ActiveRecord(Lazy = true)]
 	public class LazyObjectWithLazyBlobProperty
 	{
 		private int id;
 		private byte[] blobdata;
 
-		[PrimaryKey]
+		//zzzzz [PrimaryKey]
 		public virtual int Id
 		{
 			get { return id; }
 			set { id = value; }
 		}
 
-		[Property(Lazy = true, ColumnType="BinaryBlob")]
+		//zzzzz [Property(Lazy = true, ColumnType="BinaryBlob")]
 		public virtual byte[] BlobData
 		{
 			get { return blobdata; }

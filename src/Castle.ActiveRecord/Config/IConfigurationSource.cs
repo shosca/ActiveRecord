@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+
 namespace Castle.ActiveRecord.Framework
 {
 	using System;
@@ -44,9 +46,15 @@ namespace Castle.ActiveRecord.Framework
 		/// Implementors should return an <see cref="IConfiguration"/> 
 		/// instance
 		/// </summary>
-		/// <param name="type"></param>
+		/// <param name="key"></param>
 		/// <returns></returns>
-		IConfiguration GetConfiguration(Type type);
+		IConfiguration GetConfiguration(string key);
+
+		/// <summary>
+		/// Returns all registered configuration keys
+		/// </summary>
+		/// <returns></returns>
+		IEnumerable<string> GetAllConfigurationKeys();
 
 		/// <summary>
 		/// Gets a value indicating whether this <see cref="IConfigurationSource"/> produce debug information

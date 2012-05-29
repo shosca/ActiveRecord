@@ -15,7 +15,6 @@
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
-	using Castle.ActiveRecord.Tests.Model.NestedValidation;
 	using Castle.Components.Validator;
 	using NUnit.Framework;
 

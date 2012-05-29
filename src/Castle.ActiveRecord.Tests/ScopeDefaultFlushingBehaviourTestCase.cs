@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Reflection;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
 	using Castle.ActiveRecord.Framework;
 	using Castle.ActiveRecord.Framework.Config;
-	using Castle.ActiveRecord.Framework.Scopes;
-	using Castle.ActiveRecord.Tests.Model;
-	using Castle.ActiveRecord.Tests.Model.LazyModel;
 	using NHibernate;
 	using NUnit.Framework;
 
@@ -38,16 +39,16 @@ namespace Castle.ActiveRecord.Tests
 		
 		private void TestBehaviour(DefaultFlushType flushType, FlushMode sessionScopeMode, FlushMode transactionScopeMode)
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
-			DefaultFlushType originalDefaultFlushType = ActiveRecordStarter.ConfigurationSource.DefaultFlushType;
+			DefaultFlushType originalDefaultFlushType = ActiveRecord.ConfigurationSource.DefaultFlushType;
 			try
 			{
-				((InPlaceConfigurationSource)ActiveRecordStarter.ConfigurationSource).DefaultFlushType = flushType;
+				((InPlaceConfigurationSource)ActiveRecord.ConfigurationSource).DefaultFlushType = flushType;
 
 				Blog blog = new Blog(); // just for CurrentSession
 
@@ -70,7 +71,7 @@ namespace Castle.ActiveRecord.Tests
 			finally
 			{
 				// Restore Default Flush type we corrupted before.
-				((InPlaceConfigurationSource)ActiveRecordStarter.ConfigurationSource).DefaultFlushType = originalDefaultFlushType;
+				((InPlaceConfigurationSource)ActiveRecord.ConfigurationSource).DefaultFlushType = originalDefaultFlushType;
 			}
 		}
 	}

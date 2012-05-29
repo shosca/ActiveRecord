@@ -19,8 +19,6 @@ namespace Castle.ActiveRecord.Tests
 	using System.Text.RegularExpressions;
 	using NUnit.Framework;
 
-	using Castle.ActiveRecord.Tests.Model.Nested;
-	
 	[TestFixture]
 	public class NestedClassWithPrefixTestCase : AbstractActiveRecordTest
 	{

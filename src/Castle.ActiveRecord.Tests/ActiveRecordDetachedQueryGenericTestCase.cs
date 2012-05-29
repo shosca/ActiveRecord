@@ -14,7 +14,6 @@
 
 using NUnit.Framework;
 using NHibernate.Impl;
-using Castle.ActiveRecord.Tests.Model.GenericModel;
 
 namespace Castle.ActiveRecord.Tests
 {

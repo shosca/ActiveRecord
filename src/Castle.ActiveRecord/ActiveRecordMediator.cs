@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.Components.Validator;
 
 namespace Castle.ActiveRecord
 {
@@ -21,7 +22,6 @@ namespace Castle.ActiveRecord
 	using System.Linq;
 
 	using Framework;
-	using Castle.Components.Validator;
 
 	using NHibernate;
 	using NHibernate.Transform;
@@ -338,7 +338,7 @@ namespace Castle.ActiveRecord
 
 				AddOrdersToCriteria(sessionCriteria, orders);
 
-				return sessionCriteria.Future<T>();
+				return sessionCriteria.List<T>();
 			});
 		}
 
@@ -368,7 +368,7 @@ namespace Castle.ActiveRecord
 
 				AddOrdersToCriteria(criteria, orders);
 
-				return criteria.Future<T>();
+				return criteria.List<T>();
 
 			});
 		}
@@ -392,7 +392,7 @@ namespace Castle.ActiveRecord
 		public static IEnumerable<T> FindAll(IDetachedQuery detachedQuery)
 		{
 			EnsureInitialized();
-			return Execute(session => detachedQuery.GetExecutableQuery(session).Future<T>());
+			return Execute(session => detachedQuery.GetExecutableQuery(session).List<T>());
 		}
 
 		/// <summary>
@@ -420,7 +420,7 @@ namespace Castle.ActiveRecord
 				sessionCriteria.SetFirstResult(firstResult);
 				sessionCriteria.SetMaxResults(maxResults);
 
-				return sessionCriteria.Future<T>();
+				return sessionCriteria.List<T>();
 			});
 		}
 
@@ -444,7 +444,7 @@ namespace Castle.ActiveRecord
 				executableCriteria.SetFirstResult(firstResult);
 				executableCriteria.SetMaxResults(maxResults);
 
-				return executableCriteria.Future<T>();
+				return executableCriteria.List<T>();
 			});
 		}
 
@@ -462,7 +462,7 @@ namespace Castle.ActiveRecord
 				IQuery executableQuery = detachedQuery.GetExecutableQuery(session);
 				executableQuery.SetFirstResult(firstResult);
 				executableQuery.SetMaxResults(maxResults);
-				return executableQuery.Future<T>();
+				return executableQuery.List<T>();
 			});
 		}
 
@@ -525,7 +525,7 @@ namespace Castle.ActiveRecord
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
-		public static void Save(T instance)
+		public static void Save(object instance)
 		{
 			InternalSave(instance, false);
 		}
@@ -548,8 +548,8 @@ namespace Castle.ActiveRecord
 		/// Saves the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create()"/>
-		/// or <see cref="Update()"/> instead.
+		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
+		/// or <see cref="Update"/> instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
@@ -567,8 +567,8 @@ namespace Castle.ActiveRecord
         /// Saves a copy of the instance to the database. If the primary key is uninitialized
         /// it creates the instance in the database. Otherwise it updates it.
         /// <para>
-        /// If the primary key is assigned, then you must invoke <see cref="Create()"/>
-        /// or <see cref="Update()"/> instead.
+        /// If the primary key is assigned, then you must invoke <see cref="Create"/>
+        /// or <see cref="Update"/> instead.
         /// </para>
         /// </summary>
         /// <param name="instance">The transient instance to be saved</param>
@@ -582,8 +582,8 @@ namespace Castle.ActiveRecord
         /// Saves a copy of the instance to the database and flushes the session. If the primary key is uninitialized
         /// it creates the instance in the database. Otherwise it updates it.
         /// <para>
-        /// If the primary key is assigned, then you must invoke <see cref="Create()"/>
-        /// or <see cref="Update()"/> instead.
+        /// If the primary key is assigned, then you must invoke <see cref="Create"/>
+        /// or <see cref="Update"/> instead.
         /// </para>
         /// </summary>
         /// <param name="instance">The transient instance to be saved</param>
@@ -597,7 +597,7 @@ namespace Castle.ActiveRecord
 		/// Saves a copy of the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create()"/>
+		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
 		/// or <see cref="Update"/> instead.
 		/// </para>
 		/// </summary>
@@ -618,7 +618,7 @@ namespace Castle.ActiveRecord
 		/// Creates (Saves) a new instance to the database.
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void Create(T instance)
+		public static void Create(object instance)
 		{
 			InternalCreate(instance, false);
 		}
@@ -627,7 +627,7 @@ namespace Castle.ActiveRecord
 		/// Creates (Saves) a new instance to the database.
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void CreateAndFlush(T instance)
+		public static void CreateAndFlush(object instance)
 		{
 			InternalCreate(instance, false);
 		}
@@ -651,7 +651,7 @@ namespace Castle.ActiveRecord
 		/// state to the database.
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void Update(T instance)
+		public static void Update(object instance)
 		{
 			InternalUpdate(instance, false);
 		}
@@ -686,7 +686,7 @@ namespace Castle.ActiveRecord
 		/// Deletes the instance from the database.
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be deleted</param>
-		public static void Delete(T instance)
+		public static void Delete(object instance)
 		{
 			InternalDelete(instance, false);
 		}
@@ -813,18 +813,17 @@ namespace Castle.ActiveRecord
 		{
 			return SlicedFindAll(0, 1, detachedQuery).Any();
 		}
-
 	}
 
 	public static class QueryOverExtensions {
 		public static IEnumerable<T> List<T>(this QueryOver<T> query) where T : class
 		{
-			return ActiveRecordMediator<T>.Execute(session => query.GetExecutableQueryOver(session).Future<T>());
+			return ActiveRecordMediator<T>.Execute(session => query.GetExecutableQueryOver(session).List<T>());
 		}
 
 		public static IEnumerable<TR> List<T, TR>(this QueryOver<T> query) where T : class
 		{
-			return ActiveRecordMediator<T>.Execute(session => query.GetExecutableQueryOver(session).Future<TR>());
+			return ActiveRecordMediator<T>.Execute(session => query.GetExecutableQueryOver(session).List<TR>());
 		}
 	}
 }

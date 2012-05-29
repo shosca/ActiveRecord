@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using System.Reflection;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using Castle.ActiveRecord.Framework;
-	using Model.MultipleDBWithMediator;
 	using NUnit.Framework;
 
 	[TestFixture]
@@ -26,8 +30,7 @@ namespace Castle.ActiveRecord.Tests
 		{
 			Init();
 
-			ActiveRecordStarter.Initialize(GetConfigSource(),
-										   typeof(Blog), typeof(Author), typeof(UserDB));
+			ActiveRecord.Initialize(GetConfigSource());
 
 			Recreate();
 		}
@@ -51,15 +54,14 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void OperateOne()
-		{
-			Blog[] blogs = ActiveRecordMediator<Blog>.FindAll();
+		public void OperateOne() {
+			Blog[] blogs = ActiveRecordMediator<Blog>.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 
 			CreateBlog();
 
-			blogs = ActiveRecordMediator<Blog>.FindAll();
+			blogs = ActiveRecordMediator<Blog>.FindAll().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 		}
 
@@ -71,15 +73,14 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void OperateTheOtherOne()
-		{
-			Author[] authors = ActiveRecordMediator<Author>.FindAll();
+		public void OperateTheOtherOne() {
+			Author[] authors = ActiveRecordMediator<Author>.FindAll().ToArray();
 
 			Assert.AreEqual(0, authors.Length);
 
 			CreateAuthor();
 
-			authors = ActiveRecordMediator<Author>.FindAll();
+			authors = ActiveRecordMediator<Author>.FindAll().ToArray();
 			Assert.AreEqual(1, authors.Length);
 		}
 
@@ -91,10 +92,9 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void OperateBoth()
-		{
-			Blog[] blogs = ActiveRecordMediator<Blog>.FindAll();
-			Author[] authors = ActiveRecordMediator<Author>.FindAll();
+		public void OperateBoth() {
+			Blog[] blogs = ActiveRecordMediator<Blog>.FindAll().ToArray();
+			Author[] authors = ActiveRecordMediator<Author>.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 			Assert.AreEqual(0, authors.Length);
@@ -102,8 +102,8 @@ namespace Castle.ActiveRecord.Tests
 			CreateBlog();
 			CreateAuthor();
 
-			blogs = ActiveRecordMediator<Blog>.FindAll();
-			authors = ActiveRecordMediator<Author>.FindAll();
+			blogs = ActiveRecordMediator<Blog>.FindAll().ToArray();
+			authors = ActiveRecordMediator<Author>.FindAll().ToArray();
 
 			Assert.AreEqual(1, blogs.Length);
 			Assert.AreEqual(1, authors.Length);

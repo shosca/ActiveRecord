@@ -30,13 +30,13 @@ namespace Castle.ActiveRecord.Tests
 
 		protected static void Recreate()
 		{
-			ActiveRecordStarter.CreateSchema();
+			ActiveRecord.CreateSchema();
 		}
 		
 		[SetUp]
 		public virtual void Init()
 		{
-			ActiveRecordStarter.ResetInitializationFlag();
+			ActiveRecord.ResetInitializationFlag();
 		}
 
 		[TearDown]
@@ -44,7 +44,7 @@ namespace Castle.ActiveRecord.Tests
 		{
 			try
 			{
-				ActiveRecordStarter.DropSchema();
+				ActiveRecord.DropSchema();
 			}
 			catch(Exception)
 			{

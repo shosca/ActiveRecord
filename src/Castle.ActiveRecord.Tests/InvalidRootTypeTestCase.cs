@@ -33,22 +33,20 @@ namespace Castle.ActiveRecord.Tests
 			properties.Add("hibernate.connection.connection_string",
 			               "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
 
-			source.Add(typeof(ActiveRecordBase), properties);
-			source.Add(typeof(NonAbstractRootType), properties);
+			source.Add(string.Empty, properties);
 
 			return source;
 		}
 
-		[Test, ExpectedException(typeof(ActiveRecordException))]
+		[Test, Ignore, ExpectedException(typeof(ActiveRecordException))]
 		public void RootTypeIsNotAbstract()
 		{
-			ActiveRecordStarter.ResetInitializationFlag();
+			ActiveRecord.ResetInitializationFlag();
 
-			ActiveRecordStarter.Initialize(GetConfigSource(),
-										   typeof(NonAbstractRootType));
+			ActiveRecord.Initialize(GetConfigSource());
 		}
 
-		public class NonAbstractRootType : ActiveRecordBase
+		public class NonAbstractRootType : ActiveRecordBase<NonAbstractRootType>
 		{
 		}
 	}

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests.Testing
 {
 	using System;
@@ -22,7 +25,6 @@ namespace Castle.ActiveRecord.Tests.Testing
 	using Castle.ActiveRecord.Framework;
 	using Castle.ActiveRecord.Framework.Config;
 	using Castle.ActiveRecord.Testing;
-	using Castle.ActiveRecord.Tests.Model;
 using NHibernate;
 
 
@@ -45,7 +47,7 @@ using NHibernate;
 			using (new SessionScope())
 			{
 				Blog.FindAll();
-				Assert.AreEqual(FlushMode.Commit, Blog.Holder.CreateSession(typeof(Blog)).FlushMode);
+				Assert.AreEqual(FlushMode.Commit, ActiveRecord.Holder.CreateSession(typeof(Blog)).FlushMode);
 			}
 		}
 	}

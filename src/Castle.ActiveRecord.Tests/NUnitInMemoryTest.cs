@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Testing;
+
 namespace Castle.ActiveRecord.Tests
 {
-    using ActiveRecord.Testing;
     using NUnit.Framework;
 
     public abstract class NUnitInMemoryTest : InMemoryTest

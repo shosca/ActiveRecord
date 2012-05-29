@@ -2,22 +2,22 @@ namespace Castle.ActiveRecord.Tests.Model.NestedValidation
 {
 	using Castle.Components.Validator;
 
-	[ActiveRecord]
-	public class UserWithNestedAddress : ActiveRecordValidationBase<UserWithNestedAddress>
+	//zzzz [ActiveRecord]
+	public class UserWithNestedAddress : ActiveRecordBase<UserWithNestedAddress>
 	{
 		private int id;
 		private string email;
 		private Address postalAddress = new Address();
 		private Address billingAddress;
 
-		[PrimaryKey(PrimaryKeyType.Native)]
+		//zzzz [PrimaryKey(PrimaryKeyType.Native)]
 		public int Id 
 		{
 			get { return id; }
 			set { id = value; }
 		}
 
-		[Property]
+		//zzzz [Property]
 		[ValidateNonEmpty, ValidateLength(5, 5)]
 		public string Email
 		{
@@ -25,48 +25,14 @@ namespace Castle.ActiveRecord.Tests.Model.NestedValidation
 			set { email = value; }
 		}
 
-		[Nested]
+		//zzzz [Nested]
 		public Address PostalAddress 
 		{
 			get { return postalAddress; }
 			set { postalAddress = value; }
 		}
 
-		[Nested]
-		public Address BillingAddress {
-			get { return billingAddress; }
-			set { billingAddress = value; }
-		}
-	}
-
-	[ActiveRecord]
-	public class UserWithNestedAddressNonGeneric : ActiveRecordValidationBase
-	{
-		private int id;
-		private string email;
-		private Address postalAddress = new Address();
-		private Address billingAddress;
-
-		[PrimaryKey(PrimaryKeyType.Native)]
-		public int Id {
-			get { return id; }
-			set { id = value; }
-		}
-
-		[Property]
-		[ValidateNonEmpty, ValidateLength(5, 5)]
-		public string Email {
-			get { return email; }
-			set { email = value; }
-		}
-
-		[Nested]
-		public Address PostalAddress {
-			get { return postalAddress; }
-			set { postalAddress = value; }
-		}
-
-		[Nested]
+		//zzzz [Nested]
 		public Address BillingAddress {
 			get { return billingAddress; }
 			set { billingAddress = value; }
@@ -78,7 +44,7 @@ namespace Castle.ActiveRecord.Tests.Model.NestedValidation
 		private string addressLine1;
 		private string country;
 
-		[Property]
+		//zzzz [Property]
 		[ValidateNonEmpty, ValidateLength(5,5)]
 		public string AddressLine1
 		{
@@ -86,7 +52,7 @@ namespace Castle.ActiveRecord.Tests.Model.NestedValidation
 			set { addressLine1 = value; }
 		}
 
-		[Property]
+		//zzzz [Property]
 		[ValidateNonEmpty]
 		public string Country
 		{

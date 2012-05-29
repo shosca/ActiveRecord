@@ -46,7 +46,7 @@ namespace Castle.ActiveRecord.Tests
 		[SetUp]
 		public void SetUp()
 		{
-			ActiveRecordStarter.ResetInitializationFlag();
+			ActiveRecord.ResetInitializationFlag();
 		}
 
 		[Test]
@@ -154,8 +154,8 @@ namespace Castle.ActiveRecord.Tests
 		private Configuration BuildConfiguration(IConfigurationSource source)
 		{
 			ISessionFactoryHolder holder = null;
-			ActiveRecordStarter.SessionFactoryHolderCreated += h => holder = h;
-			ActiveRecordStarter.Initialize(source);
+			ActiveRecord.SessionFactoryHolderCreated += h => holder = h;
+			ActiveRecord.Initialize(source);
 
 			return holder.GetAllConfigurations().Single();
 		}

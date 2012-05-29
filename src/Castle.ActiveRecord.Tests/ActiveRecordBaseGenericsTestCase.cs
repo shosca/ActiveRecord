@@ -18,8 +18,6 @@ namespace Castle.ActiveRecord.Tests
 
 	using NUnit.Framework;
 
-	using Castle.ActiveRecord.Tests.Model.GenericModel;
-
 	using NHibernate.Criterion;
 
 	[TestFixture]

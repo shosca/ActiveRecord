@@ -28,13 +28,5 @@ namespace Castle.ActiveRecord.Framework.Config
 		{
 			get { return new FluentActiveRecordConfiguration(); }
 		}
-
-		/// <summary>
-		/// Builds an ActiveRecord storage specifiaction fluently.
-		/// </summary>
-		public static FluentStorageConfiguration Storage	
-		{
-			get { return new FluentStorageConfiguration(); }
-		}
 	}
 }
