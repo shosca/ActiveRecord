@@ -103,8 +103,12 @@ namespace Castle.ActiveRecord {
 
 				foreach (var key in source.GetAllConfigurationKeys()) {
 					var config = source.GetConfiguration(key);
-					var assemblies = config.Children.Where(c => c.Name.Equals("assembly")).Select(c => Assembly.Load(c.Value));
-					var mappingtypes = assemblies.SelectMany(a => a.GetExportedTypes()).Where(t => IsClassMapperType(t));
+					var assemblies = config.Children.Where(c => c.Name.Equals("assembly")).Select(c => Assembly.Load(c.Value)).ToArray();
+					var mappingtypes = assemblies.SelectMany(a => a.GetExportedTypes()).Where(t => IsClassMapperType(t)).ToArray();
+					if (assemblies.Length < 1 || mappingtypes.Length < 1) {
+						throw new ActiveRecordException("No assembly defined in configuration that contains " +
+						                                "mappings.");
+					}
 					mapper.AddMappings(mappingtypes);
 					var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 					var cfg = CreateConfiguration(config);

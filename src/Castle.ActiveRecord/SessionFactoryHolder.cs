@@ -13,7 +13,9 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Collections;
 using System.Runtime.CompilerServices;
@@ -30,19 +32,18 @@ namespace Castle.ActiveRecord
 	/// <remarks>
 	/// This class is thread safe
 	/// </remarks>
-	public class SessionFactoryHolder : MarshalByRefObject, ISessionFactoryHolder
-	{
-		private readonly Hashtable type2Conf = Hashtable.Synchronized(new Hashtable());
-		private readonly Hashtable type2SessFactory = Hashtable.Synchronized(new Hashtable());
-		private readonly ReaderWriterLock readerWriterLock = new ReaderWriterLock();
-		private IThreadScopeInfo threadScopeInfo;
+	public class SessionFactoryHolder : MarshalByRefObject, ISessionFactoryHolder {
+		readonly IDictionary<Type, Configuration> type2Conf = new ConcurrentDictionary<Type, Configuration>();
+		readonly IDictionary<Type, ISessionFactory> type2SessFactory = new ConcurrentDictionary<Type, ISessionFactory>();
+		readonly ReaderWriterLock readerWriterLock = new ReaderWriterLock();
+		IThreadScopeInfo threadScopeInfo;
 
 		/// <summary>
 		/// Requests the Configuration associated to the type.
 		/// </summary>
 		public Configuration GetConfiguration(Type type)
 		{
-			return type2Conf.ContainsKey(type) ? type2Conf[type] as Configuration : GetConfiguration(type.BaseType);
+			return type2Conf.ContainsKey(type) ? type2Conf[type] : GetConfiguration(type.BaseType);
 		}
 
 		/// <summary>
@@ -50,13 +51,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public Configuration[] GetAllConfigurations()
 		{
-			HashedSet set = new HashedSet(type2Conf.Values);
-
-			Configuration[] confs = new Configuration[set.Count];
-
-			set.CopyTo(confs, 0);
-
-			return confs;
+			return type2Conf.Values.Distinct().ToArray();
 		}
 
 		/// <summary>
