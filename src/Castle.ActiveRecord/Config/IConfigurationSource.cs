@@ -37,12 +37,6 @@ namespace Castle.ActiveRecord.Framework
 		Type SessionFactoryHolderImplementation { get; }
 
 		/// <summary>
-		/// Implementors should return the type that implements
-		/// the interface NHibernate.Cfg.INamingStrategy
-		/// </summary>
-		Type NamingStrategyImplementation { get; }
-
-		/// <summary>
 		/// Implementors should return an <see cref="IConfiguration"/> 
 		/// instance
 		/// </summary>
@@ -63,37 +57,8 @@ namespace Castle.ActiveRecord.Framework
 		bool Debug { get; }
 
 		/// <summary>
-		/// Gets a value indicating whether the entities should be lazy by default.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if entities should be lazy by default; otherwise, <c>false</c>.
-		/// </value>
-		bool IsLazyByDefault { get; }
-
-		/// <summary>
-		/// Gets a value indicating whether table names are assumed plural by default. 
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if table names should be pluralized by default; otherwise, <c>false</c>.
-		/// </value>
-		bool PluralizeTableNames { get; }
-
-		/// <summary>
-		/// Gets or sets a value indicating whether the models should be verified against the db schema on Initialisation.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if models should be verified; otherwise, <c>false</c>.
-		/// </value>
-		bool VerifyModelsAgainstDBSchema { get; }
-
-		/// <summary>
 		/// Determines the default flushing behaviour of scopes.
 		/// </summary>
 		DefaultFlushType DefaultFlushType { get; }
-
-		/// <summary>
-		/// When <c>true</c>, NHibernate.Search event listeners are added. 
-		/// </summary>
-		bool Searchable { get; }
 	}
 }

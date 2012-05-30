@@ -14,52 +14,35 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using Iesi.Collections.Generic;
+using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
+	public class PersonMapping : ClassMapping<Person> {
+		public PersonMapping() {
+			Id(x => x.Id, m => m.Generator(Generators.Native));
+		}
+	}
+
 	public class Person : ActiveRecordBase<Person>
 	{
-		private int _id;
-		private String _name;
-		private FullName _fullName;
-		private String _address;
-		private IList<Company> _companies = new List<Company>();
-		private Blog _blog;
 
-		public int Id
-		{
-			get { return _id; }
-			set { _id = value; }
-		}
+		public virtual int Id { get; set; }
 
-		public string Name
-		{
-			get { return _name; }
-			set { _name = value; }
-		}
+		public virtual string Name { get; set; }
 
-		public FullName FullName
-		{
-			get { return _fullName; }
-			set { _fullName = value; }
-		}
+		public virtual FullName FullName { get; set; }
 
-		public string Address
-		{
-			get { return _address; }
-			set { _address = value; }
-		}
+		public virtual string Address { get; set; }
 
-		public string City;
+		public virtual string City { get; set; }
 
-		public Blog Blog
-		{
-			get { return _blog; }
-			set { _blog = value; }
-		}
+		public virtual Blog Blog { get; set; }
 
-		public IList<Company> Companies
+		ISet<Company> _companies = new HashedSet<Company>();
+		public virtual ISet<Company> Companies
 		{
 			get { return _companies; }
 			set { _companies = value; }
@@ -68,21 +51,10 @@ namespace Castle.ActiveRecord.Tests.Models
 
 	public class FullName
 	{
-		private String _first;
-		private String _middle;
+		public virtual string First { get; set; }
 
-		public String First
-		{
-			get { return _first; }
-			set { _first = value; }
-		}
+		public virtual string Middle { get; set; }
 
-		public String Middle
-		{
-			get { return _middle; }
-			set { _middle = value; }
-		}
-
-		public String Last;
+		public virtual String Last { get; set; }
 	}
 }

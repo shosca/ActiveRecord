@@ -28,11 +28,7 @@ namespace Castle.ActiveRecord.Framework.Config
 		private readonly IDictionary<string, IConfiguration> _type2Config = new Dictionary<string, IConfiguration>();
 		private Type threadScopeInfoImplementation;
 		private Type sessionFactoryHolderImplementation;
-		private Type namingStrategyImplementation;
 		private bool debug;
-		private bool isLazyByDefault;
-		private bool pluralizeTableNames;
-		private bool verifyModelsAgainstDBSchema;
 		private DefaultFlushType defaultFlushType = DefaultFlushType.Classic;
 
 		/// <summary>
@@ -67,17 +63,6 @@ namespace Castle.ActiveRecord.Framework.Config
 		}
 
 		/// <summary>
-		/// Return a type that implements
-		/// the interface NHibernate.Cfg.INamingStrategy
-		/// </summary>
-		/// <value></value>
-		public Type NamingStrategyImplementation
-		{
-			get { return namingStrategyImplementation; }
-			set { namingStrategyImplementation = value; }
-		}
-
-		/// <summary>
 		/// Return an <see cref="IConfiguration"/> for the specified type.
 		/// </summary>
 		/// <param name="key"></param>
@@ -101,41 +86,6 @@ namespace Castle.ActiveRecord.Framework.Config
 		public bool Debug
 		{
 			get { return debug; }
-		}
-
-		/// <summary>
-		/// Gets a value indicating whether the entities should be lazy by default.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if entities should be lazy by default; otherwise, <c>false</c>.
-		/// </value>
-		public bool IsLazyByDefault
-		{
-			get { return isLazyByDefault; }
-		}
-
-		/// <summary>
-		/// Gets a value indicating whether table names are assumed plural by default. 
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if table names should be pluralized by default; otherwise, <c>false</c>.
-		/// </value>
-		public bool PluralizeTableNames
-		{
-			get { return pluralizeTableNames; }
-			set { pluralizeTableNames = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether the models should be verified against the db schema on initialisation.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if models should be verified; otherwise, <c>false</c>.
-		/// </value>
-		public bool VerifyModelsAgainstDBSchema
-		{
-			get { return verifyModelsAgainstDBSchema; }
-			set { verifyModelsAgainstDBSchema = value; }
 		}
 
 		/// <summary>
@@ -313,8 +263,6 @@ namespace Castle.ActiveRecord.Framework.Config
 
 					throw new ActiveRecordException(message);
 				}
-
-				NamingStrategyImplementation = namingStrategyType;
 			}
 		}
 
@@ -325,32 +273,6 @@ namespace Castle.ActiveRecord.Framework.Config
 		public void SetDebugFlag(bool isDebug)
 		{
 			debug = isDebug;
-		}
-
-		/// <summary>
-		/// Set whatever entities are lazy by default or not.
-		/// </summary>
-		protected void SetIsLazyByDefault(bool lazyByDefault)
-		{
-			isLazyByDefault = lazyByDefault;
-		}
-
-		/// <summary>
-		/// Sets the flag to indicate if ActiveRecord should verify models against the database schema on startup.
-		/// </summary>
-		/// <param name="verifyModelsAgainstDBSchema">If set to <c>true</c> ActiveRecord will verify the models against the db schema on startup.</param>
-		protected void SetVerifyModelsAgainstDBSchema(bool verifyModelsAgainstDBSchema)
-		{
-			this.verifyModelsAgainstDBSchema = verifyModelsAgainstDBSchema;
-		}
-		
-		/// <summary>
-		/// Sets the pluralizeTableNames flag.
-		/// </summary>
-		/// <param name="pluralize">If set to <c>true</c> ActiveRecord will pluralize inferred table names.</param>
-		protected void SetPluralizeTableNames(bool pluralize)
-		{
-			pluralizeTableNames = pluralize;
 		}
 
 		/// <summary>

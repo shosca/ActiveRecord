@@ -12,41 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Scopes;
 using NHibernate.Proxy;
 
-namespace Castle.ActiveRecord.ByteCode
-{
+namespace Castle.ActiveRecord.ByteCode {
 	using System;
 	using System.Reflection;
 	using NHibernate;
 	using NHibernate.Engine;
 	using NHibernate.Type;
 
-    public class LazyInitializer : DefaultLazyInitializer
-    {
-        public LazyInitializer(string entityName, Type persistentClass, object id, 
-                               MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod, 
-                               IAbstractComponentType componentIdType, ISessionImplementor session) : 
-            base(entityName, persistentClass, id, getIdentifierMethod, setIdentifierMethod, componentIdType, session) { }
+	public class LazyInitializer : DefaultLazyInitializer {
+		public LazyInitializer(string entityName, Type persistentClass, object id,
+		                       MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod,
+		                       IAbstractComponentType componentIdType, ISessionImplementor session) :
+		                       	base(entityName, persistentClass, id, getIdentifierMethod, setIdentifierMethod, componentIdType, session) {
+		}
 
-        /// <summary>
-        /// Perform an ImmediateLoad of the actual object for the Proxy.
-        /// </summary>
-        public override void Initialize() {
-            ISession newSession = null;
-            try 
-            {
-                //If the session has been disconnected, reconnect before continuing with the initialization.
-                if (Session == null || !Session.IsOpen || !Session.IsConnected) {
-                    newSession = ActiveRecord.Holder.CreateSession(PersistentClass);
-                    Session = newSession.GetSessionImplementation();
-                }
-                base.Initialize();
-            }
-            finally 
-            {
-                if (newSession != null) ActiveRecord.Holder.ReleaseSession(newSession);
-            }
-        }
-    }
+		/// <summary>
+		/// Perform an ImmediateLoad of the actual object for the Proxy.
+		/// </summary>
+		public override void Initialize() {
+			ISession newSession = null;
+			try {
+				//If the session has been disconnected, reconnect before continuing with the initialization.
+				if (Session == null || !Session.IsOpen || !Session.IsConnected) {
+					newSession = ActiveRecord.Holder.CreateSession(PersistentClass);
+					Session = newSession.GetSessionImplementation();
+				}
+				base.Initialize();
+			} finally {
+				if (newSession != null) ActiveRecord.Holder.ReleaseSession(newSession);
+			}
+		}
+	}
 }

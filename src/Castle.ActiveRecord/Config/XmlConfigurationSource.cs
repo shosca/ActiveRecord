@@ -75,9 +75,6 @@ namespace Castle.ActiveRecord.Framework.Config
 			XmlAttribute isWebAtt = section.Attributes["isWeb"];
 			XmlAttribute threadInfoAtt = section.Attributes["threadinfotype"];
 			XmlAttribute isDebug = section.Attributes["isDebug"];
-			XmlAttribute lazyByDefault = section.Attributes["default-lazy"];
-			XmlAttribute pluralize = section.Attributes["pluralizeTableNames"];
-			XmlAttribute verifyModelsAgainstDBSchemaAtt = section.Attributes["verifyModelsAgainstDBSchema"];
 			XmlAttribute defaultFlushType = section.Attributes["flush"];
 			XmlAttribute searchable = section.Attributes["searchable"];
 
@@ -97,12 +94,6 @@ namespace Castle.ActiveRecord.Framework.Config
 			SetUpNamingStrategyType(namingStrategyTypeAtt != null ? namingStrategyTypeAtt.Value : String.Empty);
 
 			SetDebugFlag(ConvertBool(isDebug));
-
-			SetIsLazyByDefault(ConvertBool(lazyByDefault));
-
-			SetPluralizeTableNames(ConvertBool(pluralize));
-
-			SetVerifyModelsAgainstDBSchema(verifyModelsAgainstDBSchemaAtt != null && verifyModelsAgainstDBSchemaAtt.Value == "true");
 
 			if (defaultFlushType == null)
 			{

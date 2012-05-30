@@ -120,7 +120,6 @@ namespace Castle.ActiveRecord
 
 				if (!type2Conf.ContainsKey(entitytype))
 					type2Conf[entitytype] = cfg;
-
 			}
 		}
 
@@ -164,11 +163,10 @@ namespace Castle.ActiveRecord
 		/// <param name="session"></param>
 		public void ReleaseSession(ISession session)
 		{
-			if (!threadScopeInfo.HasInitializedScope)
-			{
-				session.Flush();
-				session.Dispose();
-			}
+			if (threadScopeInfo.HasInitializedScope) return;
+
+			session.Flush();
+			session.Dispose();
 		}
 
 		/// <summary>

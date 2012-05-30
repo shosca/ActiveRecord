@@ -14,45 +14,35 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using Iesi.Collections.Generic;
+using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
+	public class CompanyMapping : ClassMapping<Company> {
+		public CompanyMapping() {
+			Id(x => x.Id, m => m.Generator(Generators.Native));
+		}
+	}
+
 	public class Company : ActiveRecordBase<Company>
 	{
-		private int id;
-		private String name;
-		private IList<Person> _people = new List<Person>();
-		private PostalAddress _address;
-
-		public Company()
-		{
-		}
+		public Company() { }
 
 		public Company(string name)
 		{
-			this.name = name;
+			this.Name = name;
 		}
 
-		public int Id
-		{
-			get { return id; }
-			set { id = value; }
-		}
+		public virtual int Id { get; set; }
 
-		public String Name
-		{
-			get { return name; }
-			set { name = value; }
-		}
+		public virtual string Name { get; set; }
 
-		public PostalAddress Address
-		{
-			get { return _address; }
-			set { _address = value; }
-		}
+		public virtual PostalAddress Address { get; set; }
 
-		public IList<Person> People
+		ISet<Person> _people = new HashedSet<Person>();
+		public virtual ISet<Person> People
 		{
 			get { return _people; }
 			set { _people = value; }
@@ -61,11 +51,6 @@ namespace Castle.ActiveRecord.Tests.Models
 
 	public class PostalAddress
 	{
-		private String _address;
-		private String _city;
-		private String _state;
-		private String _zipcode;
-
 		public PostalAddress()
 		{
 		}
@@ -73,34 +58,18 @@ namespace Castle.ActiveRecord.Tests.Models
 		public PostalAddress(String address, String city,
 			String state, String zipcode)
 		{
-			_address = address;
-			_city = city;
-			_state = state;
-			_zipcode = zipcode;
+			Address = address;
+			City = city;
+			State = state;
+			ZipCode = zipcode;
 		}
 
-		public String Address
-		{
-			get { return _address; }
-			set { _address = value; }
-		}
+		public virtual string Address { get; set; }
 
-		public String City
-		{
-			get { return _city; }
-			set { _city = value;}
-		}
+		public virtual string City { get; set; }
 
-		public String State
-		{
-			get { return _state; }
-			set { _state = value; }
-		}
+		public virtual string State { get; set; }
 
-		public String ZipCode
-		{
-			get { return _zipcode; }
-			set { _zipcode = value; }
-		}
+		public virtual string ZipCode { get; set; }
 	}
 }

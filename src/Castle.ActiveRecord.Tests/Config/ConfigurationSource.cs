@@ -80,62 +80,7 @@ namespace Castle.ActiveRecord.Tests.Config
 				@"<activerecord isDebug=""true"" isWeb=""true"" sessionfactoryholdertype=""Castle.ActiveRecord.Tests.Config.MySessionFactoryHolder, Castle.ActiveRecord.Tests"">"
 						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, true, false, false);
-		}
-
-		[Test]
-		public void TestSearchable()
-		{
-			String xmlConfig =
-				@"<activerecord searchable=""true"">"
-						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			AssertConfig(xmlConfig, null, null, false, false, false, DefaultFlushType.Classic, true);
-		}
-
-
-		[Test]
-		public void TestPluralizeTableNames()
-		{
-			String xmlConfig1 =
-				@"<activerecord pluralizeTableNames=""true"">"
-						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			AssertConfig(xmlConfig1, null, null, false, true, false);
-
-			String xmlConfig2 =
-				@"<activerecord pluralizeTableNames=""false"">"
-						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			AssertConfig(xmlConfig2, null, null, false, false, false);
-
-			String xmlConfig3 =
-				@"<activerecord>"
-						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			AssertConfig(xmlConfig3, null, null, false, false, false);
-		}
-
-		[Test]
-		public void TestVerifyModelsAgainstDBSchema()
-		{
-			String xmlConfig1 =
-				@"<activerecord verifyModelsAgainstDBSchema=""true"">"
-						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			AssertConfig(xmlConfig1, null, null, false, false, true);
-
-			String xmlConfig2 =
-				@"<activerecord verifyModelsAgainstDBSchema=""false"">"
-						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			AssertConfig(xmlConfig2, null, null, false, false, false);
-
-			String xmlConfig3 =
-				@"<activerecord>"
-						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			AssertConfig(xmlConfig3, null, null, false, false, false);
+			AssertConfig(xmlConfig, null, null, true, false);
 		}
 
 		[Test]
@@ -145,27 +90,27 @@ namespace Castle.ActiveRecord.Tests.Config
 			xmlConfig = @"<activerecord>"
 						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, false, false, false, DefaultFlushType.Classic);
+			AssertConfig(xmlConfig, null, null, false, DefaultFlushType.Classic);
 
 			xmlConfig = @"<activerecord flush=""classic"">"
 			+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, false, false, false, DefaultFlushType.Classic);
+			AssertConfig(xmlConfig, null, null, false,DefaultFlushType.Classic);
 
 			xmlConfig = @"<activerecord flush=""auto"">"
 			+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, false, false, false, DefaultFlushType.Auto);
+			AssertConfig(xmlConfig, null, null, false, DefaultFlushType.Auto);
 
 			xmlConfig = @"<activerecord flush=""leave"">"
 			+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, false, false, false, DefaultFlushType.Leave);
+			AssertConfig(xmlConfig, null, null, false, DefaultFlushType.Leave);
 
 			xmlConfig = @"<activerecord flush=""transaction"">"
 			+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, false, false, false, DefaultFlushType.Transaction);
+			AssertConfig(xmlConfig, null, null, false, DefaultFlushType.Transaction);
 
 			try
 			{
@@ -187,24 +132,24 @@ namespace Castle.ActiveRecord.Tests.Config
 
 		private static void AssertConfig(string xmlConfig, Type webinfotype, Type sessionFactoryHolderType)
 		{
-			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, false, false, false);
+			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, false, false);
 		}
 
 		private static void AssertConfig(string xmlConfig, Type webinfotype, Type sessionFactoryHolderType, bool isDebug,
-										 bool pluralize, bool verifyModelsAgainstDBSchema)
+										 bool pluralize)
 		{
-			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, isDebug, pluralize, verifyModelsAgainstDBSchema, DefaultFlushType.Classic);
+			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, isDebug, pluralize, DefaultFlushType.Classic);
 		}
 
 		private static void AssertConfig(string xmlConfig, Type webinfotype, Type sessionFactoryHolderType, bool isDebug,
-										 bool pluralize, bool verifyModelsAgainstDBSchema, DefaultFlushType defaultFlushType)
+										 bool pluralize, DefaultFlushType defaultFlushType)
 		{
-			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, isDebug, pluralize, verifyModelsAgainstDBSchema, defaultFlushType, false);
+			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, isDebug, defaultFlushType);
 		}
 
 
 		private static void AssertConfig(string xmlConfig, Type webinfotype, Type sessionFactoryHolderType, bool isDebug,
-										 bool pluralize, bool verifyModelsAgainstDBSchema, DefaultFlushType defaultFlushType, bool searchable)
+										 DefaultFlushType defaultFlushType)
 		{
 			StringReader sr = new StringReader(xmlConfig);
 
@@ -223,10 +168,7 @@ namespace Castle.ActiveRecord.Tests.Config
 			}
 
 			Assert.IsTrue(c.Debug == isDebug);
-			Assert.IsTrue(c.PluralizeTableNames == pluralize);
-			Assert.IsTrue(c.VerifyModelsAgainstDBSchema == verifyModelsAgainstDBSchema);
 			Assert.IsTrue(c.DefaultFlushType == defaultFlushType);
-			Assert.IsTrue(c.Searchable == searchable);
 		}
 
 		private static string GetDefaultHibernateConfigAndCloseActiveRecordSection()
