@@ -210,14 +210,18 @@ namespace Castle.ActiveRecord.Scopes
 		{
 			foreach (var session in sessions)
 			{
-				var commit = false;
+				var commit = true;
 				try
 				{
 					if (flush)
 					{
 						session.Flush();
-						commit = true;
 					}
+				}
+				catch
+				{
+					commit = false;
+					throw;
 				}
 				finally
 				{

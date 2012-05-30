@@ -56,12 +56,12 @@ namespace Castle.ActiveRecord
 		/// Invokes the specified delegate passing a valid 
 		/// NHibernate session. Used for custom NHibernate queries.
 		/// </summary>
-		/// <param name="call">The delegate instance</param>
+		/// <param name="func">The delegate instance</param>
 		/// <param name="instance">The ActiveRecord instance</param>
 		/// <returns>Whatever is returned by the delegate invocation</returns>
-		public static object Execute(Func<ISession, T, object> call, T instance)
+		public static TK Execute<TK>(Func<ISession, T, TK> func, T instance)
 		{
-			if (call == null) throw new ArgumentNullException("call", "Delegate must be passed");
+			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
 
 			EnsureInitialized();
 
@@ -69,7 +69,7 @@ namespace Castle.ActiveRecord
 
 			try
 			{
-				return call(session, instance);
+				return func(session, instance);
 			}
 			catch (ValidationException)
 			{
@@ -89,47 +89,14 @@ namespace Castle.ActiveRecord
 			}
 		}
 		public static void Execute(Action<ISession> action) {
-			EnsureInitialized();
-
-			ISession session = ActiveRecord.Holder.CreateSession(typeof(T));
-
-			try
-			{
+			Execute(session => {
 				action(session);
-			}
-			catch (Exception ex)
-			{
-				ActiveRecord.Holder.FailSession(session);
-
-				throw new ActiveRecordException("Could not perform action for " + typeof(T).Name, ex);
-			}
-			finally
-			{
-				ActiveRecord.Holder.ReleaseSession(session);
-			}
-			
+				return string.Empty;
+			});
 		}
 
-		public static TK Execute<TK>(Func<ISession, TK> action)
-		{
-			EnsureInitialized();
-
-			ISession session = ActiveRecord.Holder.CreateSession(typeof(T));
-
-			try
-			{
-				return action(session);
-			}
-			catch (Exception ex)
-			{
-				ActiveRecord.Holder.FailSession(session);
-
-				throw new ActiveRecordException("Could not perform action for " + typeof(T).Name, ex);
-			}
-			finally
-			{
-				ActiveRecord.Holder.ReleaseSession(session);
-			}
+		public static TK Execute<TK>(Func<ISession, TK> func) {
+			return Execute((session, arg2) => func(session), null);
 		}
 
 		/// <summary>
@@ -169,11 +136,8 @@ namespace Castle.ActiveRecord
 					String message = String.Format("Could not find {0} with id {1}", typeof(T).Name, id);
 					throw new NotFoundException(message, ex);
 				}
-				finally
-				{
-					ActiveRecord.Holder.ReleaseSession(session);
-				}
-			});
+			})
+;
 		}
 
 		/// <summary>

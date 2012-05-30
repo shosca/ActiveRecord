@@ -35,7 +35,6 @@ namespace Castle.ActiveRecord
 	public class SessionFactoryHolder : MarshalByRefObject, ISessionFactoryHolder {
 		readonly IDictionary<Type, Configuration> type2Conf = new ConcurrentDictionary<Type, Configuration>();
 		readonly IDictionary<Type, ISessionFactory> type2SessFactory = new ConcurrentDictionary<Type, ISessionFactory>();
-		readonly ReaderWriterLock readerWriterLock = new ReaderWriterLock();
 		IThreadScopeInfo threadScopeInfo;
 
 		/// <summary>
@@ -82,44 +81,28 @@ namespace Castle.ActiveRecord
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
 
-			readerWriterLock.AcquireReaderLock(-1);
 
-			try
+			ISessionFactory sessFactory = type2SessFactory[type] as ISessionFactory;
+
+			if (sessFactory != null)
 			{
-				ISessionFactory sessFactory = type2SessFactory[type] as ISessionFactory;
-
-				if (sessFactory != null)
-				{
-					return sessFactory;
-				}
-
-				LockCookie lc = readerWriterLock.UpgradeToWriterLock(-1);
-
-				try
-				{
-					sessFactory = type2SessFactory[type] as ISessionFactory;
-
-					if (sessFactory != null)
-					{
-						return sessFactory;
-					}
-					Configuration cfg = GetConfiguration(type);
-
-					sessFactory = cfg.BuildSessionFactory();
-
-					type2SessFactory[type] = sessFactory;
-
-					return sessFactory;
-				}
-				finally
-				{
-					readerWriterLock.DowngradeFromWriterLock(ref lc);
-				}
+				return sessFactory;
 			}
-			finally
+
+
+			sessFactory = type2SessFactory[type] as ISessionFactory;
+
+			if (sessFactory != null)
 			{
-				readerWriterLock.ReleaseReaderLock();
+				return sessFactory;
 			}
+			Configuration cfg = GetConfiguration(type);
+
+			sessFactory = cfg.BuildSessionFactory();
+
+			type2SessFactory[type] = sessFactory;
+
+			return sessFactory;
 		}
 
 		///<summary>
@@ -127,25 +110,17 @@ namespace Castle.ActiveRecord
 		///</summary>
 		public void RegisterConfiguration(Configuration cfg)
 		{
-			readerWriterLock.AcquireWriterLock(-1);
+			var sf = cfg.BuildSessionFactory();
 
-			try {
-				var sf = cfg.BuildSessionFactory();
+			foreach (var classMetadata in sf.GetAllClassMetadata()) {
+				var entitytype = classMetadata.Value.GetMappedClass(EntityMode.Poco);
 
-				foreach (var classMetadata in sf.GetAllClassMetadata()) {
-					var entitytype = classMetadata.Value.GetMappedClass(EntityMode.Poco);
+				if (!type2SessFactory.ContainsKey(entitytype))
+					type2SessFactory[entitytype] = sf;
 
-					if (!type2SessFactory.ContainsKey(entitytype))
-						type2SessFactory[entitytype] = sf;
+				if (!type2Conf.ContainsKey(entitytype))
+					type2Conf[entitytype] = cfg;
 
-					if (!type2Conf.ContainsKey(entitytype))
-						type2Conf[entitytype] = cfg;
-
-				}
-			}
-			finally 
-			{
-				readerWriterLock.ReleaseWriterLock();
 			}
 		}
 
@@ -239,25 +214,18 @@ namespace Castle.ActiveRecord
 			{
 				return scope.GetSession(sessionFactory);
 			}
-			else
-			{
-				ISession session;
 
-				if (scope.WantsToCreateTheSession)
-				{
-					session = OpenSessionWithScope(scope, sessionFactory);
-				}
-				else
-				{
-					session = OpenSession(sessionFactory);
-				}
+			ISession session;
+
+			session = scope.WantsToCreateTheSession
+				? OpenSessionWithScope(scope, sessionFactory)
+				: OpenSession(sessionFactory);
 #if DEBUG
-				System.Diagnostics.Debug.Assert(session != null);
+			System.Diagnostics.Debug.Assert(session != null);
 #endif
-				scope.RegisterSession(sessionFactory, session);
+			scope.RegisterSession(sessionFactory, session);
 
-				return session;
-			}
+			return session;
 		}
 	}
 }

@@ -15,6 +15,7 @@
 using System.Linq;
 using System.Reflection;
 using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Model;
 using Castle.ActiveRecord.Tests.Models;
 
 namespace Castle.ActiveRecord.Tests

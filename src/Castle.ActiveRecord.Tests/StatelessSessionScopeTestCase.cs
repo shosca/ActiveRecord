@@ -48,17 +48,9 @@ namespace Castle.ActiveRecord.Tests
 			Initialize();
 			using (new StatelessSessionScope())
 			{
-				try
-				{
-					ActiveRecord.Holder.CreateSession(typeof(Blog)).Merge(null);
-					Assert.Fail();
-				}
-				catch (NotImplementedException ex)
-				{
-					Assert.AreEqual(@"The called method is not supported.
-ActiveRecord is currently running within a StatelessSessionScope. Stateless sessions are faster than normal sessions, but they do not support all methods and properties that a normal session allows. 
-Please check the stacktrace and change your code accordingly.", ex.Message);
-				}
+				Assert.Throws<NotWrappedException>(() =>
+					ActiveRecord.Holder.CreateSession(typeof (Blog)).Merge(null)
+				);
 			}
 		}
 
@@ -80,13 +72,15 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
+			var ship = new Ship() {Name = "Andrea Doria"};
+
 			using (new SessionScope())
-				ActiveRecordMediator<Ship>.Create(new Ship { Name = "Andrea Doria" });
+				ActiveRecordMediator<Ship>.Create(ship);
 
 			using (new StatelessSessionScope())
 			{
-				Assert.IsTrue(ActiveRecordMediator<Ship>.Exists(1));
-				Assert.AreEqual("Andrea Doria",ActiveRecordMediator<Ship>.FindByPrimaryKey(1).Name);
+				Assert.IsTrue(ActiveRecordMediator<Ship>.Exists(ship.Id));
+				Assert.AreEqual("Andrea Doria",ActiveRecordMediator<Ship>.FindByPrimaryKey(ship.Id).Name);
 			}
 		}
 
@@ -104,29 +98,6 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 				Assert.AreEqual("Mort", Blog.Find(1).Author);
 				// The assert below cannot work, stateless sessions cannot serve proxies.
 				// Assert.AreEqual(0, Blog.Find(1).Posts.Count);
-			}
-		}
-
-		[Test]
-		public void Get_with_nonlazy_classes_does_not_work()
-		{
-			Initialize();
-
-			using (new SessionScope())
-				new Blog { Author = "Mort", Name = "Hourglass" }.Create();
-
-			using (new StatelessSessionScope())
-			{
-				try
-				{
-					Blog.Find(1);
-					Assert.Fail();
-				}
-				catch(ActiveRecordException ex)
-				{
-					Assert.AreEqual(typeof(SessionException),ex.InnerException.GetType());
-					Assert.AreEqual("collections cannot be fetched by a stateless session", ex.InnerException.Message);
-				}
 			}
 		}
 
@@ -168,7 +139,7 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 				blog.Update();
 			}
 
-			Assert.AreEqual("HOURGLASS", Blog.Find(1).Name);
+			Assert.AreEqual("HOURGLASS", Blog.Find(blog.Id).Name);
 		}
 
 		[Test]
@@ -192,7 +163,7 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 				}
 			}
 
-			Assert.AreEqual(10, Blog.Find(1).Posts.Count);
+			Assert.AreEqual(10, Post.FindAll().Count());
 		}
 
 
@@ -222,7 +193,7 @@ Please check the stacktrace and change your code accordingly.", ex.Message);
 				blog.Update();
 			}
 
-			Assert.AreEqual(0, Blog.Find(1).Posts.Count);
+			Assert.AreEqual(10, Post.FindAll().Count());
 		}
 
 		[Test]

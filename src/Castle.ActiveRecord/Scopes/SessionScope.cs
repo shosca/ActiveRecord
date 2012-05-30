@@ -55,21 +55,6 @@ namespace Castle.ActiveRecord.Scopes
 		}
 
 		/// <summary>
-		/// Deprecated! Disposes the specified discard changes. Please use new SessionScope(FlushAction.Never)
-		/// </summary>
-		/// <param name="discardChanges">if set to <c>true</c> [discard changes].</param>
-		[Obsolete("This useage is deprecated - please use new SessionScope(FlushAction.Never)")]
-		public void Dispose(bool discardChanges)
-		{
-			ThreadScopeAccessor.Instance.UnRegisterScope(this);
-
-			PerformDisposal(key2Session.Values, !discardChanges, true);
-
-			key2Session.Clear();
-			key2Session = null;
-		}
-
-		/// <summary>
 		/// Performs the disposal.
 		/// </summary>
 		/// <param name="sessions">The sessions.</param>
@@ -103,7 +88,6 @@ namespace Castle.ActiveRecord.Scopes
 		public bool HasSessionError
 		{
 			get { return hasSessionError; }
-			set { hasSessionError = true; }
 		}
 
 		/// <summary>

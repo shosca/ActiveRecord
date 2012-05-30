@@ -127,6 +127,10 @@ namespace Castle.ActiveRecord {
 
 					var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 					var cfg = CreateConfiguration(config);
+					cfg.DataBaseIntegration(db => {
+						db.LogSqlInConsole = source.Debug;
+						db.LogFormattedSql = source.Debug;
+					});
 					cfg.AddMapping(mapping);
 					Holder.RegisterConfiguration(cfg);
 				}
@@ -428,7 +432,7 @@ namespace Castle.ActiveRecord {
 
 			Configuration cfg = new Configuration();
 
-			foreach(IConfiguration childConfig in config.Children)
+			foreach(IConfiguration childConfig in config.Children.Where(c => !c.Name.Equals("assembly")))
 			{
 				cfg.Properties[childConfig.Name] = childConfig.Value;
 			}

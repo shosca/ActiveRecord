@@ -140,8 +140,6 @@
     <Compile Include="Models\Blog.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\Hand.cs" />
-    <Compile Include="Models\OtherDbBlog.cs" />
-    <Compile Include="Models\OtherDbPost.cs" />
     <Compile Include="Models\Person.cs" />
     <Compile Include="Models\Post.cs" />
     <Compile Include="Models\Product.cs" />

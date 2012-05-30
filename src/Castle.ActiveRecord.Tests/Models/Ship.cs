@@ -12,31 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Castle.ActiveRecord.Tests.Model
+using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
+
+namespace Castle.ActiveRecord.Tests.Models
 {
+	public class ShipMapping : ClassMapping<Ship> {
+		public ShipMapping() {
+			Id(x => x.Id, m => m.Generator(Generators.Native));
+		}
+	}
+
     public class Ship
     {
-        private int id;
-        private string name;
-        public int Id
-        {
-            get { return id; }
-            set { id = value; }
-        }
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
-        }
-    }
+    	public virtual int Id { get; set; }
 
-    public class ShipWithBorkenField : Ship
-    {
-        private int passangers;
-        public int Passangers
-        {
-            get { return passangers; }
-            set { passangers = value; }
-        }
+    	public virtual string Name { get; set; }
     }
 }

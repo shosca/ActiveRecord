@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
 using NHibernate;
 
 namespace Castle.ActiveRecord.Scopes
@@ -40,7 +41,11 @@ namespace Castle.ActiveRecord.Scopes
 		/// <returns>the newly created session</returns>
 		public override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
 		{
-			return new StatelessSessionWrapper(sessionFactory.OpenStatelessSession());
+			ISession session = new StatelessSessionWrapper(sessionFactory.OpenStatelessSession());
+
+			session.BeginTransaction();
+
+			return session;
 		}
 	}
 }
