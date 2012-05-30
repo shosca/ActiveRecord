@@ -43,6 +43,7 @@ namespace Castle.ActiveRecord.Scopes
 		{
 			this.flushAction = flushAction;
 			this.type = type;
+			HasSessionError = false;
 
 			ThreadScopeAccessor.Instance.RegisterScope(this);
 		}
@@ -226,10 +227,13 @@ namespace Castle.ActiveRecord.Scopes
 				finally
 				{
 					var tx = session.Transaction;
-					if (session.IsConnected && session.Connection.State == ConnectionState.Open &&
-						tx != null && tx.IsActive && !(tx.WasCommitted || tx.WasRolledBack))
+					if (session.IsConnected &&
+						session.Connection.State == ConnectionState.Open &&
+						tx != null &&
+						tx.IsActive &&
+						!(tx.WasCommitted || tx.WasRolledBack))
 					{
-						if (commit)
+						if (commit && !HasSessionError)
 							tx.Commit();
 						else
 							tx.Rollback();
@@ -240,6 +244,14 @@ namespace Castle.ActiveRecord.Scopes
 				}
 			}
 		}
+
+		/// <summary>
+		/// Gets or sets a flag indicating whether this instance has session error.
+		/// </summary>
+		/// <value>
+		/// 	<c>true</c> if this instance has session error; otherwise, <c>false</c>.
+		/// </value>
+		public bool HasSessionError { get; protected set; }
 
 		/// <summary>
 		/// Discards the sessions.

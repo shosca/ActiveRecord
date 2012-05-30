@@ -25,10 +25,6 @@ namespace Castle.ActiveRecord.Scopes
 	/// </summary>
 	public class SessionScope : AbstractScope
 	{
-		/// <summary>
-		/// Is set to true if the session went stalled due to an error (usually db operations)
-		/// </summary>
-		private bool hasSessionError;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SessionScope"/> class.
@@ -60,7 +56,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// <param name="sessions">The sessions.</param>
 		protected override void PerformDisposal(ICollection<ISession> sessions)
 		{
-			if (hasSessionError || FlushAction == FlushAction.Never)
+			if (HasSessionError || FlushAction == FlushAction.Never)
 			{
 				PerformDisposal(sessions, false, true);
 			}
@@ -76,19 +72,9 @@ namespace Castle.ActiveRecord.Scopes
 		/// <param name="session">The session</param>
 		public override void FailSession(ISession session)
 		{
-			hasSessionError = true;
+			HasSessionError = true;
 		}
 
-		/// <summary>
-		/// Gets or sets a flag indicating whether this instance has session error.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if this instance has session error; otherwise, <c>false</c>.
-		/// </value>
-		public bool HasSessionError
-		{
-			get { return hasSessionError; }
-		}
 
 		/// <summary>
 		/// Gets the current scope

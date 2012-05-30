@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+using System;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System.Linq;
@@ -239,9 +241,7 @@ namespace Castle.ActiveRecord.Tests
 			// Prepare
 			using(new SessionScope())
 			{
-				blog = new Blog();
-				blog.Author = "hammett";
-				blog.Name = "some name";
+				blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
 				post = new Post(blog, "title", "contents", "castle");
@@ -252,17 +252,11 @@ namespace Castle.ActiveRecord.Tests
 			{
 				Assert.IsFalse(session.HasSessionError);
 
-				try
-				{
-					// Forcing an exception
+				Assert.Throws<ActiveRecordException>(() => {
 					post = new Post(new Blog(100), "title", "contents", "castle");
-					post.SaveAndFlush();
-					Assert.Fail("Expecting exception as this operation violates a FK constraint");
-				}
-				catch(ActiveRecordException)
-				{
-					// Exception expected
-				}
+					post.Save();
+					session.Flush();
+				});
 
 				Assert.IsTrue(session.HasSessionError);
 			}
@@ -338,9 +332,7 @@ namespace Castle.ActiveRecord.Tests
 
 			using (new SessionScope())
 			{
-				Blog blog = new Blog();
-				blog.Author = "MZY";
-				blog.Name = "FooBar";
+				Blog blog = new Blog {Author = "MZY", Name = "FooBar"};
 				blog.Save(); // Flushes due to IDENTITY
 				blogId = blog.Id;
 			}
