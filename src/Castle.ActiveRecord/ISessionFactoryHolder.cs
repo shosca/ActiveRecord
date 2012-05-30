@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using Castle.ActiveRecord.Framework;
 using NHibernate;
 using NHibernate.Cfg;
 

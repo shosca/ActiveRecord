@@ -12,23 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Tests.Models;
+
+using System.Reflection;
 
 namespace Castle.ActiveRecord.Tests.Conversation
 {
 	using System;
-	using Framework;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Tests.Models;
 	using NHibernate;
 	using NUnit.Framework;
 
 	[TestFixture]
 	public class ScopedConversationTests : NUnitInMemoryTest
 	{
-		public override Type[] GetTypes()
-		{
-			return new[] { typeof(Blog), typeof(Post) };
-		}
+        public override Assembly[] GetAssemblies()
+        {
+            return new[] {typeof (Blog).Assembly};
+        }
 		
 		[Test]
 		public void SessionsAreKeptThroughoutTheConversation()

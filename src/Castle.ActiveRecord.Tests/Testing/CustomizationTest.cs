@@ -12,33 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Tests.Models;
+
+using System.Reflection;
 
 namespace Castle.ActiveRecord.Tests.Testing
 {
 	using System;
-	using System.Linq;
-
 	using NUnit.Framework;
+	using NHibernate;
 
-	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Config;
-	using Castle.ActiveRecord.Testing;
-using NHibernate;
+	using Castle.ActiveRecord.Config;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Tests.Models;
 
 
 	[TestFixture]
 	public class CustomizationTest : NUnitInMemoryTest
 	{
-		public override Type[] GetTypes()
+		public override System.Reflection.Assembly[] GetAssemblies()
 		{
-			return new[] { typeof(Blog), typeof(Post) };
+			return new Assembly[] { typeof(Blog).Assembly };
 		}
 
-		public override void Configure(InPlaceConfigurationSource config)
+		public override void Configure(IActiveRecordConfiguration config)
 		{
-			config.DefaultFlushType = DefaultFlushType.Leave;
+			config.Flush(DefaultFlushType.Leave);
 		}
 
 		[Test]

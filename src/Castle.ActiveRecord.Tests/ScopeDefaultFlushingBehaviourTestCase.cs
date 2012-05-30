@@ -12,15 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Reflection;
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Tests.Models;
 
 namespace Castle.ActiveRecord.Tests
 {
-	using System;
-	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Config;
+	using Castle.ActiveRecord.Config;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Tests.Models;
 	using NHibernate;
 	using NUnit.Framework;
 
@@ -48,7 +45,7 @@ namespace Castle.ActiveRecord.Tests
 			DefaultFlushType originalDefaultFlushType = ActiveRecord.ConfigurationSource.DefaultFlushType;
 			try
 			{
-				((InPlaceConfigurationSource)ActiveRecord.ConfigurationSource).DefaultFlushType = flushType;
+				ActiveRecord.ConfigurationSource.Flush(flushType);
 
 				Blog blog = new Blog(); // just for CurrentSession
 
@@ -71,7 +68,7 @@ namespace Castle.ActiveRecord.Tests
 			finally
 			{
 				// Restore Default Flush type we corrupted before.
-				((InPlaceConfigurationSource)ActiveRecord.ConfigurationSource).DefaultFlushType = originalDefaultFlushType;
+				ActiveRecord.ConfigurationSource.Flush(originalDefaultFlushType);
 			}
 		}
 	}

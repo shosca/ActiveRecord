@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Linq;
-using System.Reflection;
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Tests.Models;
 
 namespace Castle.ActiveRecord.Tests
 {
-	using Castle.ActiveRecord.Framework;
+	using System.Linq;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Tests.Models;
 	using NUnit.Framework;
 
 	[TestFixture]

@@ -12,27 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using NUnit.Framework;
-using Castle.ActiveRecord.Framework;
-using System.Configuration;
-using Castle.Core.Configuration;
 
 namespace Castle.ActiveRecord.Tests.Config
 {
+	using System.Configuration;
+	using Castle.Core.Configuration;
+	using Castle.ActiveRecord.Config;
+	using NUnit.Framework;
+
     [TestFixture]
     public class AspNet2ConfigurationIntegration
     {
         [Test, Ignore("Broken on .net 3.5")]
         public void GetConnectionStringFromWebConfig()
         {
-			IConfigurationSource source = ConfigurationManager.GetSection("activerecord-asp-net-2.0") as IConfigurationSource;
+			IActiveRecordConfiguration source = ConfigurationManager.GetSection("activerecord-asp-net-2.0") as IActiveRecordConfiguration;
 
-            IConfiguration config = source.GetConfiguration(string.Empty);
+            var config = source.GetConfiguration(string.Empty);
 
-            string expected = config.Children["connection.connection_string"].Value;
+            string expected = config.Properties["connection.connection_string"];
             
             Assert.AreEqual("Test Connection String", expected);
         }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Castle.ActiveRecord.Framework.Config;
+using Castle.ActiveRecord.Config;
 using Castle.Core.Configuration;
 
 namespace Castle.ActiveRecord.Testing
@@ -36,29 +36,27 @@ namespace Castle.ActiveRecord.Testing
 		public virtual void SetUp()
 		{
 			ActiveRecord.ResetInitializationFlag();
-			var config = new InPlaceConfigurationSource();
+			var source = ActiveRecord.Configure();
 
-			MutableConfiguration conf = new MutableConfiguration("Config");
-			conf.Children.Add(new MutableConfiguration("assembly", Assembly.GetCallingAssembly().FullName));
-
+			var conf = new SessionFactoryConfig();
 			foreach (var a in GetAssemblies()) {
-				conf.Children.Add(new MutableConfiguration("assembly", a.FullName));
+				conf.Assemblies.Add(a);
 			}
 
-			conf.Children.Add(new MutableConfiguration("connection.driver_class", "NHibernate.Driver.SQLite20Driver"));
-			conf.Children.Add(new MutableConfiguration("dialect", "NHibernate.Dialect.SQLiteDialect"));
-			conf.Children.Add(new MutableConfiguration("connection.provider", typeof (InMemoryConnectionProvider).AssemblyQualifiedName));
-			conf.Children.Add(new MutableConfiguration("connection.connection_string", "Data Source=:memory:;Version=3;New=True"));
-			conf.Children.Add(new MutableConfiguration("proxyfactory.factory_class", "Castle.ActiveRecord.ByteCode.ProxyFactoryFactory, Castle.ActiveRecord"));
+			conf.Properties.Add("connection.driver_class", "NHibernate.Driver.SQLite20Driver");
+			conf.Properties.Add("dialect", "NHibernate.Dialect.SQLiteDialect");
+			conf.Properties.Add("connection.provider", typeof (InMemoryConnectionProvider).AssemblyQualifiedName);
+			conf.Properties.Add("connection.connection_string", "Data Source=:memory:;Version=3;New=True");
+			conf.Properties.Add("proxyfactory.factory_class", "Castle.ActiveRecord.ByteCode.ProxyFactoryFactory, Castle.ActiveRecord");
 			foreach (var p in GetProperties()) {
-				conf.Children.Add(new MutableConfiguration(p.Key, p.Value));
+				conf.Properties.Add(p.Key, p.Value);
 			}
-			config.Add(string.Empty, conf);
+			source.Add(conf);
 
 
-			Configure(config);
+			Configure(source);
 
-			ActiveRecord.Initialize(config);
+			ActiveRecord.Initialize(source);
 			ActiveRecord.CreateSchema();
 		}
 
@@ -73,16 +71,6 @@ namespace Castle.ActiveRecord.Testing
 		}
 
 		/// <summary>
-		/// Method that must be overridden by the test fixtures to return the types
-		/// that should be initialized. The stub returns an empty array.
-		/// </summary>
-		/// <returns>The types to initialize.</returns>
-		public virtual Type[] GetTypes()
-		{
-			return new Type[0];
-		}
-
-		/// <summary>
 		/// Method that must be overridden by the test fixtures to return the assemblies
 		/// that should be initialized. The stub returns an empty array.
 		/// </summary>
@@ -90,16 +78,6 @@ namespace Castle.ActiveRecord.Testing
 		public virtual Assembly[] GetAssemblies()
 		{
 			return new Assembly[0];
-		}
-
-		/// <summary>
-		/// Hook to allow the initialization of additional base classes. <see cref="ActiveRecordBase"/> is 
-		/// added everytime and must not be returned.
-		/// </summary>
-		/// <returns>An array of additional base classes for initialization</returns>
-		public virtual Type[] GetAdditionalBaseClasses()
-		{
-			return new Type[0];
 		}
 
 		/// <summary>
@@ -116,7 +94,7 @@ namespace Castle.ActiveRecord.Testing
 		/// Hook for modifying the configuration before initialization
 		/// </summary>
 		/// <param name="config"></param>
-		public virtual void Configure(InPlaceConfigurationSource config)
+		public virtual void Configure(IActiveRecordConfiguration config)
 		{
 		}
 	}

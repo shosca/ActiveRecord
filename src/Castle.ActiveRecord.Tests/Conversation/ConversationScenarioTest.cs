@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Reflection;
 using Castle.ActiveRecord.Scopes;
 using Castle.ActiveRecord.Tests.Models;
 
@@ -25,9 +26,9 @@ namespace Castle.ActiveRecord.Tests.Conversation
     [TestFixture]
     public class ConversationScenarioTest : NUnitInMemoryTest
     {
-        public override Type[] GetTypes()
+        public override Assembly[] GetAssemblies()
         {
-            return new[] {typeof (Blog), typeof (Post)};
+            return new[] {typeof (Blog).Assembly};
         }
 
         [Test]

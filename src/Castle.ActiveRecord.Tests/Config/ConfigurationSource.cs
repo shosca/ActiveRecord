@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Castle.ActiveRecord.Scopes;
 
 namespace Castle.ActiveRecord.Tests.Config
 {
 	using System;
 	using System.IO;
-	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Config;
 	using NUnit.Framework;
 	using System.Configuration;
+
+	using Castle.ActiveRecord.Config;
+	using Castle.ActiveRecord.Scopes;
 
 	[TestFixture]
 	public class ConfigurationSource
@@ -115,7 +115,7 @@ namespace Castle.ActiveRecord.Tests.Config
 			try
 			{
 				xmlConfig = @"<activerecord flush=""foo"">" + GetDefaultHibernateConfigAndCloseActiveRecordSection();
-				new XmlConfigurationSource(new StringReader(xmlConfig));
+				new XmlActiveRecordConfiguration(new StringReader(xmlConfig));
 				Assert.Fail("Expected exception not thrown for invalid flush attribute on config");
 			}
 			catch (Exception ex)
@@ -153,7 +153,7 @@ namespace Castle.ActiveRecord.Tests.Config
 		{
 			StringReader sr = new StringReader(xmlConfig);
 
-			XmlConfigurationSource c = new XmlConfigurationSource(sr);
+			XmlActiveRecordConfiguration c = new XmlActiveRecordConfiguration(sr);
 
 			if (null != webinfotype)
 			{

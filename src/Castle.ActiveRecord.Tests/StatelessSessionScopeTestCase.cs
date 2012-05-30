@@ -12,22 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Generic;
-using System.Linq;
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Tests.Model;
-using Castle.ActiveRecord.Tests.Models;
 
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+
 	using Castle.ActiveRecord;
-	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Config;
-	using NHibernate;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Tests.Models;
 	using NHibernate.Criterion;
 	using NUnit.Framework;
-	using System.Collections;
+
 
 	[TestFixture]
 	public class StatelessSessionScopeTestCase : AbstractActiveRecordTest

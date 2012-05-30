@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Reflection;
-using Castle.Core.Configuration;
 
 namespace Castle.ActiveRecord.Tests
 {
 	using System.Configuration;
 	using System.IO;
 	using System.Linq;
+	using System.Reflection;
 
-	using Castle.ActiveRecord.Framework;
-	using Castle.ActiveRecord.Framework.Config;
+	using Castle.ActiveRecord.Config;
 	using Castle.ActiveRecord.ByteCode;
 
 	using NHibernate.Connection;
@@ -154,7 +152,7 @@ namespace Castle.ActiveRecord.Tests
 			return BuildConfiguration(source);
 		}
 
-		private Configuration BuildConfiguration(IConfigurationSource source)
+		private Configuration BuildConfiguration(IActiveRecordConfiguration source)
 		{
 			ActiveRecord.Initialize(source);
 
@@ -166,7 +164,7 @@ namespace Castle.ActiveRecord.Tests
 			Assert.AreEqual(value, configuration.Properties[name]);
 		}
 
-		private IConfigurationSource ReadValidConfiguration(string dbName, string csn)
+		private IActiveRecordConfiguration ReadValidConfiguration(string dbName, string csn)
 		{
 			var configTemplate = @"<activerecord>
 	<config db=""{0}"" csn=""{1}"">
@@ -176,11 +174,11 @@ namespace Castle.ActiveRecord.Tests
 			return ReadConfiguration(string.Format(configTemplate, dbName, csn));
 		}
 
-		private IConfigurationSource ReadConfiguration(string value)
+		private IActiveRecordConfiguration ReadConfiguration(string value)
 		{
 			using (var reader = new StringReader(value))
 			{
-				return new XmlConfigurationSource(reader);
+				return new XmlActiveRecordConfiguration(reader);
 			}
 		}
 	}

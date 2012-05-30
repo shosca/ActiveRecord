@@ -14,7 +14,7 @@
 
 using Castle.ActiveRecord.Scopes;
 
-namespace Castle.ActiveRecord.Framework
+namespace Castle.ActiveRecord.Config
 {
 	/// <summary>
 	/// Determines the default flushing behaviour of <see cref="SessionScope"/>

@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Castle.ActiveRecord.Framework;
-using Castle.ActiveRecord.Framework.Config;
+using Castle.ActiveRecord.Config;
 using Castle.ActiveRecord.Scopes;
 using Castle.Core.Configuration;
 using Iesi.Collections.Generic;
@@ -26,7 +25,7 @@ namespace Castle.ActiveRecord {
 	{
 		private static readonly Object lockConfig = new object();
 
-		public static IConfigurationSource ConfigurationSource { get; private set; }
+		public static IActiveRecordConfiguration ConfigurationSource { get; private set; }
 
 		/// <summary>
 		/// The global holder for the session factories.
@@ -40,7 +39,7 @@ namespace Castle.ActiveRecord {
 		public static event SessionFactoryHolderDelegate SessionFactoryHolderCreated;
 
 		/// <summary>
-		/// Allows other frameworks to modify the ActiveRecordModel
+		/// Allows other frameworks to modify the ModelMapper
 		/// before the generation of the NHibernate configuration.
 		/// As an example, this may be used to rewrite table names to
 		/// conform to an application-specific standard.  Since the
@@ -48,10 +47,10 @@ namespace Castle.ActiveRecord {
 		/// determine the underlying database type and make changes
 		/// if necessary.
 		/// </summary>
-		public static event MapperDelegate MapperCreated;
+		public static event MapperDelegate OnMapperCreated;
 
 		/// <summary>
-		/// Allows other frameworks to modify the ActiveRecordModel
+		/// Allows other frameworks to modify the ModelMapper
 		/// before the generation of the NHibernate configuration.
 		/// As an example, this may be used to rewrite table names to
 		/// conform to an application-specific standard.  Since the
@@ -61,12 +60,17 @@ namespace Castle.ActiveRecord {
 		/// </summary>
 		public static event MapperDelegate AfterMappingsAdded;
 
+		/// <summary>
+		/// 
+		/// </summary>
+		public static event ConfigurationDelegate OnConfigurationCreated;
+
 
 		/// <summary>
 		/// Initialize the mappings using the configuration and 
 		/// checking all the types on the specified Assemblies
 		/// </summary>
-		public static void Initialize(IConfigurationSource source)
+		public static void Initialize(IActiveRecordConfiguration source)
 		{
 			CreateSessionFactoryAndRegisterToHolder(source);
 		}
@@ -77,7 +81,7 @@ namespace Castle.ActiveRecord {
 		/// </summary>
 		public static void Initialize()
 		{
-			IConfigurationSource source = ActiveRecordSectionHandler.Instance;
+			IActiveRecordConfiguration source = ActiveRecordSectionHandler.Instance;
 
 			Initialize(source);
 		}
@@ -90,7 +94,7 @@ namespace Castle.ActiveRecord {
 		/// Initialize the mappings using the configuration and 
 		/// the list of types
 		/// </summary>
-		static void CreateSessionFactoryAndRegisterToHolder(IConfigurationSource source)
+		static void CreateSessionFactoryAndRegisterToHolder(IActiveRecordConfiguration source)
 		{
 			if (source == null)
 			{
@@ -109,14 +113,13 @@ namespace Castle.ActiveRecord {
 				ConfigurationSource = source;
 
 				foreach (var key in source.GetAllConfigurationKeys()) {
-					ConventionModelMapper mapper = new ConventionModelMapper();
-					if (MapperCreated != null)
-						MapperCreated(mapper, source);
+					var mapper = new ConventionModelMapper();
+					if (OnMapperCreated != null)
+						OnMapperCreated(mapper, source);
 
 					var config = source.GetConfiguration(key);
-					var assemblies = config.Children.Where(c => c.Name.Equals("assembly")).Select(c => Assembly.Load(c.Value)).ToArray();
-					var mappingtypes = assemblies.SelectMany(a => a.GetExportedTypes()).Where(t => IsClassMapperType(t)).ToArray();
-					if (assemblies.Length < 1 || mappingtypes.Length < 1) {
+					var mappingtypes = config.Assemblies.SelectMany(a => a.GetExportedTypes()).Where(t => IsClassMapperType(t)).ToArray();
+					if (config.Assemblies.Count < 1 || mappingtypes.Length < 1) {
 						throw new ActiveRecordException("No assembly defined in configuration that contains " +
 						                                "mappings.");
 					}
@@ -127,15 +130,23 @@ namespace Castle.ActiveRecord {
 
 					var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 					var cfg = CreateConfiguration(config);
-					cfg.DataBaseIntegration(db => {
-						db.LogSqlInConsole = source.Debug;
-						db.LogFormattedSql = source.Debug;
-					});
+
+					if (OnConfigurationCreated != null)
+						OnConfigurationCreated(cfg);
+
 					cfg.AddMapping(mapping);
 					Holder.RegisterConfiguration(cfg);
 				}
 
 			}
+		}
+
+		/// <summary>
+		/// Builds a fluent configuration for general ActiveRecord settings.
+		/// </summary>
+		public static DefaultActiveRecordConfiguration Configure()
+		{
+			return new DefaultActiveRecordConfiguration();
 		}
 
 		/// <summary>
@@ -427,14 +438,14 @@ namespace Castle.ActiveRecord {
 			}
 		}
 
-		private static Configuration CreateConfiguration(IConfiguration config)
+		private static Configuration CreateConfiguration(SessionFactoryConfig config)
 		{
 
 			Configuration cfg = new Configuration();
 
-			foreach(IConfiguration childConfig in config.Children.Where(c => !c.Name.Equals("assembly")))
+			foreach(var key in config.Properties.AllKeys)
 			{
-				cfg.Properties[childConfig.Name] = childConfig.Value;
+				cfg.Properties[key] = config.Properties[key];
 			}
 
 			return cfg;
@@ -448,7 +459,7 @@ namespace Castle.ActiveRecord {
 			}
 		}
 
-		private static ISessionFactoryHolder CreateSessionFactoryHolderImplementation(IConfigurationSource source)
+		private static ISessionFactoryHolder CreateSessionFactoryHolderImplementation(IActiveRecordConfiguration source)
 		{
 			if (source.SessionFactoryHolderImplementation != null)
 			{
@@ -471,7 +482,7 @@ namespace Castle.ActiveRecord {
 			}
 		}
 
-		private static IThreadScopeInfo CreateThreadScopeInfoImplementation(IConfigurationSource source)
+		private static IThreadScopeInfo CreateThreadScopeInfoImplementation(IActiveRecordConfiguration source)
 		{
 			if (source.ThreadScopeInfoImplementation != null)
 			{
@@ -479,9 +490,7 @@ namespace Castle.ActiveRecord {
 
 				if (!typeof(IThreadScopeInfo).IsAssignableFrom(threadScopeType))
 				{
-					String message =
-						String.Format("The specified type {0} does " + "not implement the interface IThreadScopeInfo",
-						              threadScopeType.FullName);
+					String message = String.Format("The specified type {0} does " + "not implement the interface IThreadScopeInfo", threadScopeType.FullName);
 
 					throw new ActiveRecordInitializationException(message);
 				}

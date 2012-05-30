@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Linq;
-using System.Reflection;
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Tests.Model;
-using Castle.ActiveRecord.Tests.Models;
 
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
 	using System.Data.SqlClient;
+	using System.Linq;
 	
-	using Castle.ActiveRecord.Framework;
 	using Castle.Core.Configuration;
+	using Castle.ActiveRecord.Config;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Tests.Model;
+	using Castle.ActiveRecord.Tests.Models;
 	
 	using NHibernate;
 	
@@ -423,40 +422,20 @@ namespace Castle.ActiveRecord.Tests
 
 		private SqlConnection CreateSqlConnection()
 		{
-			IConfigurationSource config = GetConfigSource();
+			IActiveRecordConfiguration config = GetConfigSource();
 	
-			IConfiguration db2 = config.GetConfiguration(string.Empty);
+			var db2 = config.GetConfiguration(string.Empty);
 	
-			SqlConnection conn = null;
-	
-			foreach(IConfiguration child in db2.Children)
-			{
-				if (child.Name == "connection.connection_string")
-				{
-					conn = new SqlConnection(child.Value);
-				}
-			}
-
-			return conn;
+			return new SqlConnection(db2.Properties["connection.connection_string"]);
 		}
 
 		private SqlConnection CreateSqlConnection2()
 		{
-			IConfigurationSource config = GetConfigSource();
+			IActiveRecordConfiguration config = GetConfigSource();
 
-			IConfiguration db2 = config.GetConfiguration(string.Empty);
-	
-			SqlConnection conn = null;
-	
-			foreach(IConfiguration child in db2.Children)
-			{
-				if (child.Name == "connection.connection_string")
-				{
-					conn = new SqlConnection(child.Value);
-				}
-			}
+			var db2 = config.GetConfiguration(string.Empty);
 
-			return conn;
+			return new SqlConnection(db2.Properties["connection.connection_string"]);
 		}
 	}
 }

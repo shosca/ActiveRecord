@@ -21,8 +21,6 @@ namespace Castle.ActiveRecord
 	using System.Collections.Generic;
 	using System.Linq;
 
-	using Framework;
-
 	using NHibernate;
 	using NHibernate.Transform;
 	using NHibernate.Criterion;

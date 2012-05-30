@@ -12,40 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Generic;
+using Castle.ActiveRecord.Config;
 using Castle.ActiveRecord.Scopes;
 
 namespace Castle.ActiveRecord.Tests.Config
 {
-	using Castle.ActiveRecord.Framework;
 	using NUnit.Framework;
-	using Castle.ActiveRecord.Framework.Config;
-	using Castle.ActiveRecord.ByteCode;
-	using NHibernate.Connection;
-	using NHibernate.Dialect;
-	using NHibernate.Driver;
 
 	[TestFixture]
 	public class ConfigureTests
 	{
 		[Test]
-		public void BasicConfigurationApi()
-		{
-			IActiveRecordConfiguration configuration = Configure.ActiveRecord
-				.ForWeb()
+		public void BasicConfigurationApi() {
+			IActiveRecordConfiguration configuration = ActiveRecord.Configure() 
 				.Flush(DefaultFlushType.Leave)
 				.UseThreadScopeInfo<SampleThreadScopeInfo>()
-				.UseSessionFactoryHolder<SampleSessionFactoryHolder>()
-				.MakeLazyByDefault()
-				.VerifyModels()
-				.RegisterSearch();
+				.UseSessionFactoryHolder<SampleSessionFactoryHolder>();
 
 			Assert.That(configuration.ThreadScopeInfoImplementation, Is.EqualTo(typeof (SampleThreadScopeInfo)));
-			Assert.That(configuration.SessionfactoryHolderImplementation, Is.EqualTo(typeof (SampleSessionFactoryHolder)));
+			Assert.That(configuration.SessionFactoryHolderImplementation, Is.EqualTo(typeof (SampleSessionFactoryHolder)));
 			Assert.That(configuration.DefaultFlushType, Is.EqualTo(DefaultFlushType.Leave));
-			Assert.That(configuration.WebEnabled, Is.True);
-			Assert.That(configuration.Lazy, Is.True);
-			Assert.That(configuration.Verification, Is.True);
-			Assert.That(configuration.Searchable, Is.True);
+		}
+
+		[Test, ExpectedException(typeof(ActiveRecordException))]
+		public void ThrowExceptionWhenMissingAssemblyFromConfiguration()
+		{
+			var source = new DefaultActiveRecordConfiguration();
+
+			var sf = new SessionFactoryConfig();
+
+			sf.Properties.Add("hibernate.connection.driver_class", "NHibernate.Driver.SqlClientDriver");
+			sf.Properties.Add("hibernate.dialect", "NHibernate.Dialect.MsSql2000Dialect");
+			sf.Properties.Add("hibernate.connection.provider", "NHibernate.Connection.DriverConnectionProvider");
+			sf.Properties.Add("hibernate.connection.connection_string",
+			               "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
+
+			source.Add(sf);
+
+			ActiveRecord.ResetInitializationFlag();
+
+			ActiveRecord.Initialize(source);
 		}
 	}
 

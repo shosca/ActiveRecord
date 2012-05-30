@@ -12,33 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Castle.ActiveRecord.Framework.Config
-{
-	using System;
-	using System.Collections.Generic;
-	using System.Configuration;
-	using System.IO;
-	using System.Text;
-	using System.Xml;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
 
+namespace Castle.ActiveRecord.Config
+{
 	/// <summary>
 	/// Source of configuration based on Xml 
 	/// source like files, streams or readers.
 	/// </summary>
-	public class XmlConfigurationSource : InPlaceConfigurationSource
+	public class XmlActiveRecordConfiguration : DefaultActiveRecordConfiguration
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="XmlConfigurationSource"/> class.
+		/// Initializes a new instance of the <see cref="XmlActiveRecordConfiguration"/> class.
 		/// </summary>
-		protected XmlConfigurationSource()
+		protected XmlActiveRecordConfiguration()
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="XmlConfigurationSource"/> class.
+		/// Initializes a new instance of the <see cref="XmlActiveRecordConfiguration"/> class.
 		/// </summary>
 		/// <param name="xmlFileName">Name of the XML file.</param>
-		public XmlConfigurationSource(String xmlFileName)
+		public XmlActiveRecordConfiguration(String xmlFileName)
 		{
 			XmlDocument doc = new XmlDocument();
 			doc.Load(xmlFileName);
@@ -46,10 +48,10 @@ namespace Castle.ActiveRecord.Framework.Config
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="XmlConfigurationSource"/> class.
+		/// Initializes a new instance of the <see cref="XmlActiveRecordConfiguration"/> class.
 		/// </summary>
 		/// <param name="stream">The stream.</param>
-		public XmlConfigurationSource(Stream stream)
+		public XmlActiveRecordConfiguration(Stream stream)
 		{
 			XmlDocument doc = new XmlDocument();
 			doc.Load(stream);
@@ -57,10 +59,10 @@ namespace Castle.ActiveRecord.Framework.Config
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="XmlConfigurationSource"/> class.
+		/// Initializes a new instance of the <see cref="XmlActiveRecordConfiguration"/> class.
 		/// </summary>
 		/// <param name="reader">The reader.</param>
-		public XmlConfigurationSource(TextReader reader)
+		public XmlActiveRecordConfiguration(TextReader reader)
 		{
 			XmlDocument doc = new XmlDocument();
 			doc.Load(reader);
@@ -72,11 +74,12 @@ namespace Castle.ActiveRecord.Framework.Config
 		/// </summary>
 		protected void PopulateSource(XmlNode section)
 		{
+			if (section.Attributes == null) return;
+
 			XmlAttribute isWebAtt = section.Attributes["isWeb"];
 			XmlAttribute threadInfoAtt = section.Attributes["threadinfotype"];
 			XmlAttribute isDebug = section.Attributes["isDebug"];
 			XmlAttribute defaultFlushType = section.Attributes["flush"];
-			XmlAttribute searchable = section.Attributes["searchable"];
 
 			SetUpThreadInfoType(isWebAtt != null && "true" == isWebAtt.Value,
 			                    threadInfoAtt != null ? threadInfoAtt.Value : String.Empty);
@@ -104,15 +107,12 @@ namespace Castle.ActiveRecord.Framework.Config
 				SetDefaultFlushType(defaultFlushType.Value);
 			}
 
-			Searchable = ConvertBool(searchable);
-
 			PopulateConfigNodes(section);
 		}
 
 		private void PopulateConfigNodes(XmlNode section)
 		{
 			const string Config_Node_Name = "config";
-			string targetkey = string.Empty;
 
 			foreach(XmlNode node in section.ChildNodes)
 			{
@@ -126,22 +126,22 @@ namespace Castle.ActiveRecord.Framework.Config
 					throw new ConfigurationErrorsException(message);
 				}
 
-				IDictionary<string, string> defaults = null;
-				if (node.Attributes.Count != 0)
-				{
-					XmlAttribute typeNameAtt = node.Attributes["type"];
+				SessionFactoryConfig sfconfig = null;
 
-					if (typeNameAtt != null)
-					{
+				string sfconfigname = string.Empty;
+				if (node.Attributes != null && node.Attributes.Count != 0) {
+
+					XmlAttribute typeNameAtt = node.Attributes["type"];
+					if (typeNameAtt != null) {
 						if (!string.IsNullOrEmpty(typeNameAtt.Value))
-							targetkey = typeNameAtt.Value;
+							sfconfigname = typeNameAtt.Value;
 					}
 
 					var databaseName = node.Attributes["database"] ?? node.Attributes["db"];
 					var connectionStringName = node.Attributes["connectionStringName"] ?? node.Attributes["csn"];
 					if (databaseName != null && connectionStringName != null)
 					{
-						defaults = SetDefaults(databaseName.Value, connectionStringName.Value);
+						sfconfig = SetDefaults(databaseName.Value, connectionStringName.Value);
 					}
 					else if (databaseName != null || connectionStringName != null)
 					{
@@ -151,8 +151,13 @@ namespace Castle.ActiveRecord.Framework.Config
 						throw new ConfigurationErrorsException(message);
 					}
 				}
+				if (sfconfig == null)
+					sfconfig = new SessionFactoryConfig();
 
-				Add(targetkey, BuildProperties(node, defaults));
+				sfconfig.Name = sfconfigname; 
+				BuildProperties(sfconfig, node);
+
+				Add(sfconfig);
 			}
 		}
 
@@ -162,7 +167,7 @@ namespace Castle.ActiveRecord.Framework.Config
 		/// <param name="name">Name of the database type.</param>
 		/// <param name="connectionStringName">name of the connection string specified in connectionStrings configuration section</param>
 		/// <returns></returns>
-		protected IDictionary<string, string> SetDefaults(string name, string connectionStringName)
+		protected SessionFactoryConfig SetDefaults(string name, string connectionStringName)
 		{
 			var names = Enum.GetNames(typeof(DatabaseType));
 			if (!Array.Exists(names, n => n.Equals(name, StringComparison.OrdinalIgnoreCase)))
@@ -180,20 +185,19 @@ namespace Castle.ActiveRecord.Framework.Config
 
 			var type = (DatabaseType)Enum.Parse(typeof(DatabaseType), name, true);
 			var defaults = new DefaultDatabaseConfiguration().For(type);
-			defaults["connection.connection_string_name"] = connectionStringName;
+			defaults.Properties["connection.connection_string_name"] = connectionStringName;
 			return defaults;
 		}
 
+		const string ConnectionStringKey = "connection.connection_string";
 		/// <summary>
 		/// Builds the configuration properties.
 		/// </summary>
-		/// <param name="node">The node.</param>
-		/// <param name="defaults"></param>
+		/// <param name="config"></param>
+		/// <param name="node"> </param>
 		/// <returns></returns>
-		protected IDictionary<string, string> BuildProperties(XmlNode node, IDictionary<string, string> defaults)
+		protected void BuildProperties(SessionFactoryConfig config, XmlNode node)
 		{
-			var dict = defaults ?? new Dictionary<string, string>();
-
 			foreach(XmlNode addNode in node.SelectNodes("add"))
 			{
 				XmlAttribute keyAtt = addNode.Attributes["key"];
@@ -205,12 +209,15 @@ namespace Castle.ActiveRecord.Framework.Config
 
 					throw new ConfigurationErrorsException(message);
 				}
+				string name = keyAtt.Value;
 				string value = valueAtt.Value;
 
-				dict[keyAtt.Value] = value;
+				if (name.Equals("assembly")) {
+					config.Assemblies.Add(Assembly.Load(value));
+				} else {
+					config.Properties[name] = value;
+				}
 			}
-
-			return dict;
 		}
 
 		private static bool ConvertBool(XmlNode boolAttrib)

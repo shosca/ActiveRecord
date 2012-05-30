@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
 
 	using NUnit.Framework;
+	using Castle.ActiveRecord.Config;
 
-	using Castle.ActiveRecord.Framework;
 
 
 	public abstract class AbstractActiveRecordTest
 	{
-		protected static IConfigurationSource GetConfigSource()
+		protected static IActiveRecordConfiguration GetConfigSource()
 		{
-			return System.Configuration.ConfigurationManager.GetSection("activerecord") as IConfigurationSource;
+			return System.Configuration.ConfigurationManager.GetSection("activerecord") as IActiveRecordConfiguration;
 		}
 
 		protected static void Recreate()

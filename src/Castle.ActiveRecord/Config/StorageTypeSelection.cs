@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Castle.ActiveRecord.Framework.Config
+namespace Castle.ActiveRecord.Config
 {
 	/// <summary>
 	/// Configuration of the types that will use a storage.

@@ -29,9 +29,9 @@ namespace Castle.ActiveRecord.Tests.Testing
 	[TestFixture]
 	public class TypeInitializationTest : NUnitInMemoryTest
 	{
-		public override Type[] GetTypes()
+		public override Assembly[] GetAssemblies()
 		{
-			return new[] { typeof(Blog), typeof(Post) };
+			return new Assembly[] { typeof(Blog).Assembly };
 		}
 
 		[Test]
@@ -43,35 +43,10 @@ namespace Castle.ActiveRecord.Tests.Testing
 	}
 
 	[TestFixture]
-	public class AssemblyInitializationTest : NUnitInMemoryTest
-	{
-		public override System.Reflection.Assembly[] GetAssemblies()
-		{
-			return new []{ Assembly.GetAssembly(typeof(ActiveRecord))};
-		}
-	}
-
-	[TestFixture]
-	public class MultipleBaseInitializationTest : NUnitInMemoryTest
-	{
-		public override Type[] GetTypes()
-		{
-			return new[] { typeof(Blog), typeof(Post), typeof(Test2ARBase<>), typeof(OtherDbBlog), typeof(OtherDbPost) };
-		}
-
-		public override Type[] GetAdditionalBaseClasses()
-		{
-			return new[] { typeof(Test2ARBase<>) };
-		}
-
-	}
-
-	[TestFixture]
 	public class AdditionalPropertiesInitializationTest : NUnitInMemoryTest
 	{
-		public override Type[] GetTypes()
-		{
-			return new[] { typeof(Blog), typeof(Post)};
+		public override Assembly[] GetAssemblies() {
+			return new Assembly[] {typeof (Blog).Assembly};
 		}
 
 		public override IDictionary<string, string> GetProperties()
@@ -85,7 +60,8 @@ namespace Castle.ActiveRecord.Tests.Testing
 		public void PropertiesAreCarriesOver()
 		{
 			Blog.FindAll();
-			Assert.AreEqual("true", ActiveRecord.Holder.GetConfiguration(typeof(Blog)).Properties["show_sql"]);
+			var cfg = ActiveRecord.Holder.GetConfiguration(typeof (Blog));
+			Assert.AreEqual("true", cfg.Properties["show_sql"]);
 		}
 
 	}

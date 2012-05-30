@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Castle.ActiveRecord.Framework.Config
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using Castle.ActiveRecord.ByteCode;
+using NHibernate.Connection;
+using NHibernate.Dialect;
+using NHibernate.Driver;
+
+namespace Castle.ActiveRecord.Config
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Data;
-
-    using Castle.ActiveRecord.ByteCode;
-
-	using NHibernate.Connection;
-	using NHibernate.Dialect;
-	using NHibernate.Driver;
-
 	/// <summary>
 	/// Exposes default configuration properties for common databases defined in <see cref="DatabaseType"/> enum.
 	/// </summary>
@@ -38,7 +37,7 @@ namespace Castle.ActiveRecord.Framework.Config
 		private const string proxyfactory_factory_class = "proxyfactory.factory_class";
 		private const string query_substitutions = "query.substitutions";
 
-		private IDictionary<string, string> Configure<TDriver, TDialect>()
+		private SessionFactoryConfig Configure<TDriver, TDialect>()
 			where TDriver : IDriver
 			where TDialect : Dialect
 		{
@@ -50,7 +49,7 @@ namespace Castle.ActiveRecord.Framework.Config
 		/// </summary>
 		/// <param name="databaseType">Database type for which we want default properties.</param>
 		/// <returns></returns>
-		public IDictionary<string, string> For(DatabaseType databaseType)
+		public SessionFactoryConfig For(DatabaseType databaseType)
 		{
 			switch (databaseType)
 			{
@@ -90,16 +89,20 @@ namespace Castle.ActiveRecord.Framework.Config
 			throw new ArgumentOutOfRangeException("databaseType", databaseType, "Unsupported database type");
 		}
 
-		private IDictionary<string, string> Configure<TDriver, TDialect>(Dictionary<string, string> configuration)
+		private SessionFactoryConfig Configure<TDriver, TDialect>(Dictionary<string, string> configuration)
 			where TDriver : IDriver
-			where TDialect : Dialect
-		{
-			configuration[connection_provider] = LongName<DriverConnectionProvider>();
-			configuration[cache_use_second_level_cache] = false.ToString();
-			configuration[proxyfactory_factory_class] = LongName<ProxyFactoryFactory>();
-			configuration[dialect] = LongName<TDialect>();
-			configuration[connection_driver_class] = LongName<TDriver>();
-			return configuration;
+			where TDialect : Dialect {
+			var sfconfig = new SessionFactoryConfig();
+			sfconfig.Properties[connection_provider] = LongName<DriverConnectionProvider>();
+			sfconfig.Properties[cache_use_second_level_cache] = false.ToString(CultureInfo.InvariantCulture);
+			sfconfig.Properties[proxyfactory_factory_class] = LongName<ProxyFactoryFactory>();
+			sfconfig.Properties[dialect] = LongName<TDialect>();
+			sfconfig.Properties[connection_driver_class] = LongName<TDriver>();
+			foreach (var d in configuration) {
+				sfconfig.Properties[d.Key] = d.Value;
+
+			}
+			return sfconfig;
 		}
 
 		private string LongName<TType>()

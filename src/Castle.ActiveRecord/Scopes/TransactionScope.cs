@@ -16,8 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using Castle.ActiveRecord.Config;
 using NHibernate;
-using Castle.ActiveRecord.Framework;
 
 namespace Castle.ActiveRecord.Scopes
 {

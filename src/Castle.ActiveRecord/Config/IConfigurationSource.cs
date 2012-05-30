@@ -13,16 +13,16 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using System;
+using Castle.ActiveRecord.Scopes;
+using Castle.Core.Configuration;
 
-namespace Castle.ActiveRecord.Framework
+namespace Castle.ActiveRecord.Config
 {
-	using System;
-	using Castle.Core.Configuration;
-
 	/// <summary>
 	/// Abstracts the source of configuration for the framework.
 	/// </summary>
-	public interface IConfigurationSource
+	public interface IActiveRecordConfiguration 
 	{
 		/// <summary>
 		/// Implementors should return the type that implements
@@ -42,7 +42,7 @@ namespace Castle.ActiveRecord.Framework
 		/// </summary>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		IConfiguration GetConfiguration(string key);
+		SessionFactoryConfig GetConfiguration(string key);
 
 		/// <summary>
 		/// Returns all registered configuration keys
@@ -51,14 +51,41 @@ namespace Castle.ActiveRecord.Framework
 		IEnumerable<string> GetAllConfigurationKeys();
 
 		/// <summary>
-		/// Gets a value indicating whether this <see cref="IConfigurationSource"/> produce debug information
+		/// Gets a value indicating whether this <see cref="IActiveRecordConfiguration"/> produce _debug information
 		/// </summary>
-		/// <value><c>true</c> if debug; otherwise, <c>false</c>.</value>
+		/// <value><c>true</c> if _debug; otherwise, <c>false</c>.</value>
 		bool Debug { get; }
 
 		/// <summary>
 		/// Determines the default flushing behaviour of scopes.
 		/// </summary>
 		DefaultFlushType DefaultFlushType { get; }
+
+		/// <summary>
+		/// Sets the flush behaviour for <see cref="ISessionScope"/> when no
+		/// other behaviour is specified in the scope itself. The default for
+		/// this configuration is <see cref="DefaultFlushType.Classic"/>. See
+		/// <see cref="DefaultFlushType"/> for what the options mean.
+		/// </summary>
+		/// <param name="flushType">The default flushing behaviour to set.</param>
+		/// <returns>The fluent configuration itself.</returns>
+		IActiveRecordConfiguration Flush(DefaultFlushType flushType);
+
+		/// <summary>
+		/// Sets the <see cref="IThreadScopeInfo"/> to use. Normally, this type is
+		/// set when ActiveRecord is used in web application. You should set this
+		/// value only if you need a custom implementation of that interface.
+		/// </summary>
+		/// <typeparam name="T">The implementation to use.</typeparam>
+		/// <returns>The fluent configuration itself.</returns>
+		IActiveRecordConfiguration UseThreadScopeInfo<T>() where T : IThreadScopeInfo;
+
+		/// <summary>
+		/// Sets the <see cref="ISessionFactoryHolder"/> to use. You should set this if you need to
+		/// use a custom implementation of that interface.
+		/// </summary>
+		/// <typeparam name="T">The implementation to use.</typeparam>
+		/// <returns>The fluent configuration itself.</returns>
+		IActiveRecordConfiguration UseSessionFactoryHolder<T>() where T : ISessionFactoryHolder;
 	}
 }

@@ -20,8 +20,6 @@ namespace Castle.ActiveRecord.Testing
 	using System.Collections.Generic;
 
 	using Castle.ActiveRecord;
-	using Castle.ActiveRecord.Framework.Config;
-
 	using NHibernate.Connection;
 
 	/// <summary>

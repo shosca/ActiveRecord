@@ -144,6 +144,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ActiveRecordMediator.cs" />
+    <Compile Include="Config\SessionFactoryConfig.cs" />
     <Compile Include="Delegates.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -153,10 +154,10 @@
     <Compile Include="Config\IConfigurationSource.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Config\InPlaceConfigurationSource.cs">
+    <Compile Include="Config\DefaultActiveRecordConfiguration.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Config\XmlConfigurationSource.cs">
+    <Compile Include="Config\XmlActiveRecordConfiguration.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DictionaryAdapter.cs" />
@@ -209,18 +210,11 @@
     <Compile Include="ActiveRecordBase.cs" />
     <Compile Include="ActiveRecordHooksBase.cs" />
     <Compile Include="ARSchemaCreator.cs" />
-    <Compile Include="Config\Configure.cs" />
     <Compile Include="Config\DefaultDatabaseConfiguration.cs" />
     <Compile Include="Config\DatabaseType.cs" />
-    <Compile Include="Config\DefaultActiveRecordConfiguration.cs" />
     <Compile Include="Config\DefaultFlushType.cs" />
     <Compile Include="Config\DefaultStorageConfiguration.cs" />
-    <Compile Include="Config\FluentActiveRecordConfiguration.cs" />
-    <Compile Include="Config\IActiveRecordConfiguration.cs" />
-    <Compile Include="Config\IDatabaseConfiguration.cs" />
     <Compile Include="Config\IStorageConfiguration.cs" />
-    <Compile Include="Config\MsSqlServer2000Configuration.cs" />
-    <Compile Include="Config\MsSqlServer2005Configuration.cs" />
     <Compile Include="Config\StorageTypeSelection.cs" />
     <Compile Include="Scopes\ConversationalScope.cs" />
     <Compile Include="Scopes\ConversationCanceledEventArgs.cs" />

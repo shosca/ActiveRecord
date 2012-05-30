@@ -168,7 +168,6 @@
     <Compile Include="DefaultConfigurationsTestCase.cs" />
     <Compile Include="NUnitInMemoryTest.cs" />
     <Compile Include="StatelessSessionScopeTestCase.cs" />
-    <Compile Include="InvalidRootTypeTestCase.cs" />
     <Compile Include="MultipleDBMediatorTest.cs" />
     <Compile Include="ScopeDefaultFlushingBehaviourTestCase.cs" />
     <Compile Include="SessionScopeAutoflushTestCase.cs" />

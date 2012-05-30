@@ -17,8 +17,6 @@ namespace Castle.ActiveRecord
 	using System;
 	using System.Runtime.Serialization;
 
-	using Castle.ActiveRecord.Framework;
-
 	/// <summary>
 	/// This exception is thrown when loading an entity by its PK failed because the entity did not exist.
 	/// </summary>

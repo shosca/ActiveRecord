@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Config;
 using NHibernate.Mapping.ByCode;
 
 namespace Castle.ActiveRecord
 {
-	using Castle.ActiveRecord.Framework;
-
 	/// <summary>
 	/// Delegate for use in <see cref="ActiveRecord.SessionFactoryHolderCreated"/> and <see cref="ActiveRecord.MappingRegisteredInConfiguration"/>
 	/// </summary>
@@ -25,12 +24,13 @@ namespace Castle.ActiveRecord
 	public delegate void SessionFactoryHolderDelegate(ISessionFactoryHolder holder);
 
 	/// <summary>
-	/// Delegate for use in <see cref="ActiveRecord.MapperCreated"/>
+	/// Delegate for use in <see cref="ActiveRecord.OnMapperCreated"/>
+	/// and <see cref="ActiveRecord.AfterMappingsAdded"/>
 	/// </summary>
-	public delegate void MapperDelegate(ModelMapper mapper, IConfigurationSource source);
+	public delegate void MapperDelegate(ModelMapper mapper, IActiveRecordConfiguration source);
 
 	/// <summary>
-	/// Delegate for use in <see cref="ActiveRecord.NHibernateConfigurationCreated"/>
+	/// Delegate for use in <see cref="ActiveRecord.OnConfigurationCreated"/>
 	/// </summary>
 	public delegate void ConfigurationDelegate(NHibernate.Cfg.Configuration configuration);
 }

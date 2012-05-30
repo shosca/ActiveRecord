@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Castle.ActiveRecord.Framework.Config
-{
-	using System;
-	using System.Configuration;
-	using System.Xml;
+using System;
+using System.Configuration;
+using System.Xml;
 
+namespace Castle.ActiveRecord.Config
+{
 	/// <summary>
 	/// Reads the configuration from a entry 'activerecord'
 	/// in the xml associated with the AppDomain
 	/// </summary>
-	public class ActiveRecordSectionHandler : XmlConfigurationSource, IConfigurationSectionHandler
+	public class ActiveRecordSectionHandler : XmlActiveRecordConfiguration, IConfigurationSectionHandler
 	{
 		/// <summary>
 		/// Creates a configuration section handler.
@@ -42,14 +42,14 @@ namespace Castle.ActiveRecord.Framework.Config
 		/// Gets the sole instance.
 		/// </summary>
 		/// <value>The instance.</value>
-		public static IConfigurationSource Instance
+		public static IActiveRecordConfiguration Instance
 		{
 			get
 			{
-				IConfigurationSource source;
+				IActiveRecordConfiguration source;
 
 				source =
-					ConfigurationManager.GetSection("activerecord") as IConfigurationSource;
+					ConfigurationManager.GetSection("activerecord") as IActiveRecordConfiguration;
 
 				if (source == null)
 				{
@@ -69,7 +69,7 @@ namespace Castle.ActiveRecord.Framework.Config
 		/// Spring.Net (see AR-ISSUE-213)
 		/// </summary>
 		/// <returns>the sole instance</returns>
-		public static IConfigurationSource GetInstance()
+		public static IActiveRecordConfiguration GetInstance()
 		{
 			return Instance;
 		}
