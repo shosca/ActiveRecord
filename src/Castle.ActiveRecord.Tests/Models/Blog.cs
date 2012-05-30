@@ -55,6 +55,9 @@ namespace Castle.ActiveRecord.Tests.Models
 		public virtual string Author { get; set; }
 
 		public virtual IList<Post> Posts { get; set; }
+		public virtual IList<Post> PublishedPosts { get; set; }
+		public virtual IList<Post> UnPublishedPosts { get; set; }
+		public virtual IList<Post> RecentPosts { get; set; }
 
 		public virtual int SomeFormula { get; set; }
 

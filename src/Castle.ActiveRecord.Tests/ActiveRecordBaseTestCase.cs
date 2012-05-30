@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System.Collections.Generic;
@@ -21,20 +24,14 @@ namespace Castle.ActiveRecord.Tests
 	using NHibernate.Criterion;
 
 	[TestFixture]
-	public class ActiveRecordBaseGenericsTestCase : AbstractActiveRecordTest
+	public class ActiveRecordBaseTestCase : AbstractActiveRecordTest
 	{
 		[SetUp]
 		public void Setup()
 		{
-			ActiveRecordStarter.ResetInitializationFlag();
-			
-            ActiveRecordStarter.Initialize(GetConfigSource(),
-				typeof(Blog),
-				typeof(Post),
-				typeof(Company),
-				typeof(Award),
-				typeof(Employee),
-				typeof(Person));
+			ActiveRecord.ResetInitializationFlag();
+
+			ActiveRecord.Initialize(GetConfigSource());
 
 			Recreate();
 
@@ -48,7 +45,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SimpleOperations()
 		{
-            Blog[] blogs = Blog.FindAll();
+            Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -58,7 +55,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "hamilton verissimo";
 			blog.Save();
 
-            blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -86,14 +83,14 @@ namespace Castle.ActiveRecord.Tests
 			post2.Save();
 			post3.Published = true;
 			post3.Save();
-            Post[] posts = Post.CustomSlicedFind(Expression.Eq("Blog", blog), 1, 2);
+			Post[] posts = Post.SlicedFindAll(1, 2, Restrictions.Where<Post>(p => p.Blog == blog)).ToArray();
 			Assert.AreEqual(2, posts.Length);
 		}
 
 		[Test]
 		public void SimpleOperations2()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -103,7 +100,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "hamilton verissimo";
 			blog.Create();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(blog.Name, blogs[0].Name);
 			Assert.AreEqual(blog.Author, blogs[0].Author);
 
@@ -114,7 +111,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "something else2";
 			blog.Update();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -151,7 +148,7 @@ namespace Castle.ActiveRecord.Tests
 				"Embau St., 102", "Sao Paulo", "SP", "040390-060");
 			company.Save();
 
-			Company[] companies = Company.FindAll();
+			Company[] companies = Company.FindAll().ToArray();
 			Assert.IsNotNull(companies);
 			Assert.AreEqual(1, companies.Length);
 
@@ -228,15 +225,15 @@ namespace Castle.ActiveRecord.Tests
 			emp.LastName = "doe";
 			emp.Save();
 
-			Assert.AreEqual(1, Employee.FindAll().Length);
+			Assert.AreEqual(1, Employee.FindAll().Count());
 
 			Award award = new Award(emp);
 			award.Description = "Invisible employee";
 			award.Save();
 
-            Assert.AreEqual(1, Award.FindAll().Length);
+            Assert.AreEqual(1, Award.FindAll().Count());
 
-            Employee emp2 = Employee.Find(emp.ID);
+            Employee emp2 = Employee.Find(emp.Id);
 			Assert.IsNotNull(emp2);
 			Assert.IsNotNull(emp2.Award);
 			Assert.AreEqual(emp.FirstName, emp2.FirstName);
@@ -254,7 +251,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SaveUpdate()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -264,7 +261,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "hamilton verissimo";
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -273,7 +270,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "changed too";
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -285,7 +282,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void Delete()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -295,14 +292,14 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "hamilton verissimo";
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
 
 			blog.Delete();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
