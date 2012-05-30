@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+using Castle.ActiveRecord.Tests.Model;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System.Linq;
@@ -44,10 +46,10 @@ namespace Castle.ActiveRecord.Tests
 				ActiveRecordMediator<Blog>.FindAll();
 				ActiveRecordMediator<Author>.FindAll();
 
-				Assert.AreNotSame(blog.CurrentSession, author.CurrentSession);
+				Assert.AreNotSame(blog.CurrentSession, author.GetCurrentSession());
 				Assert.AreNotEqual(
 					blog.CurrentSession.Connection.ConnectionString,
-					author.CurrentSession.Connection.ConnectionString);
+					author.GetCurrentSession().Connection.ConnectionString);
 			}
 		}
 

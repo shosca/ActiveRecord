@@ -14,38 +14,34 @@
 
 using System;
 using NHibernate;
-using NHibernate.Criterion;
+using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
 
-namespace Castle.ActiveRecord.Tests.Models
+namespace Castle.ActiveRecord.Tests.Model
 {
-	public class Author : UserDB
-	{
-		private int _id;
-		private String _name;
+	public class AuthorMapping : ClassMapping<Author> {
+		public AuthorMapping() {
+			Id(x => x.Id, m => m.Generator(Generators.Native));
+		}
+	}
 
+	public class Author
+	{
 		public Author()
 		{
 		}
 
 		public Author(int _id)
 		{
-			this._id = _id;
+			this.Id = _id;
 		}
 
-		public int Id
-		{
-			get { return _id; }
-			set { _id = value; }
-		}
+		public virtual int Id { get; set; }
 
-		public String Name
-		{
-			get { return _name; }
-			set { _name = value; }
-		}
+		public virtual string Name { get; set; }
 
-		public ISession CurrentSession {
-			get { return (ISession)ActiveRecordMediator<Author>.Execute((session, blog) => { return session; }, null); }
+		public virtual ISession GetCurrentSession() {
+			return ActiveRecordMediator<Author>.Execute((session, blog) => { return session; }, null);
 		}
 	}
 }

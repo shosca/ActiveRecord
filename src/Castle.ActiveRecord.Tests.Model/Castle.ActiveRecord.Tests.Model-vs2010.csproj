@@ -105,6 +105,8 @@
   <ItemGroup>
     <Compile Include="AttributedPreLoadListener.cs" />
     <Compile Include="ActiveRecordClass.cs" />
+    <Compile Include="Author.cs" />
+    <Compile Include="Hand.cs" />
     <Compile Include="NHibernateClass.cs" />
     <Compile Include="NonAttributedPreLoadListener.cs" />
     <Compile Include="OtherDbBlog.cs" />
