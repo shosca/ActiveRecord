@@ -57,35 +57,33 @@ namespace Castle.ActiveRecord
 		/// <param name="func">The delegate instance</param>
 		/// <param name="instance">The ActiveRecord instance</param>
 		/// <returns>Whatever is returned by the delegate invocation</returns>
-		public static TK Execute<TK>(Func<ISession, T, TK> func, T instance)
-		{
+		public static TK Execute<TK>(Func<ISession, T, TK> func, T instance) {
 			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
 
 			EnsureInitialized();
 
-			ISession session = ActiveRecord.Holder.CreateSession(typeof(T));
+			ISession session = ActiveRecord.Holder.CreateSession(typeof (T));
 
-			try
-			{
+			try {
 				return func(session, instance);
-			}
-			catch (ValidationException)
-			{
-				ActiveRecord.Holder.FailSession(session);
 
+			} catch (ValidationException) {
+				ActiveRecord.Holder.FailSession(session);
 				throw;
-			}
-			catch (Exception ex)
-			{
-				ActiveRecord.Holder.FailSession(session);
 
-				throw new ActiveRecordException("Error performing Execute for " + typeof(T).Name, ex);
-			}
-			finally
-			{
+			} catch (ObjectNotFoundException ex) {
+				String message = String.Format("Could not find {0} with id {1}", ex.EntityName, ex.Identifier);
+				throw new NotFoundException(message, ex);
+
+			} catch (Exception ex) {
+				ActiveRecord.Holder.FailSession(session);
+				throw new ActiveRecordException("Error performing Execute for " + typeof (T).Name, ex);
+
+			} finally {
 				ActiveRecord.Holder.ReleaseSession(session);
 			}
 		}
+
 		public static void Execute(Action<ISession> action) {
 			Execute(session => {
 				action(session);
@@ -109,10 +107,8 @@ namespace Castle.ActiveRecord
 		{
 			EnsureInitialized();
 			bool hasScope = ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope;
-			return Execute(session =>
-			{
-				try
-				{
+			try {
+				return Execute(session => {
 					// Load() and Get() has different semantics with regard to the way they
 					// handle null values, Get() _must_ check that the value exists, Load() is allowed
 					// to return an uninitialized proxy that will throw when you access it later.
@@ -128,14 +124,11 @@ namespace Castle.ActiveRecord
 						NHibernateUtil.Initialize(loaded);
 					}
 					return loaded;
-				}
-				catch (ObjectNotFoundException ex)
-				{
-					String message = String.Format("Could not find {0} with id {1}", typeof(T).Name, id);
-					throw new NotFoundException(message, ex);
-				}
-			})
-;
+				});
+			} catch (ObjectNotFoundException ex) {
+				String message = String.Format("Could not find {0} with id {1}", typeof(T).Name, id);
+				throw new NotFoundException(message, ex);
+			}
 		}
 
 		/// <summary>
