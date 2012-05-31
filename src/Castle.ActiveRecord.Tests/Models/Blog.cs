@@ -136,7 +136,7 @@ namespace Castle.ActiveRecord.Tests.Models
 		}
 
 		public virtual ISession CurrentSession {
-			get { return (ISession)ActiveRecordMediator<Blog>.Execute((session, blog) => { return session; }, null); }
+			get { return (ISession)ActiveRecord<Blog>.Execute((session, blog) => { return session; }, null); }
 		}
 	}
 }

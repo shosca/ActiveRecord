@@ -40,7 +40,7 @@ namespace Castle.ActiveRecord
 		/// </remarks>
 		public static void DeleteAll()
 		{
-			ActiveRecordMediator<T>.DeleteAll();
+			ActiveRecord<T>.DeleteAll();
 		}
 
 		/// <summary>
@@ -53,7 +53,7 @@ namespace Castle.ActiveRecord
 		/// <param name="where">HQL condition to select the rows to be deleted</param>
 		public static void DeleteAll(String where)
 		{
-			ActiveRecordMediator<T>.DeleteAll(where);
+			ActiveRecord<T>.DeleteAll(where);
 		}
 
 		/// <summary>
@@ -63,7 +63,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The number of objects deleted</returns>
 		public static int DeleteAll(IEnumerable pkValues)
 		{
-			return ActiveRecordMediator<T>.DeleteAll(pkValues);
+			return ActiveRecord<T>.DeleteAll(pkValues);
 		}
 
 		#endregion
@@ -77,7 +77,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if the ID exists; otherwise <c>false</c>.</returns>
 		public static bool Exists(object id)
 		{
-			return ActiveRecordMediator<T>.Exists(id);
+			return ActiveRecord<T>.Exists(id);
 		}
 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.Exists(criteria);
+			return ActiveRecord<T>.Exists(criteria);
 		}
 
 		/// <summary>
@@ -97,7 +97,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(DetachedCriteria detachedCriteria)
 		{
-			return ActiveRecordMediator<T>.Exists(detachedCriteria);
+			return ActiveRecord<T>.Exists(detachedCriteria);
 		}
 
 		/// <summary>
@@ -107,7 +107,7 @@ namespace Castle.ActiveRecord
 		/// <returns>true if an instance is found; otherwise false.</returns>
 		public static bool Exists(IDetachedQuery detachedQuery)
 		{
-			return ActiveRecordMediator<T>.Exists(detachedQuery);
+			return ActiveRecord<T>.Exists(detachedQuery);
 		}
 
 		#endregion
@@ -122,7 +122,7 @@ namespace Castle.ActiveRecord
 		/// <returns>All entities that match the criteria</returns>
 		public static IEnumerable<T> FindAll(DetachedCriteria criteria, params Order[] orders)
 		{
-			return ActiveRecordMediator<T>.FindAll(criteria, orders);
+			return ActiveRecord<T>.FindAll(criteria, orders);
 		}
 
 		/// <summary>
@@ -134,7 +134,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The <see cref="Array"/> of results.</returns>
 		public static IEnumerable<T> FindAll(Order order, params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.FindAll(new[] {order}, criteria);
+			return ActiveRecord<T>.FindAll(new[] {order}, criteria);
 		}
 
 		/// <summary>
@@ -146,7 +146,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAll(Order[] orders, params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.FindAll(orders, criteria);
+			return ActiveRecord<T>.FindAll(orders, criteria);
 		}
 
 		/// <summary>
@@ -157,7 +157,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAll(params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.FindAll(criteria);
+			return ActiveRecord<T>.FindAll(criteria);
 		}
 
 		/// <summary>
@@ -167,7 +167,7 @@ namespace Castle.ActiveRecord
 		/// <returns>All entities that match the query</returns>
 		public static IEnumerable<T> FindAll(IDetachedQuery detachedQuery)
 		{
-			return ActiveRecordMediator<T>.FindAll(detachedQuery);
+			return ActiveRecord<T>.FindAll(detachedQuery);
 		}
 
 
@@ -183,7 +183,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAllByProperty(String property, object value)
 		{
-			return ActiveRecordMediator<T>.FindAllByProperty(property, value);
+			return ActiveRecord<T>.FindAllByProperty(property, value);
 		}
 
 		/// <summary>
@@ -195,7 +195,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAllByProperty(String orderByColumn, String property, object value)
 		{
-			return ActiveRecordMediator<T>.FindAllByProperty(orderByColumn, property, value);
+			return ActiveRecord<T>.FindAllByProperty(orderByColumn, property, value);
 		}
 
 		#endregion
@@ -210,7 +210,7 @@ namespace Castle.ActiveRecord
 		/// <returns>T</returns>
 		public static T Find(object id)
 		{
-			return ActiveRecordMediator<T>.FindByPrimaryKey(id, true);
+			return ActiveRecord<T>.FindByPrimaryKey(id, true);
 		}
 
 		/// <summary>
@@ -221,7 +221,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <typeparamref name="T"/></returns>
 		public static T TryFind(object id)
 		{
-			return ActiveRecordMediator<T>.FindByPrimaryKey(id, false);
+			return ActiveRecord<T>.FindByPrimaryKey(id, false);
 		}
 
 		#endregion
@@ -236,7 +236,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c>.</returns>
 		public static T FindFirst(DetachedCriteria criteria, params Order[] orders)
 		{
-			return ActiveRecordMediator<T>.FindFirst(criteria, orders);
+			return ActiveRecord<T>.FindFirst(criteria, orders);
 		}
 
 		/// <summary>
@@ -247,7 +247,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindFirst(Order order, params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.FindFirst(new Order[] {order}, criteria);
+			return ActiveRecord<T>.FindFirst(new Order[] {order}, criteria);
 		}
 
 		/// <summary>
@@ -258,7 +258,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindFirst(Order[] orders, params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.FindFirst(orders, criteria);
+			return ActiveRecord<T>.FindFirst(orders, criteria);
 		}
 
 		/// <summary>
@@ -268,7 +268,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindFirst(params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.FindFirst(criteria);
+			return ActiveRecord<T>.FindFirst(criteria);
 		}
 
 		/// <summary>
@@ -278,7 +278,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null.</c></returns>
 		public static T FindFirst(IDetachedQuery detachedQuery) 
 		{
-			return ActiveRecordMediator<T>.FindFirst(detachedQuery);
+			return ActiveRecord<T>.FindFirst(detachedQuery);
 		}
 
 		#endregion
@@ -293,7 +293,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.FindOne(criteria);
+			return ActiveRecord<T>.FindOne(criteria);
 		}
 
 		/// <summary>
@@ -304,7 +304,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(DetachedCriteria criteria)
 		{
-			return ActiveRecordMediator<T>.FindOne(criteria);
+			return ActiveRecord<T>.FindOne(criteria);
 		}
 
 		/// <summary>
@@ -315,7 +315,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(IDetachedQuery detachedQuery) 
 		{
-			return ActiveRecordMediator<T>.FindOne(detachedQuery);
+			return ActiveRecord<T>.FindOne(detachedQuery);
 		}
 
 		#endregion
@@ -332,7 +332,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.SlicedFindAll(firstResult, maxResults, orders, criteria);
+			return ActiveRecord<T>.SlicedFindAll(firstResult, maxResults, orders, criteria);
 		}
 
 		/// <summary>
@@ -344,7 +344,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, params ICriterion[] criteria)
 		{
-			return ActiveRecordMediator<T>.SlicedFindAll(firstResult, maxResults, criteria);
+			return ActiveRecord<T>.SlicedFindAll(firstResult, maxResults, criteria);
 		}
 
 		/// <summary>
@@ -357,7 +357,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders)
 		{
-			return ActiveRecordMediator<T>.SlicedFindAll(firstResult, maxResults, criteria, orders);
+			return ActiveRecord<T>.SlicedFindAll(firstResult, maxResults, criteria, orders);
 		}
 
 		/// <summary>
@@ -369,7 +369,7 @@ namespace Castle.ActiveRecord
 		/// <param name="detachedQuery">The query expression</param>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, IDetachedQuery detachedQuery)
 		{
-			return ActiveRecordMediator<T>.SlicedFindAll(firstResult, maxResults, detachedQuery);
+			return ActiveRecord<T>.SlicedFindAll(firstResult, maxResults, detachedQuery);
 		}
 
 		#endregion
@@ -411,43 +411,43 @@ namespace Castle.ActiveRecord
 		}
 
 		public virtual void Create() {
-			ActiveRecordMediator<T>.Create(this);
+			ActiveRecord<T>.Create(this);
 		}
 
 		public virtual void CreateAndFlush() {
-			ActiveRecordMediator<T>.CreateAndFlush(this);
+			ActiveRecord<T>.CreateAndFlush(this);
 		}
 
 		public virtual void Update() {
-			ActiveRecordMediator<T>.Update(this);
+			ActiveRecord<T>.Update(this);
 		}
 
 		public virtual void UpdateAndFlush() {
-			ActiveRecordMediator<T>.UpdateAndFlush(this);
+			ActiveRecord<T>.UpdateAndFlush(this);
 		}
 
 		public virtual void Save() {
-			ActiveRecordMediator<T>.Save(this);
+			ActiveRecord<T>.Save(this);
 		}
 
 		public virtual void SaveAndFlush() {
-			ActiveRecordMediator<T>.SaveAndFlush(this);
+			ActiveRecord<T>.SaveAndFlush(this);
 		}
 
 		public virtual void Delete() {
-			ActiveRecordMediator<T>.Delete(this);
+			ActiveRecord<T>.Delete(this);
 		}
 
 		public virtual void DeleteAndFlush() {
-			ActiveRecordMediator<T>.DeleteAndFlush(this);
+			ActiveRecord<T>.DeleteAndFlush(this);
 		}
 
 		public virtual void Refresh() {
-			ActiveRecordMediator<T>.Refresh(this);
+			ActiveRecord<T>.Refresh(this);
 		}
 
 		public static IEnumerable<T> FindByProperty(string property, object value) {
-			return ActiveRecordMediator<T>.FindAllByProperty(property, value);
+			return ActiveRecord<T>.FindAllByProperty(property, value);
 		}
 	}
 }

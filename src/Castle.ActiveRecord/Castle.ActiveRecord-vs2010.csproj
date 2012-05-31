@@ -143,7 +143,7 @@
     <Compile Include="ActiveRecordException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ActiveRecordMediator.cs" />
+    <Compile Include="ActiveRecord.Generic.cs" />
     <Compile Include="Config\SessionFactoryConfig.cs" />
     <Compile Include="Delegates.cs">
       <SubType>Code</SubType>

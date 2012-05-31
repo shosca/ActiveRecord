@@ -74,12 +74,12 @@ namespace Castle.ActiveRecord.Tests
 			var ship = new Ship() {Name = "Andrea Doria"};
 
 			using (new SessionScope())
-				ActiveRecordMediator<Ship>.Create(ship);
+				ActiveRecord<Ship>.Create(ship);
 
 			using (new StatelessSessionScope())
 			{
-				Assert.IsTrue(ActiveRecordMediator<Ship>.Exists(ship.Id));
-				Assert.AreEqual("Andrea Doria",ActiveRecordMediator<Ship>.FindByPrimaryKey(ship.Id).Name);
+				Assert.IsTrue(ActiveRecord<Ship>.Exists(ship.Id));
+				Assert.AreEqual("Andrea Doria",ActiveRecord<Ship>.FindByPrimaryKey(ship.Id).Name);
 			}
 		}
 
@@ -218,7 +218,7 @@ namespace Castle.ActiveRecord.Tests
 
 			var crit = DetachedCriteria.For<Blog>().Add(Expression.Eq("Author", "Mort"));
 			using (new StatelessSessionScope())
-				Assert.AreEqual(1, ActiveRecordMediator<Blog>.FindAll(crit).Count());
+				Assert.AreEqual(1, ActiveRecord<Blog>.FindAll(crit).Count());
 
 		}
 

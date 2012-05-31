@@ -29,7 +29,7 @@ namespace Castle.ActiveRecord
 	/// Allow programmers to use the 
 	/// ActiveRecord functionality without extending ActiveRecordBase/>
 	/// </summary>
-	public class ActiveRecordMediator<T> where T : class {
+	public class ActiveRecord<T> where T : class {
 
 		internal static void EnsureInitialized()
 		{
@@ -768,12 +768,12 @@ namespace Castle.ActiveRecord
 	public static class QueryOverExtensions {
 		public static IEnumerable<T> List<T>(this QueryOver<T> query) where T : class
 		{
-			return ActiveRecordMediator<T>.Execute(session => query.GetExecutableQueryOver(session).List<T>());
+			return ActiveRecord<T>.Execute(session => query.GetExecutableQueryOver(session).List<T>());
 		}
 
 		public static IEnumerable<TR> List<T, TR>(this QueryOver<T> query) where T : class
 		{
-			return ActiveRecordMediator<T>.Execute(session => query.GetExecutableQueryOver(session).List<TR>());
+			return ActiveRecord<T>.Execute(session => query.GetExecutableQueryOver(session).List<TR>());
 		}
 	}
 }

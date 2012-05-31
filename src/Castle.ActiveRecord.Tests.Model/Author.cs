@@ -41,7 +41,7 @@ namespace Castle.ActiveRecord.Tests.Model
 		public virtual string Name { get; set; }
 
 		public virtual ISession GetCurrentSession() {
-			return ActiveRecordMediator<Author>.Execute((session, blog) => { return session; }, null);
+			return ActiveRecord<Author>.Execute((session, blog) => { return session; }, null);
 		}
 	}
 }
