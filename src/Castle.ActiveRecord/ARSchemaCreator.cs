@@ -17,6 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using NHibernate.Cfg;
 using NHibernate.Connection;
 using NHibernate.Dialect;
@@ -48,12 +49,12 @@ namespace Castle.ActiveRecord
 		/// <param name="scriptFileName">Name of the script file.</param>
 		public void Execute(String scriptFileName)
 		{
-			String[] parts = OpenFileAndStripContents(scriptFileName);
+			var parts = OpenFileAndStripContents(scriptFileName);
 
 			ExecuteScript(parts);
 		}
 
-		private void ExecuteScript(String[] parts)
+		private void ExecuteScript(IList<string> parts)
 		{
 			IConnectionProvider connectionProvider =
 				ConnectionProviderFactory.NewConnectionProvider(CreateConnectionProperties());
@@ -76,7 +77,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="connection">The connection.</param>
 		/// <param name="parts">The parts.</param>
-		public static void ExecuteScriptParts(IDbConnection connection, String[] parts)
+		public static void ExecuteScriptParts(IDbConnection connection, IList<string> parts)
 		{
 			using(IDbCommand statement = connection.CreateCommand())
 			{
@@ -103,7 +104,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="scriptFileName">Name of the script file.</param>
 		/// <returns></returns>
-		public static String[] OpenFileAndStripContents(String scriptFileName)
+		public static IList<string> OpenFileAndStripContents(String scriptFileName)
 		{
 			if (scriptFileName == null)
 			{
@@ -121,9 +122,9 @@ namespace Castle.ActiveRecord
 			{
 				String contents = reader.ReadToEnd();
 
-				String[] parts = contents.Split(';');
+				IList<string> parts = contents.Split(';').ToList();
 
-				if (parts.Length == 1)
+				if (parts.Count == 1)
 				{
 					parts = SplitString(contents, "GO");
 				}
@@ -132,9 +133,9 @@ namespace Castle.ActiveRecord
 			}
 		}
 
-		private static String[] SplitString(String sqlScript, String split)
+		private static IList<string> SplitString(String sqlScript, String split)
 		{
-			ArrayList parts = new ArrayList();
+			var parts = new List<string>();
 
 			int searchFrom = -1;
 			int lastIndex = 0;
@@ -160,7 +161,7 @@ namespace Castle.ActiveRecord
 				}
 			}
 
-			return (String[]) parts.ToArray(typeof(String));
+			return parts;
 		}
 
 		private IDictionary<string,string> CreateConnectionProperties()
