@@ -50,7 +50,7 @@ namespace Castle.ActiveRecord.Tests.Config
 
 			source.Add(sf);
 
-			ActiveRecord.ResetInitializationFlag();
+			ActiveRecord.ResetInitialization();
 
 			ActiveRecord.Initialize(source);
 		}

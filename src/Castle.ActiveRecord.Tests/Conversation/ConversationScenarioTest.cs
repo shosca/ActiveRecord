@@ -184,22 +184,19 @@ namespace Castle.ActiveRecord.Tests.Conversation
 
     	private void ArrangeRecords()
     	{
-    		Blog blog = new Blog()
-    		                	{
-    		                		Author = "Markus",
-    		                		Name = "Conversations"
-    		                	};
-    		Post post = new Post()
-    		                	{
-    		                		Blog = blog,
-    		                		Category = "Scenario",
-    		                		Title = "The Convesration is here",
-    		                		Contents = "A new way for AR in fat clients",
-    		                		Created = new DateTime(2010, 1, 1),
-    		                		Published = true
-    		                	};
-    		blog.Save();
-    		post.Save();
+			using (new SessionScope()) {
+				Blog blog = new Blog() { Author = "Markus", Name = "Conversations" };
+				Post post = new Post() {
+					Blog = blog,
+					Category = "Scenario",
+					Title = "The Convesration is here",
+					Contents = "A new way for AR in fat clients",
+					Created = new DateTime(2010, 1, 1),
+					Published = true
+				};
+				blog.Save();
+				post.Save();
+			}
     	}
     }
 }

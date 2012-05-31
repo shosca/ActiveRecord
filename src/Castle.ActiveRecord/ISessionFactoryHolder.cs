@@ -22,7 +22,7 @@ namespace Castle.ActiveRecord
 	/// Keeps an association of SessionFactories to a object model 
 	/// tree;
 	/// </summary>
-	public interface ISessionFactoryHolder
+	public interface ISessionFactoryHolder : IDisposable
 	{
 		/// <summary>
 		/// Pendent

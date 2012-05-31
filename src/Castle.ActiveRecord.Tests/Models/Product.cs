@@ -22,7 +22,7 @@ namespace Castle.ActiveRecord.Tests.Models
 	public class ProductMapping : ClassMapping<Product> {
 		public ProductMapping() {
 			Id(x => x.Id, m => m.Generator(Generators.Native));
-			Set(x => x.Categories, m => m.Cascade(Cascade.All));
+			Set(x => x.Categories, m => m.Cascade(Cascade.All | Cascade.DeleteOrphans));
 		}
 	}
 

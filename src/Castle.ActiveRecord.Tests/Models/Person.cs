@@ -23,6 +23,13 @@ namespace Castle.ActiveRecord.Tests.Models
 	public class PersonMapping : ClassMapping<Person> {
 		public PersonMapping() {
 			Id(x => x.Id, m => m.Generator(Generators.Native));
+			Bag(x => x.Companies, m => {
+				m.Table("CompanyPerson");
+				m.Key(k => k.Column("PersonId"));
+			}, m => m.ManyToMany(p => {
+				p.Class(typeof(Company));
+				p.Column("CompanyId");
+			}));
 		}
 	}
 

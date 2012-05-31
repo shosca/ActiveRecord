@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+using Iesi.Collections.Generic;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
@@ -178,7 +180,7 @@ namespace Castle.ActiveRecord.Tests
 
 			using (new StatelessSessionScope())
 			{
-				blog.Posts = new List<Post>();
+				blog.Posts.Clear();
 
 				for (int i = 0; i < 10; i++)
 				{

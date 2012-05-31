@@ -44,7 +44,7 @@ namespace Castle.ActiveRecord.Tests
 		[SetUp]
 		public void SetUp()
 		{
-			ActiveRecord.ResetInitializationFlag();
+			ActiveRecord.ResetInitialization();
 		}
 
 		[Test]

@@ -28,6 +28,21 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class SessionScopeTestCase : AbstractActiveRecordTest
 	{
+		[SetUp]
+		public override void Init() {
+			base.Init();
+			ActiveRecord.Initialize(GetConfigSource());
+			Recreate();
+		}
+
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
+		}
+
         [Test]
 		[ExpectedException(typeof(ActiveRecordException), ExpectedMessage = "A scope tried to registered itself within the framework, but the Active Record was not initialized")]
         public void GoodErrorMessageIfTryingToUseScopeWithoutInitializingFramework()
@@ -45,13 +60,10 @@ namespace Castle.ActiveRecord.Tests
             }
         }
 	    
-		[Test]
+		[Test, Ignore()]
 		public void OneDatabaseSameSession()
 		{
 			ISession session1, session2, session3, session4;
-
-			ActiveRecord.Initialize( GetConfigSource() );
-			Recreate();
 
 			// No scope here
 			// So no optimization, thus different sessions
@@ -120,9 +132,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SessionScopeUsage()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
@@ -147,9 +156,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NestedSessionScopeUsage()
 		{
-			ActiveRecord.Initialize( GetConfigSource());
-			Recreate();
-
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
@@ -181,16 +187,14 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NestedSessionScopeAndLazyLoad()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			Product product = new Product();
-
 			product.Categories.Add( new Category("x") );
 			product.Categories.Add( new Category("y") );
-			product.Categories.Add( new Category("z") );
+			product.Categories.Add( new Category("z") ); 
 
-			product.Save();
+			using (new SessionScope()) {
+				product.Save();
+			}
 
 			using(new SessionScope())
 			{
@@ -229,9 +233,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void AnExceptionInvalidatesTheScopeAndPreventItsFlushing()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
@@ -265,9 +266,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SessionScopeFlushModeNever()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
@@ -322,9 +320,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void DifferentSessionScopesUseDifferentCaches()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			Post.DeleteAll();
 			Blog.DeleteAll();
 

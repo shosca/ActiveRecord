@@ -107,28 +107,23 @@ namespace Castle.ActiveRecord
 		{
 			EnsureInitialized();
 			bool hasScope = ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope;
-			try {
-				return Execute(session => {
-					// Load() and Get() has different semantics with regard to the way they
-					// handle null values, Get() _must_ check that the value exists, Load() is allowed
-					// to return an uninitialized proxy that will throw when you access it later.
-					// in order to play well with proxies, we need to use this approach.
-					T loaded = throwOnNotFound ? session.Load<T>(id) : session.Get<T>(id);
+			return Execute(session => {
+				// Load() and Get() has different semantics with regard to the way they
+				// handle null values, Get() _must_ check that the value exists, Load() is allowed
+				// to return an uninitialized proxy that will throw when you access it later.
+				// in order to play well with proxies, we need to use this approach.
+				T loaded = throwOnNotFound ? session.Get<T>(id) : session.Load<T>(id);
 
-					//If we are not in a scope, we want to initialize the entity eagerly, since other wise the 
-					//user will get an exception when it access the entity's property, and it will try to lazy load itself and find that
-					//it has no session.
-					//If we are in a scope, it is the user responsability to keep the scope alive if he wants to use 
-					if (!hasScope)
-					{
-						NHibernateUtil.Initialize(loaded);
-					}
-					return loaded;
-				});
-			} catch (ObjectNotFoundException ex) {
-				String message = String.Format("Could not find {0} with id {1}", typeof(T).Name, id);
-				throw new NotFoundException(message, ex);
-			}
+				//If we are not in a scope, we want to initialize the entity eagerly, since other wise the 
+				//user will get an exception when it access the entity's property, and it will try to lazy load itself and find that
+				//it has no session.
+				//If we are in a scope, it is the user responsability to keep the scope alive if he wants to use 
+				if (!hasScope)
+				{
+					NHibernateUtil.Initialize(loaded);
+				}
+				return loaded;
+			});
 		}
 
 		/// <summary>

@@ -13,9 +13,8 @@
 // limitations under the License.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Castle.ActiveRecord.Tests.Model;
+using Iesi.Collections.Generic;
 using NHibernate;
 using NHibernate.Criterion;
 using NHibernate.Mapping.ByCode;
@@ -26,6 +25,25 @@ namespace Castle.ActiveRecord.Tests.Models
 	public class BlogMapping : ClassMapping<Blog> {
 		public BlogMapping() {
 			Id(x => x.Id, m => m.Generator(Generators.Native));
+			Set(x => x.Posts, m => {
+				m.Inverse(true);
+				m.Lazy(CollectionLazy.Lazy);
+			});
+			Set(x => x.PublishedPosts, m => {
+				m.Inverse(true);
+				m.Lazy(CollectionLazy.Lazy);
+				m.Where("published = 1");
+			});
+			Set(x => x.UnPublishedPosts, m => {
+				m.Inverse(true);
+				m.Lazy(CollectionLazy.Lazy);
+				m.Where("published = 0");
+			});
+			Set(x => x.RecentPosts, m => {
+				m.Inverse(true);
+				m.Lazy(CollectionLazy.Lazy);
+				m.OrderBy(p => p.Created);
+			});
 		}	
 	}
 
@@ -41,6 +59,10 @@ namespace Castle.ActiveRecord.Tests.Models
 
 		public Blog()
 		{
+			Posts = new HashedSet<Post>();
+			PublishedPosts = new HashedSet<Post>();
+			UnPublishedPosts = new HashedSet<Post>();
+			RecentPosts = new HashedSet<Post>();
 		}
 
 		public Blog(int _id)
@@ -54,10 +76,10 @@ namespace Castle.ActiveRecord.Tests.Models
 
 		public virtual string Author { get; set; }
 
-		public virtual IList<Post> Posts { get; set; }
-		public virtual IList<Post> PublishedPosts { get; set; }
-		public virtual IList<Post> UnPublishedPosts { get; set; }
-		public virtual IList<Post> RecentPosts { get; set; }
+		public virtual ISet<Post> Posts { get; set; }
+		public virtual ISet<Post> PublishedPosts { get; set; }
+		public virtual ISet<Post> UnPublishedPosts { get; set; }
+		public virtual ISet<Post> RecentPosts { get; set; }
 
 		public virtual int SomeFormula { get; set; }
 

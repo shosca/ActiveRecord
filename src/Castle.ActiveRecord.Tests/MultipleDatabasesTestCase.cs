@@ -14,6 +14,7 @@
 
 using System.Linq;
 using System.Reflection;
+using Castle.ActiveRecord.Scopes;
 using Castle.ActiveRecord.Tests.Model;
 using Castle.ActiveRecord.Tests.Models;
 
@@ -32,6 +33,13 @@ namespace Castle.ActiveRecord.Tests
 			ActiveRecord.Initialize(GetConfigSource());
 
 			Recreate();
+		}
+
+		[TearDown]
+		public override void Drop()
+		{
+			SessionScope.Current.Dispose();
+			base.Drop();
 		}
 
 		[Test]

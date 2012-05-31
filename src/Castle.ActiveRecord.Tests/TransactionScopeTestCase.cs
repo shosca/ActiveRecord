@@ -25,13 +25,25 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class TransactionScopeTestCase : AbstractActiveRecordTest
 	{
+		[SetUp]
+		public override void Init() {
+			base.Init();
+			ActiveRecord.Initialize(GetConfigSource());
+			Recreate();
+		}
+
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
+		}
+
 		[Test]
 		public void TransactionScopeUsage()
 		{
 			ISession session1, session2, session3, session4;
-
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
 
 			using(new TransactionScope())
 			{
@@ -49,29 +61,11 @@ namespace Castle.ActiveRecord.Tests
 				Assert.IsTrue(session3 == session1);
 				Assert.IsTrue(session4 == session1);
 			}
-
-			// Old behavior
-
-			session1 = ActiveRecord.Holder.CreateSession(typeof(Blog));
-			session2 = ActiveRecord.Holder.CreateSession(typeof(Blog));
-
-			Assert.IsNotNull(session1);
-			Assert.IsNotNull(session2);
-			Assert.IsTrue(session1 != session2);
-
-			ActiveRecord.Holder.ReleaseSession(session1);
-			ActiveRecord.Holder.ReleaseSession(session2);
 		}
 
 		[Test]
 		public void RollbackVote()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(TransactionScope transaction = new TransactionScope())
 			{
 				Blog blog = new Blog();
@@ -97,12 +91,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void RollbackOnDispose()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(new TransactionScope(OnDispose.Rollback))
 			{
 				Blog blog = new Blog();
@@ -124,12 +112,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void CommitVote()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(new TransactionScope())
 			{
 				Blog blog = new Blog();
@@ -153,12 +135,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void RollbackUponException()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(TransactionScope transaction = new TransactionScope())
 			{
 				Blog blog = new Blog();
@@ -188,12 +164,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NestedTransactions()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(new TransactionScope())
 			{
 				Blog blog = new Blog();
@@ -232,11 +202,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NestedTransactionScopesHaveCorrectTransactionContexts()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using (new TransactionScope())
 			{
 				Blog blog1 = new Blog();
@@ -309,12 +274,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void LotsOfNestedTransactionWithDifferentConfigurations()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(TransactionScope root = new TransactionScope())
 			{
 				using(TransactionScope t1 = new TransactionScope()) // Isolated
@@ -386,12 +345,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void MixingSessionScopeAndTransactionScopes()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(new SessionScope())
 			{
 				using(TransactionScope root = new TransactionScope())
@@ -466,12 +419,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void MixingSessionScopeAndTransactionScopes2()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			Blog b = new Blog();
 
 			using(new SessionScope())
@@ -519,12 +466,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void MixingSessionScopeAndTransactionScopes3()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			Blog b = new Blog();
 
 			using(new SessionScope())
@@ -573,16 +514,10 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void MixingSessionScopeAndTransactionScopes4()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			Blog b = new Blog();
 			Post post = null;
 
-			{
+			using(new SessionScope()) {
 				b.Name = "a";
 				b.Author = "x";
 				b.Save();
@@ -622,12 +557,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NestedTransactionWithRollbackOnDispose()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
 			using(new TransactionScope())
 			{
 				Blog blog = new Blog();
@@ -668,9 +597,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ReportedProblemOnForum()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			using(new TransactionScope())
 			{
 				Company comp1 = new Company("comp1");
@@ -684,9 +610,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ExplicitFlushInsideSecondTransactionProblem()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			Company comp1 = new Company("comp1");
 			Company comp2 = new Company("comp2");
 			using(new SessionScope())

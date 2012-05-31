@@ -35,6 +35,14 @@ namespace Castle.ActiveRecord.Tests
 			Recreate();
 		}
 
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
+		}
+
 		[Test]
 		public void SessionsAreDifferent()
 		{

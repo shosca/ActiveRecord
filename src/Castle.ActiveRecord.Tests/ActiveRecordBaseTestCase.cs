@@ -13,10 +13,12 @@
 // limitations under the License.
 
 using System.Linq;
+using Castle.ActiveRecord.Scopes;
 using Castle.ActiveRecord.Tests.Models;
+using NHibernate;
+using NHibernate.Cfg;
 
-namespace Castle.ActiveRecord.Tests
-{
+namespace Castle.ActiveRecord.Tests {
 	using System.Collections.Generic;
 
 	using NUnit.Framework;
@@ -24,43 +26,52 @@ namespace Castle.ActiveRecord.Tests
 	using NHibernate.Criterion;
 
 	[TestFixture]
-	public class ActiveRecordBaseTestCase : AbstractActiveRecordTest
-	{
+	public class ActiveRecordBaseTestCase : AbstractActiveRecordTest {
 		[SetUp]
-		public void Setup()
-		{
-			ActiveRecord.ResetInitializationFlag();
+		public void Setup() {
+			ActiveRecord.ResetInitialization();
+
+			ActiveRecord.OnConfigurationCreated += cfg =>
+				cfg.DataBaseIntegration( db => {
+					db.LogSqlInConsole = true;
+					db.LogFormattedSql = true;
+				}
+			);
 
 			ActiveRecord.Initialize(GetConfigSource());
 
 			Recreate();
 
-            Post.DeleteAll();
-            Blog.DeleteAll();
-            Company.DeleteAll();
-            Award.DeleteAll();
-            Employee.DeleteAll();
+			Post.DeleteAll();
+			Blog.DeleteAll();
+			Company.DeleteAll();
+			Award.DeleteAll();
+			Employee.DeleteAll();
+		}
+
+		[TearDown]
+		public override void Drop()
+		{
+			SessionScope.Current.Dispose();
+			base.Drop();
 		}
 
 		[Test]
-		public void SimpleOperations()
-		{
-            Blog[] blogs = Blog.FindAll().ToArray();
+		public void SimpleOperations() {
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.SaveAndFlush();
 
 			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
 
-			Blog retrieved = blogs[0];
+			Blog retrieved = blogs.First();
 			Assert.IsNotNull(retrieved);
 
 			Assert.AreEqual(blog.Name, retrieved.Name);
@@ -68,8 +79,7 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void SlicedOperation()
-		{
+		public void SlicedOperation() {
 			Blog blog = new Blog();
 			blog.Name = "hammett's blog";
 			blog.Author = "hamilton verissimo";
@@ -88,17 +98,14 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void SimpleOperations2()
-		{
+		public void SimpleOperations2() {
 			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Create();
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.CreateAndFlush();
 
 			blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(blog.Name, blogs[0].Name);
@@ -109,40 +116,41 @@ namespace Castle.ActiveRecord.Tests
 
 			blog.Name = "something else1";
 			blog.Author = "something else2";
-			blog.Update();
+			blog.UpdateAndFlush();
 
 			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
-			Assert.AreEqual(blog.Name, blogs[0].Name);
-			Assert.AreEqual(blog.Author, blogs[0].Author);
+			blog = blogs.First();
+			Assert.AreEqual(blog.Name, blog.Name);
+			Assert.AreEqual(blog.Author, blog.Author);
 		}
 
 		[Test]
-		public void HasManyAndBelongsToMany()
-		{
-			Company company = new Company("Castle Corp.");
-			company.Address = new PostalAddress(
-				"Embau St., 102", "Sao Paulo", "SP", "040390-060");
+		public void HasManyAndBelongsToMany() {
+			var company = new Company("Castle Corp.") {
+			Address =
+				new PostalAddress("Embau St., 102", "Sao Paulo", "SP", "040390-060")
+			};
 			company.Save();
 
-			Person person = new Person();
-			person.Name = "ayende";
-			person.Companies.Add(company);
-			company.People.Add(person);
-
+			var person = new Person {Name = "ayende"};
 			person.Save();
 
-			Company fromDB = Company.FindFirst();
+			person.Companies.Add(company);
+			company.People.Add(person);
+			company.Save();
+			person.Save();
+
+			Company fromDB = Company.Find(company.Id);
 			Assert.AreEqual(1, fromDB.People.Count);
 
-			Assert.AreEqual("ayende", new List<Person>(fromDB.People)[0].Name);
+			Assert.AreEqual("ayende", fromDB.People.First().Name);
 		}
 
 		[Test]
-		public void ComponentAttribute()
-		{
+		public void ComponentAttribute() {
 			Company company = new Company("Castle Corp.");
 			company.Address = new PostalAddress(
 				"Embau St., 102", "Sao Paulo", "SP", "040390-060");
@@ -161,34 +169,32 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void RelationsOneToMany()
-		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+		public void RelationsOneToMany() {
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			Post post1 = new Post(blog, "title1", "contents", "category1");
 			Post post2 = new Post(blog, "title2", "contents", "category2");
 
 			post1.Save();
-			post2.Save();
+			post2.SaveAndFlush();
+			blog.Refresh();
 
-			blog = Blog.Find(blog.Id);
+			var fromdb = Blog.TryFind(blog.Id);
 
-			Assert.IsNotNull(blog);
-			Assert.IsNotNull(blog.Posts, "posts collection is null");
-			Assert.AreEqual(2, blog.Posts.Count);
+			Assert.IsNotNull(fromdb);
+			Assert.IsNotNull(fromdb.Posts, "posts collection is null");
+			Assert.AreEqual(2, Post.FindAll().Count());
+			Assert.AreEqual(2, fromdb.Posts.Count);
 
-			foreach (Post post in blog.Posts)
+			foreach (Post post in fromdb.Posts)
 			{
 				Assert.AreEqual(blog.Id, post.Blog.Id);
 			}
 		}
 
 		[Test]
-		public void RelationsOneToManyWithWhereAndOrder()
-		{
+		public void RelationsOneToManyWithWhereAndOrder() {
 			Blog blog = new Blog();
 			blog.Name = "hammett's blog";
 			blog.Author = "hamilton verissimo";
@@ -206,34 +212,34 @@ namespace Castle.ActiveRecord.Tests
 			post3.Save();
 
 			blog = Blog.Find(blog.Id);
+			blog.Refresh();
 
 			Assert.IsNotNull(blog);
 			Assert.AreEqual(2, blog.UnPublishedPosts.Count);
 			Assert.AreEqual(1, blog.PublishedPosts.Count);
 
 			Assert.AreEqual(3, blog.RecentPosts.Count);
-			Assert.AreEqual(post3.Id, (blog.RecentPosts[0] as Post).Id);
-			Assert.AreEqual(post2.Id, (blog.RecentPosts[1] as Post).Id);
-			Assert.AreEqual(post1.Id, (blog.RecentPosts[2] as Post).Id);
+			var recentposts = blog.RecentPosts.ToArray();
+			Assert.AreEqual(post1.Id, (recentposts[0] as Post).Id);
+			Assert.AreEqual(post2.Id, (recentposts[1] as Post).Id);
+			Assert.AreEqual(post3.Id, (recentposts[2] as Post).Id);
 		}
 
 		[Test]
-		public void RelationsOneToOne()
-		{
-			Employee emp = new Employee();
-			emp.FirstName = "john";
-			emp.LastName = "doe";
+		public void RelationsOneToOne() {
+			Employee emp = new Employee {FirstName = "john", LastName = "doe"};
 			emp.Save();
 
 			Assert.AreEqual(1, Employee.FindAll().Count());
 
-			Award award = new Award(emp);
-			award.Description = "Invisible employee";
+			Award award = new Award(emp) {Description = "Invisible employee"};
 			award.Save();
 
-            Assert.AreEqual(1, Award.FindAll().Count());
+			Assert.AreEqual(1, Award.FindAll().Count());
 
-            Employee emp2 = Employee.Find(emp.Id);
+			Employee emp2 = Employee.Find(emp.Id);
+			emp2.Refresh();
+
 			Assert.IsNotNull(emp2);
 			Assert.IsNotNull(emp2.Award);
 			Assert.AreEqual(emp.FirstName, emp2.FirstName);
@@ -242,15 +248,15 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		[ExpectedException(typeof(NotFoundException))]
-		public void FindLoad()
-		{
-			Blog.Find(1);
+		[ExpectedException(typeof (NotFoundException))]
+		public void FindLoad() {
+			var blog = Blog.Find(1);
+			if (blog == null)
+				throw new NotFoundException("");
 		}
 
 		[Test]
-		public void SaveUpdate()
-		{
+		public void SaveUpdate() {
 			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
@@ -280,8 +286,7 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Delete()
-		{
+		public void Delete() {
 			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);

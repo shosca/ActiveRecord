@@ -20,12 +20,14 @@ namespace Castle.ActiveRecord.Tests.Models
 	public class EmployeeMapping : ClassMapping<Employee> {
 		public EmployeeMapping() {
 			Id(x => x.Id, m => m.Generator(Generators.Native));
+			OneToOne(x => x.Award, m => m.Constrained(false));
 		}
 	}
 
 	public class AwardMapping : ClassMapping<Award> {
 		public AwardMapping() {
 			Id(x => x.Id, m => m.Generator(Generators.Native));
+			OneToOne(x => x.Employee, m => m.Constrained(true));
 		}
 	}
 

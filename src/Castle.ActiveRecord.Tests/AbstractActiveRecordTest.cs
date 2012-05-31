@@ -37,7 +37,7 @@ namespace Castle.ActiveRecord.Tests
 		[SetUp]
 		public virtual void Init()
 		{
-			ActiveRecord.ResetInitializationFlag();
+			ActiveRecord.ResetInitialization();
 		}
 
 		[TearDown]

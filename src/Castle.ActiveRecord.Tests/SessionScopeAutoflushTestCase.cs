@@ -28,10 +28,24 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class SessionScopeAutoflushTestCase : AbstractActiveRecordTest
 	{
+		[SetUp]
+		public override void Init() {
+			base.Init();
+			ActiveRecord.Initialize(GetConfigSource());
+			Recreate();
+		}
+
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
+		}
+
 		[Test]
 		public void ActiveRecordUsingSessionScope()
 		{
-			InitModel();
 			using (new SessionScope())
 			{
 				new SSAFEntity("example").Save();
@@ -42,7 +56,6 @@ namespace Castle.ActiveRecord.Tests
 
 		public void ActiveRecordUsingNoFlushSessionScope()
 		{
-			InitModel();
 			using (new SessionScope(FlushAction.Never))
 			{
 				new SSAFEntity("example").Save();
@@ -54,7 +67,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ActiveRecordUsingSessionScopeUsingExplicitFlush()
 		{
-			InitModel();
 			using (new SessionScope())
 			{
 				new SSAFEntity("example").Save();
@@ -67,7 +79,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ActiveRecordUsingTransactionScope()
 		{
-			InitModel();
 			using (new TransactionScope())
 			{
 				new SSAFEntity("example").Save();
@@ -79,7 +90,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ActiveRecordUsingTransactionScopeWithRollback()
 		{
-			InitModel();
 			using (TransactionScope scope = new TransactionScope())
 			{
 				new SSAFEntity("example").Save();
@@ -92,7 +102,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test][Ignore("Need to clean up scopes.")]
 		public void ActiveRecordUsingTransactionScopeWithRollbackAndInnerSessionScope()
 		{
-			InitModel();
 			using (TransactionScope scope = new TransactionScope())
 			{
 				using (new SessionScope())
@@ -109,7 +118,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ActiveRecordUsingNestedTransactionScopesWithRollback()
 		{
-			InitModel();
 			using (TransactionScope scope = new TransactionScope())
 			{
 				using (new TransactionScope(TransactionMode.Inherits))
@@ -126,7 +134,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ActiveRecordUsingTransactionScopeWithCommitAndInnerSessionScope()
 		{
-			InitModel();
 			using (TransactionScope scope = new TransactionScope())
 			{
 				using (new SessionScope())
@@ -144,7 +151,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NHibernateVerification()
 		{
-			InitModel();
 			ActiveRecordMediator<SSAFEntity>.Execute(session => {
 				using (session.BeginTransaction())
 				{
@@ -157,9 +163,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SessionTxVerification()
 		{
-			InitModel();
 			ActiveRecordMediator<SSAFEntity>.Execute(session => {
-				Assert.IsFalse(session.Transaction.IsActive);
 				using (ITransaction tx = session.BeginTransaction())
 				{
 					Assert.AreSame(tx, session.BeginTransaction());
@@ -172,7 +176,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NHibernateNoTxVerification()
 		{
-			InitModel();
 			using (ISession session = ActiveRecord.Holder.GetSessionFactory(typeof(SSAFEntity)).OpenSession())
 			{
 				session.Save(new SSAFEntity("example"));
@@ -180,12 +183,5 @@ namespace Castle.ActiveRecord.Tests
 				Assert.AreEqual(1, session.Query<SSAFEntity>().ToList<SSAFEntity>().Count);
 			}
 		}
-
-		private void InitModel()
-		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-		}
-
 	}
 }

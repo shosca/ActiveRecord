@@ -42,12 +42,17 @@ namespace Castle.ActiveRecord.Tests
 			Recreate();
 		}
 
+		[TearDown]
+		public override void Drop()
+		{
+			SessionScope.Current.Dispose();
+			base.Drop();
+		}
+
 		[Test, Category("mssql")]
 		public void SimpleCase()
 		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			SqlConnection conn = CreateSqlConnection();

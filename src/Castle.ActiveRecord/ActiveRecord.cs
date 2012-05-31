@@ -7,7 +7,6 @@ using System.Reflection;
 using Castle.ActiveRecord.Config;
 using Castle.ActiveRecord.Scopes;
 using Castle.Core.Configuration;
-using Iesi.Collections.Generic;
 using NHibernate.Cfg;
 using NHibernate.Cfg.MappingSchema;
 using NHibernate.Mapping.ByCode;
@@ -23,6 +22,7 @@ namespace Castle.ActiveRecord {
 	/// </remarks>
 	public static class ActiveRecord
 	{
+		private static readonly ISet<Assembly> _registeredassemblies = new HashSet<Assembly>();
 		private static readonly Object lockConfig = new object();
 
 		public static IActiveRecordConfiguration ConfigurationSource { get; private set; }
@@ -118,11 +118,17 @@ namespace Castle.ActiveRecord {
 						OnMapperCreated(mapper, source);
 
 					var config = source.GetConfiguration(key);
-					var mappingtypes = config.Assemblies.SelectMany(a => a.GetExportedTypes()).Where(t => IsClassMapperType(t)).ToArray();
+					var mappingtypes = config.Assemblies.SelectMany(a => a.GetExportedTypes()).Where(IsClassMapperType).ToArray();
+
 					if (config.Assemblies.Count < 1 || mappingtypes.Length < 1) {
-						throw new ActiveRecordException("No assembly defined in configuration that contains " +
-						                                "mappings.");
+						throw new ActiveRecordException("No assembly defined in configuration that contains mappings.");
 					}
+					foreach (var asm in config.Assemblies) {
+						if (_registeredassemblies.Contains(asm))
+							throw new ActiveRecordException(string.Format("Assembly {0} has already been registered.", asm));
+
+					}
+
 					mapper.AddMappings(mappingtypes);
 
 					if (AfterMappingsAdded != null)
@@ -402,10 +408,11 @@ namespace Castle.ActiveRecord {
 		/// <summary>
 		/// Intended to be used only by test cases
 		/// </summary>
-		public static void ResetInitializationFlag()
+		public static void ResetInitialization()
 		{
 			// Make sure we start with it enabled
 			Environment.UseReflectionOptimizer = true;
+			if (Holder != null) Holder.Dispose();
 		}
 
 		/// <summary>

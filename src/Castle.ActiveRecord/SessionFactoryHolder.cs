@@ -20,6 +20,7 @@ using System.Threading;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using Castle.ActiveRecord.Scopes;
+using Castle.Core.Internal;
 using Iesi.Collections;
 using NHibernate;
 using NHibernate.Cfg;
@@ -134,11 +135,17 @@ namespace Castle.ActiveRecord
 				return CreateScopeSession(type);
 			}
 
+			new SessionScope();
+
+			return CreateSession(type);
+
+			/*
 			ISessionFactory sessionFactory = GetSessionFactory(type);
 
 			ISession session = OpenSession(sessionFactory);
 
 			return session;
+			 */
 		}
 
 		private static ISession OpenSession(ISessionFactory sessionFactory)
@@ -224,6 +231,12 @@ namespace Castle.ActiveRecord
 			scope.RegisterSession(sessionFactory, session);
 
 			return session;
+		}
+
+		public void Dispose() {
+			type2SessFactory.Values.ForEach(sf => sf.Dispose());
+			type2SessFactory.Clear();
+			type2Conf.Clear();
 		}
 	}
 }

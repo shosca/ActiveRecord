@@ -35,7 +35,7 @@ namespace Castle.ActiveRecord.Testing
 		/// </summary>
 		public virtual void SetUp()
 		{
-			ActiveRecord.ResetInitializationFlag();
+			ActiveRecord.ResetInitialization();
 			var source = ActiveRecord.Configure();
 
 			var conf = new SessionFactoryConfig();
@@ -66,7 +66,7 @@ namespace Castle.ActiveRecord.Testing
 		/// </summary>
 		public virtual void TearDown()
 		{
-			ActiveRecord.ResetInitializationFlag();
+			ActiveRecord.ResetInitialization();
 			InMemoryConnectionProvider.Restart();
 		}
 
