@@ -26,6 +26,26 @@ namespace Castle.ActiveRecord.Tests.Conversation
     [TestFixture]
     public class ConversationScenarioTest : NUnitInMemoryTest
     {
+		[SetUp]
+		public override void SetUp()
+		{
+			base.SetUp();
+
+			using (new SessionScope()) {
+				Blog blog = new Blog() { Author = "Markus", Name = "Conversations" };
+				Post post = new Post() {
+					Blog = blog,
+					Category = "Scenario",
+					Title = "The Convesration is here",
+					Contents = "A new way for AR in fat clients",
+					Created = new DateTime(2010, 1, 1),
+					Published = true
+				};
+				blog.Save();
+				post.Save();
+			}
+		}
+
         public override Assembly[] GetAssemblies()
         {
             return new[] {typeof (Blog).Assembly};
@@ -34,27 +54,21 @@ namespace Castle.ActiveRecord.Tests.Conversation
         [Test]
         public void BasicScenario()
         {
-            // Arrange
-            ArrangeRecords();
+			Blog queriedBlog;
+			using(IScopeConversation conversation = new ScopedConversation()) {
+				using (new ConversationalScope(conversation))
+				{
+					queriedBlog = Blog.Find(1);
+				}
 
-        	// Act
-            IScopeConversation conversation = new ScopedConversation();
-            Blog queriedBlog;
-            using (new ConversationalScope(conversation))
-            {
-                queriedBlog = Blog.Find(1);
-            }
-
-            // No scope here
-            Assert.That(queriedBlog.Posts, Is.Not.Empty);
-
-            conversation.Dispose();
+				// No scope here
+				Assert.That(queriedBlog.Posts, Is.Not.Empty);
+			}
         }
 
     	[Test]
 		public void CanCancelConversations()
 		{
-			ArrangeRecords();
     		using (var conversation = new ScopedConversation())
     		{
     			Blog blog = null;
@@ -78,8 +92,6 @@ namespace Castle.ActiveRecord.Tests.Conversation
 		[Test]
 		public void CanSetFlushModeToNever()
 		{
-			ArrangeRecords();
-
 			using (var conversation = new ScopedConversation(ConversationFlushMode.Explicit))
 			{
 				Blog blog;
@@ -105,8 +117,6 @@ namespace Castle.ActiveRecord.Tests.Conversation
 		[Test]
 		public void CanSetFlushModeToOnClose()
 		{
-			ArrangeRecords();
-
 			using (var conversation = new ScopedConversation(ConversationFlushMode.OnClose))
 			{
 				Blog blog;
@@ -158,8 +168,6 @@ namespace Castle.ActiveRecord.Tests.Conversation
     	[Test]
     	public void CanUseIConversationDirectly()
     	{
-    		ArrangeRecords();
-
     		using (IConversation conversation = new ScopedConversation())
     		{
     			Blog blog = null;
@@ -178,25 +186,6 @@ namespace Castle.ActiveRecord.Tests.Conversation
     		}
 
 			Assert.That(Blog.FindAll().First().Author, Is.EqualTo("Anonymous"));
-    	}
-
-
-
-    	private void ArrangeRecords()
-    	{
-			using (new SessionScope()) {
-				Blog blog = new Blog() { Author = "Markus", Name = "Conversations" };
-				Post post = new Post() {
-					Blog = blog,
-					Category = "Scenario",
-					Title = "The Convesration is here",
-					Contents = "A new way for AR in fat clients",
-					Created = new DateTime(2010, 1, 1),
-					Published = true
-				};
-				blog.Save();
-				post.Save();
-			}
     	}
     }
 }

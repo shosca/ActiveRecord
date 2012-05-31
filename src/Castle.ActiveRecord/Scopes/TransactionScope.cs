@@ -396,9 +396,9 @@ namespace Castle.ActiveRecord.Scopes
 
 			if (parentSimpleScope == null)
 			{
-				// Flush and close the session
+				// No flush necessary, but we should close the session
 
-				PerformDisposal(sessions, true, true);
+				PerformDisposal(sessions, false, true);
 			}
 			else
 			{

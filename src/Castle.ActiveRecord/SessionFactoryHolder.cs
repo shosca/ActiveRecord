@@ -34,8 +34,19 @@ namespace Castle.ActiveRecord
 	/// This class is thread safe
 	/// </remarks>
 	public class SessionFactoryHolder : MarshalByRefObject, ISessionFactoryHolder {
-		readonly IDictionary<Type, Configuration> type2Conf = new ConcurrentDictionary<Type, Configuration>();
-		readonly IDictionary<Type, ISessionFactory> type2SessFactory = new ConcurrentDictionary<Type, ISessionFactory>();
+		internal class SfHolder {
+			public SfHolder(Configuration config, ISessionFactory sf) {
+				if(config == null || sf == null)
+					throw new InvalidOperationException();
+
+				Configuration = config;
+				SessionFactory = sf;
+			}
+			public Configuration Configuration { get; private set; }
+			public ISessionFactory SessionFactory { get; private set; }
+		}
+
+		readonly IDictionary<Type, SfHolder> type2SessFactory = new ConcurrentDictionary<Type, SfHolder>();
 		IThreadScopeInfo threadScopeInfo;
 
 		/// <summary>
@@ -43,7 +54,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public Configuration GetConfiguration(Type type)
 		{
-			return type2Conf.ContainsKey(type) ? type2Conf[type] : GetConfiguration(type.BaseType);
+			return type2SessFactory.ContainsKey(type) ? type2SessFactory[type].Configuration : GetConfiguration(type.BaseType);
 		}
 
 		/// <summary>
@@ -51,7 +62,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public Configuration[] GetAllConfigurations()
 		{
-			return type2Conf.Values.Distinct().ToArray();
+			return type2SessFactory.Values.Select(s => s.Configuration).Distinct().ToArray();
 		}
 
 		/// <summary>
@@ -83,7 +94,7 @@ namespace Castle.ActiveRecord
 			}
 
 
-			ISessionFactory sessFactory = type2SessFactory[type] as ISessionFactory;
+			ISessionFactory sessFactory = type2SessFactory[type].SessionFactory;
 
 			if (sessFactory != null)
 			{
@@ -91,17 +102,18 @@ namespace Castle.ActiveRecord
 			}
 
 
-			sessFactory = type2SessFactory[type] as ISessionFactory;
+			sessFactory = type2SessFactory[type].SessionFactory;
 
 			if (sessFactory != null)
 			{
 				return sessFactory;
 			}
+
 			Configuration cfg = GetConfiguration(type);
 
 			sessFactory = cfg.BuildSessionFactory();
 
-			type2SessFactory[type] = sessFactory;
+			type2SessFactory[type] = new SfHolder(cfg, sessFactory);
 
 			return sessFactory;
 		}
@@ -112,15 +124,13 @@ namespace Castle.ActiveRecord
 		public void RegisterConfiguration(Configuration cfg)
 		{
 			var sf = cfg.BuildSessionFactory();
+			var sfholder = new SfHolder(cfg, sf);
 
 			foreach (var classMetadata in sf.GetAllClassMetadata()) {
 				var entitytype = classMetadata.Value.GetMappedClass(EntityMode.Poco);
 
 				if (!type2SessFactory.ContainsKey(entitytype))
-					type2SessFactory[entitytype] = sf;
-
-				if (!type2Conf.ContainsKey(entitytype))
-					type2Conf[entitytype] = cfg;
+					type2SessFactory.Add(entitytype, sfholder);
 			}
 		}
 
@@ -234,9 +244,8 @@ namespace Castle.ActiveRecord
 		}
 
 		public void Dispose() {
-			type2SessFactory.Values.ForEach(sf => sf.Dispose());
+			type2SessFactory.Values.ForEach(sf => sf.SessionFactory.Dispose());
 			type2SessFactory.Clear();
-			type2Conf.Clear();
 		}
 	}
 }
