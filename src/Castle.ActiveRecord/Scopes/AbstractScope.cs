@@ -251,7 +251,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// <value>
 		/// 	<c>true</c> if this instance has session error; otherwise, <c>false</c>.
 		/// </value>
-		public bool HasSessionError { get; protected set; }
+		public bool HasSessionError { get; private set; }
 
 		/// <summary>
 		/// Discards the sessions.
@@ -269,7 +269,9 @@ namespace Castle.ActiveRecord.Scopes
 		/// Marks the session as failed
 		/// </summary>
 		/// <param name="session">The session</param>
-		public abstract void FailSession(ISession session);
+		public virtual void FailSession(ISession session) {
+			HasSessionError = true;
+		}
 
 		/// <summary>
 		/// Sets the flush mode.
@@ -332,6 +334,36 @@ namespace Castle.ActiveRecord.Scopes
 					break;
 				}
 			}
+		}
+
+		protected ISessionScope FindPreviousScope(bool preferenceForTransactional)
+		{
+			return FindPreviousScope(preferenceForTransactional, false);
+		}
+
+		protected ISessionScope FindPreviousScope(bool preferenceForTransactional, bool doNotReturnSessionScope)
+		{
+			object[] items = ThreadScopeAccessor.Instance.CurrentStack.ToArray();
+
+			ISessionScope first = null;
+
+			for (int i = 0; i < items.Length; i++)
+			{
+				ISessionScope scope = items[i] as ISessionScope;
+
+				if (scope == this) continue;
+
+				if (first == null) first = scope;
+
+				if (!preferenceForTransactional) break;
+
+				if (scope.ScopeType == SessionScopeType.Transactional)
+				{
+					return scope;
+				}
+			}
+
+			return doNotReturnSessionScope ? null : first;
 		}
 	}
 }

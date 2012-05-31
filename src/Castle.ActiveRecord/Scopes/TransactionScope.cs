@@ -76,38 +76,26 @@ namespace Castle.ActiveRecord.Scopes
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
 		/// </summary>
-		public TransactionScope()
-			: this(TransactionMode.New)
-		{
-		}
+		public TransactionScope() : this(TransactionMode.New) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
 		/// </summary>
 		/// <param name="onDisposeBehavior">The on dispose behavior.</param>
-		public TransactionScope(OnDispose onDisposeBehavior)
-			: this(TransactionMode.New, onDisposeBehavior)
-		{
-		}
+		public TransactionScope(OnDispose onDisposeBehavior) : this(TransactionMode.New, onDisposeBehavior) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
 		/// </summary>
 		/// <param name="mode">Whatever to create a new transaction or inherits an existing one</param>
-		public TransactionScope(TransactionMode mode)
-			: this(mode, IsolationLevel.Unspecified, OnDispose.Commit)
-		{
-		}
+		public TransactionScope(TransactionMode mode) : this(mode, IsolationLevel.Unspecified, OnDispose.Commit) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
 		/// </summary>
 		/// <param name="mode">Whatever to create a new transaction or inherits an existing one</param>
 		/// <param name="onDisposeBehavior">The on dispose behavior.</param>
-		public TransactionScope(TransactionMode mode, OnDispose onDisposeBehavior)
-			: this(mode, IsolationLevel.Unspecified, onDisposeBehavior)
-		{
-		}
+		public TransactionScope(TransactionMode mode, OnDispose onDisposeBehavior) : this(mode, IsolationLevel.Unspecified, onDisposeBehavior) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
@@ -124,7 +112,7 @@ namespace Castle.ActiveRecord.Scopes
 
 			bool preferenceForTransactionScope = mode == TransactionMode.Inherits ? true : false;
 
-			ISessionScope previousScope = ScopeUtil.FindPreviousScope(this, preferenceForTransactionScope);
+			ISessionScope previousScope = FindPreviousScope(preferenceForTransactionScope);
 
 			if (previousScope != null)
 			{
@@ -408,9 +396,9 @@ namespace Castle.ActiveRecord.Scopes
 
 			if (parentSimpleScope == null)
 			{
-				// No flush necessary, but we should close the session
+				// Flush and close the session
 
-				PerformDisposal(sessions, false, true);
+				PerformDisposal(sessions, true, true);
 			}
 			else
 			{

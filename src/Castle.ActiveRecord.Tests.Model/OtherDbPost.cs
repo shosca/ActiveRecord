@@ -22,6 +22,7 @@ namespace Castle.ActiveRecord.Tests.Model
 {
 	public class OtherDbPostMapping : ClassMapping<OtherDbPost> {
 		public OtherDbPostMapping() {
+			Table("Post");
 			Id(x => x.Id, m => m.Generator(Generators.Native));
 		}
 	}

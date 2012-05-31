@@ -446,6 +446,14 @@ namespace Castle.ActiveRecord
 			ActiveRecord<T>.Refresh(this);
 		}
 
+		public virtual void Merge() {
+			ActiveRecord<T>.Merge(this);
+		}
+
+		public virtual void Evict() {
+			ActiveRecord<T>.Evict(this);
+		}
+
 		public static IEnumerable<T> FindByProperty(string property, object value) {
 			return ActiveRecord<T>.FindAllByProperty(property, value);
 		}

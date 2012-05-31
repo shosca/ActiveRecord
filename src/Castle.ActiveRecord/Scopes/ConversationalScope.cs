@@ -37,16 +37,6 @@ namespace Castle.ActiveRecord.Scopes
 		{
 			this.conversation = conversation;
 		}
-
-		/// <summary>
-		/// Notifies the <see cref="conversation"/> that the session has
-		/// failed.
-		/// </summary>
-		/// <param name="session">The failed sessions.</param>
-		public override void FailSession(ISession session)
-		{
-			throw new NotImplementedException();
-		}
 		
 		/// <summary>
 		/// Always <c>true</c>, we take sessions from the <see cref="IConversation"/>.

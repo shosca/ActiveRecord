@@ -54,10 +54,9 @@ namespace Castle.ActiveRecord.Tests
 		{
 			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
+			blog.Evict();
 
-			SqlConnection conn = CreateSqlConnection();
-
-			using(conn)
+			using (SqlConnection conn = CreateSqlConnection2())
 			{
 				conn.Open();
 
@@ -83,15 +82,14 @@ namespace Castle.ActiveRecord.Tests
 
 			using(new SessionScope())
 			{
-				Blog blog = new Blog();
-				blog.Name = "hammett's blog";
-				blog.Author = "hamilton verissimo";
+				Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 				blog.Save();
 
 				session1 = blog.CurrentSession;
 				Assert.IsNotNull(session1);
+				blog.Evict();
 
-				SqlConnection conn = CreateSqlConnection();
+				SqlConnection conn = CreateSqlConnection2();
 
 				using(conn)
 				{
@@ -121,19 +119,19 @@ namespace Castle.ActiveRecord.Tests
 		[Test, Category("mssql")]
 		public void UsingTransactionScope()
 		{
-			SqlConnection conn = CreateSqlConnection();
+			SqlConnection conn = CreateSqlConnection2();
 			ISession session1, session2;
 			ITransaction trans1, trans2;
 
 			using(new TransactionScope())
 			{
-				Blog blog = new Blog();
-				blog.Name = "hammett's blog";
-				blog.Author = "hamilton verissimo";
+				Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 				blog.Save();
+				blog.Evict();
 				
 				session1 = blog.CurrentSession;
 				trans1 = blog.CurrentSession.Transaction;
+
 				Assert.IsNotNull(session1);
 				Assert.IsNotNull(session1.Transaction);
 				Assert.IsFalse(session1.Transaction.WasCommitted);
@@ -176,15 +174,13 @@ namespace Castle.ActiveRecord.Tests
 		[Test, Category("mssql")]
 		public void UsingTransactionScopeWithRollback()
 		{
-			SqlConnection conn = CreateSqlConnection();
+			SqlConnection conn = CreateSqlConnection2();
 			ISession session1, session2;
 			ITransaction trans1, trans2;
 
 			using(TransactionScope scope = new TransactionScope())
 			{
-				Blog blog = new Blog();
-				blog.Name = "hammett's blog";
-				blog.Author = "hamilton verissimo";
+				Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 				blog.Save();
 				
 				session1 = blog.CurrentSession;
@@ -194,6 +190,7 @@ namespace Castle.ActiveRecord.Tests
 				Assert.IsFalse(session1.Transaction.WasCommitted);
 				Assert.IsFalse(session1.Transaction.WasRolledBack);
 
+				blog.Evict();
 				conn.Open();
 
 				using(new DifferentDatabaseScope(conn))
@@ -264,7 +261,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test, Category("mssql")]
 		public void UsingSessionAndTransactionScope()
 		{
-			SqlConnection conn = CreateSqlConnection();
+			SqlConnection conn = CreateSqlConnection2();
 			ISession session1, session2;
 
 			ITransaction trans1, trans2;
@@ -272,9 +269,7 @@ namespace Castle.ActiveRecord.Tests
 			{
 				using(new TransactionScope())
 				{
-					Blog blog = new Blog();
-					blog.Name = "hammett's blog";
-					blog.Author = "hamilton verissimo";
+					Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 					blog.Save();
 					
 					session1 = blog.CurrentSession;
@@ -288,9 +283,7 @@ namespace Castle.ActiveRecord.Tests
 
 					using(new DifferentDatabaseScope(conn))
 					{
-						blog = new Blog();
-						blog.Name = "hammett's blog";
-						blog.Author = "hamilton verissimo";
+						blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 						blog.Save();
 
 						session2 = blog.CurrentSession;
@@ -305,9 +298,7 @@ namespace Castle.ActiveRecord.Tests
 
 					using(new DifferentDatabaseScope(conn))
 					{
-						blog = new Blog();
-						blog.Name = "hammett's blog";
-						blog.Author = "hamilton verissimo";
+						blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 						blog.Save();
 
 						session2 = blog.CurrentSession;
@@ -341,7 +332,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test, Category("mssql")]
 		public void SequenceOfTransactions()
 		{
-			SqlConnection conn = CreateSqlConnection();
+			SqlConnection conn = CreateSqlConnection2();
 			ISession session1, session2;
 
 			ITransaction trans1, trans2;
@@ -438,7 +429,7 @@ namespace Castle.ActiveRecord.Tests
 		{
 			IActiveRecordConfiguration config = GetConfigSource();
 
-			var db2 = config.GetConfiguration(string.Empty);
+			var db2 = config.GetConfiguration("Test2ARBase");
 
 			return new SqlConnection(db2.Properties["connection.connection_string"]);
 		}

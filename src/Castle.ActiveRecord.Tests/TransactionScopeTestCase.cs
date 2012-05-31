@@ -114,9 +114,7 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new TransactionScope())
 			{
-				Blog blog = new Blog();
-				blog.Author = "hammett";
-				blog.Name = "some name";
+				Blog blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
 				Post post = new Post(blog, "title", "post contents", "Castle");

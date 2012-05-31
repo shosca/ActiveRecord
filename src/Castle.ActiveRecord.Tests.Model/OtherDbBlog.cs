@@ -22,6 +22,7 @@ namespace Castle.ActiveRecord.Tests.Model
 {
 	public class OtherDbBlogMapping : ClassMapping<OtherDbBlog> {
 		public OtherDbBlogMapping() {
+			Table("Blog");
 			Id(x => x.Id, m => m.Generator(Generators.Native));
 		}
 	}

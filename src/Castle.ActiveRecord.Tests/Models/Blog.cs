@@ -81,8 +81,6 @@ namespace Castle.ActiveRecord.Tests.Models
 		public virtual ISet<Post> UnPublishedPosts { get; set; }
 		public virtual ISet<Post> RecentPosts { get; set; }
 
-		public virtual int SomeFormula { get; set; }
-
 		/// <summary>
 		/// Lifecycle method invoked during Save of the entity
 		/// </summary>

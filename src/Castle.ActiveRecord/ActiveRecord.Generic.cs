@@ -675,6 +675,24 @@ namespace Castle.ActiveRecord
 		}
 
 		/// <summary>
+		/// Merge the instance to scope session
+		/// </summary>
+		/// <param name="instance"></param>
+		public static void Merge(object instance) {
+			if (instance == null) throw new ArgumentNullException("instance");
+			Execute(session => session.Merge(instance));
+		}
+
+		/// <summary>
+		/// Evict the instance from scope session
+		/// </summary>
+		/// <param name="instance"></param>
+		public static void Evict(object instance) {
+			if (instance == null) throw new ArgumentNullException("instance");
+			Execute(session => session.Evict(instance));
+		}
+
+		/// <summary>
 		/// From NHibernate documentation: 
 		/// Persist all reachable transient objects, reusing the current identifier 
 		/// values. Note that this will not trigger the Interceptor of the Session.

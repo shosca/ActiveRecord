@@ -67,16 +67,6 @@ namespace Castle.ActiveRecord.Scopes
 		}
 
 		/// <summary>
-		/// This is called when an action on a session fails
-		/// </summary>
-		/// <param name="session">The session</param>
-		public override void FailSession(ISession session)
-		{
-			HasSessionError = true;
-		}
-
-
-		/// <summary>
 		/// Gets the current scope
 		/// </summary>
 		/// <value>The current.</value>

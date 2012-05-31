@@ -228,7 +228,6 @@
     <Compile Include="Scopes\StatelessSessionScope.cs" />
     <Compile Include="Scopes\DifferentDatabaseScope.cs" />
     <Compile Include="Scopes\FlushAction.cs" />
-    <Compile Include="Scopes\ScopeUtil.cs" />
     <Compile Include="PrivateAssemblyInfo.cs" />
     <Compile Include="Testing\InMemoryConnectionProvider.cs" />
     <Compile Include="Testing\InMemoryTest.cs" />
