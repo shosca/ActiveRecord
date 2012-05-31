@@ -152,7 +152,7 @@ namespace Castle.ActiveRecord.Config
 					}
 				}
 				if (sfconfig == null)
-					sfconfig = new SessionFactoryConfig();
+					sfconfig = new SessionFactoryConfig(this);
 
 				sfconfig.Name = sfconfigname; 
 				BuildProperties(sfconfig, node);
@@ -184,12 +184,11 @@ namespace Castle.ActiveRecord.Config
 			}
 
 			var type = (DatabaseType)Enum.Parse(typeof(DatabaseType), name, true);
-			var defaults = new DefaultDatabaseConfiguration().For(type);
-			defaults.Properties["connection.connection_string_name"] = connectionStringName;
+			var defaults = this.CreateConfiguration(type)
+							.Set(NHibernate.Cfg.Environment.ConnectionStringName, connectionStringName);
 			return defaults;
 		}
 
-		const string ConnectionStringKey = "connection.connection_string";
 		/// <summary>
 		/// Builds the configuration properties.
 		/// </summary>

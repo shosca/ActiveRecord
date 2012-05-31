@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.ByteCode;
 using Castle.ActiveRecord.Config;
 using Castle.Core.Configuration;
 
@@ -38,19 +39,12 @@ namespace Castle.ActiveRecord.Testing
 			ActiveRecord.ResetInitialization();
 			var source = ActiveRecord.Configure();
 
-			var conf = new SessionFactoryConfig();
-			foreach (var a in GetAssemblies()) {
-				conf.Assemblies.Add(a);
-			}
+			var conf = source.CreateConfiguration(DatabaseType.SQLite, "Data Source=:memory:;Version=3;New=True")
+					.AddAssemblies(GetAssemblies())
+					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof (InMemoryConnectionProvider).AssemblyQualifiedName)
+					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof(ProxyFactoryFactory).AssemblyQualifiedName)
+					.Set(GetProperties());
 
-			conf.Properties.Add("connection.driver_class", "NHibernate.Driver.SQLite20Driver");
-			conf.Properties.Add("dialect", "NHibernate.Dialect.SQLiteDialect");
-			conf.Properties.Add("connection.provider", typeof (InMemoryConnectionProvider).AssemblyQualifiedName);
-			conf.Properties.Add("connection.connection_string", "Data Source=:memory:;Version=3;New=True");
-			conf.Properties.Add("proxyfactory.factory_class", "Castle.ActiveRecord.ByteCode.ProxyFactoryFactory, Castle.ActiveRecord");
-			foreach (var p in GetProperties()) {
-				conf.Properties.Add(p.Key, p.Value);
-			}
 			source.Add(conf);
 
 

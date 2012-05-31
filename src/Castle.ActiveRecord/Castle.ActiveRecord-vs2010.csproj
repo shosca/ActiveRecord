@@ -151,7 +151,7 @@
     <Compile Include="Config\ActiveRecordSectionHandler.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Config\IConfigurationSource.cs">
+    <Compile Include="Config\IActiveRecordConfiguration.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Config\DefaultActiveRecordConfiguration.cs">
@@ -210,7 +210,7 @@
     <Compile Include="ActiveRecordBase.cs" />
     <Compile Include="ActiveRecordHooksBase.cs" />
     <Compile Include="ARSchemaCreator.cs" />
-    <Compile Include="Config\DefaultDatabaseConfiguration.cs" />
+    <Compile Include="Config\DefaultDatabaseConfigurationExtensions.cs" />
     <Compile Include="Config\DatabaseType.cs" />
     <Compile Include="Config\DefaultFlushType.cs" />
     <Compile Include="Config\DefaultStorageConfiguration.cs" />

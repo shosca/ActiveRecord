@@ -40,13 +40,9 @@ namespace Castle.ActiveRecord.Tests.Config
 		{
 			var source = new DefaultActiveRecordConfiguration();
 
-			var sf = new SessionFactoryConfig();
+			var sf = source.CreateConfiguration(DatabaseType.MsSqlServer2005,
+			                                    "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
 
-			sf.Properties.Add("hibernate.connection.driver_class", "NHibernate.Driver.SqlClientDriver");
-			sf.Properties.Add("hibernate.dialect", "NHibernate.Dialect.MsSql2000Dialect");
-			sf.Properties.Add("hibernate.connection.provider", "NHibernate.Connection.DriverConnectionProvider");
-			sf.Properties.Add("hibernate.connection.connection_string",
-			               "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
 
 			source.Add(sf);
 

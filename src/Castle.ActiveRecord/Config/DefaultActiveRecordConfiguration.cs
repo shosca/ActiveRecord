@@ -121,8 +121,7 @@ namespace Castle.ActiveRecord.Config
 
 			var config = new DefaultActiveRecordConfiguration();
 
-			var sfconfig = new DefaultDatabaseConfiguration().For(database);
-			sfconfig.Properties["connection.connection_string"] = connectionString;
+			var sfconfig = config.CreateConfiguration(database, connectionString);
 			config.Add(sfconfig);
 
 			return config;
@@ -315,6 +314,10 @@ namespace Castle.ActiveRecord.Config
 		{
 			SessionFactoryHolderImplementation = typeof (T);
 			return this;
+		}
+
+		public SessionFactoryConfig CreateConfiguration() {
+			return new SessionFactoryConfig(this);
 		}
 	}
 }
