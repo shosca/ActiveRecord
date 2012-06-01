@@ -465,8 +465,8 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public static IQueryable<T> All {
 			get {
-				if (ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope)
-					throw new ActiveRecordException("You need to be in an IScope to do linq queries.");
+				if (!ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope)
+					throw new ActiveRecordException("You need to be in an ISessionScope to do linq queries.");
 
 				return Execute(s => s.Query<T>());
 			}

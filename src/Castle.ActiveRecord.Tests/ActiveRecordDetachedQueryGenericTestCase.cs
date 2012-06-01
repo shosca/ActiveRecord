@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+using NHibernate.Cfg;
 using NUnit.Framework;
 using NHibernate.Impl;
 
@@ -21,11 +25,22 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class ActiveRecordDetachedQueryGenericTestCase : AbstractActiveRecordTest
 	{
-		public void FillData()
+		[SetUp]
+		public override void Init()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Blog), typeof(Post));
+			ActiveRecord.ResetInitialization();
+
+			ActiveRecord.OnConfigurationCreated += (cfg, sfcfg) =>
+				cfg.DataBaseIntegration( db => {
+					db.LogSqlInConsole = true;
+					db.LogFormattedSql = true;
+				}
+			);
+
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
+			using (new SessionScope()) 
 			for (int i = 1; i <= 10; i++)
 			{
 				var blog = new Blog(i) { Name = "n" + i };
@@ -33,12 +48,19 @@ namespace Castle.ActiveRecord.Tests
 			}
 		}
 
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
+		}
+
 		[Test]
 		public void Exists() 
 		{
-			FillData();
 
-			Assert.AreEqual(10, Blog.FindAll(new DetachedQuery("from Blog")).Length);
+			Assert.AreEqual(10, Blog.FindAll(new DetachedQuery("from Blog")).Count());
 
 			for (int i = 1; i <= 10; i++)
 			{
@@ -49,9 +71,8 @@ namespace Castle.ActiveRecord.Tests
 
 		[Test]
 		public void FindAll() {
-			FillData();
 
-			Blog[] list = Blog.FindAll(new DetachedQuery("from Blog Order By Id"));
+			Blog[] list = Blog.FindAll(new DetachedQuery("from Blog Order By Id")).ToArray();
 
 			Assert.AreEqual(10, list.Length);
 			Assert.AreEqual(1, list[0].Id);
@@ -63,8 +84,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void FindOne()
 		{
-			FillData();
-
 			Blog f = Blog.FindOne(
 				new DetachedQuery("from Blog f where f.Id=:value").SetInt32("value", 10));
 
@@ -76,9 +95,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SlidedFindAll()
 		{
-			FillData();
-
-			Blog[] list = Blog.SlicedFindAll(5, 9, new DetachedQuery("from Blog"));
+			Blog[] list = Blog.SlicedFindAll(5, 9, new DetachedQuery("from Blog")).ToArray();
 
 			Assert.AreEqual(5, list.Length);
 

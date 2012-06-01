@@ -13,169 +13,167 @@
 // limitations under the License.
 
 
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+using NHibernate.Cfg;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System.Linq;
-
-	using Castle.ActiveRecord.Framework;
 
 	using NUnit.Framework;
 
 	[TestFixture]
 	public class ActiveRecordLinqTestCase : AbstractActiveRecordTest
 	{
-		[Test,
-		 ExpectedException(typeof(ActiveRecordInitializationException),
-			ExpectedMessage = "You can't invoke ActiveRecordStarter.Initialize more than once")]
-		public void InitializeCantBeInvokedMoreThanOnce()
+		[SetUp]
+		public override void Init()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post));
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Blog));
+			ActiveRecord.ResetInitialization();
+
+			ActiveRecord.OnConfigurationCreated += (cfg, sfcfg) =>
+				cfg.DataBaseIntegration( db => {
+					db.LogSqlInConsole = true;
+					db.LogFormattedSql = true;
+				}
+			);
+
+			ActiveRecord.Initialize(GetConfigSource());
+			Recreate();
+
+			using (new SessionScope()) 
+			for (int i = 1; i <= 10; i++)
+			{
+				var blog = new Blog(i) { Name = "Blog " + i };
+				blog.Create();
+			}
+		}
+
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
 		}
 
 		[Test]
 		public void SimpleOperations()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			Post.DeleteAll();
+			Blog.DeleteAll();
 
-			using (new SessionScope())
-			{
-				Recreate();
+			var blogs = from b in Blog.All select b;
 
-				Post.DeleteAll();
-				Blog.DeleteAll();
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(0, blogs.Count());
 
-				var blogs = from b in Blog.Queryable select b;
+			var blog = new Blog {
+				Name = "hammett's blog",
+				Author = "hamilton verissimo"
+			};
+			blog.Save();
 
-				Assert.IsNotNull(blogs);
-				Assert.AreEqual(0, blogs.Count());
+			blogs = from b in Blog.All select b;
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(1, blogs.Count());
 
-				var blog = new Blog
-				           	{
-				           		Name = "hammett's blog",
-				           		Author = "hamilton verissimo"
-				           	};
-				blog.Save();
+			var retrieved = Blog.All.First();
+			Assert.IsNotNull(retrieved);
 
-				blogs = from b in Blog.Queryable select b;
-				Assert.IsNotNull(blogs);
-				Assert.AreEqual(1, blogs.Count());
-
-				var retrieved = Blog.Queryable.First();
-				Assert.IsNotNull(retrieved);
-
-				Assert.AreEqual(blog.Name, retrieved.Name);
-				Assert.AreEqual(blog.Author, retrieved.Author);
-			}
+			Assert.AreEqual(blog.Name, retrieved.Name);
+			Assert.AreEqual(blog.Author, retrieved.Author);
 		}
 
 		[Test]
 		public void SimpleOperationsShowingBug()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			Post.DeleteAll();
+			Blog.DeleteAll();
 
-			using (new SessionScope())
-			{
-				Recreate();
+			var blogs = from b in Blog.All select b;
 
-				Post.DeleteAll();
-				Blog.DeleteAll();
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(0, blogs.Count());
 
-				var blogs = from b in Blog.Queryable select b;
+			var blog = new Blog {
+				Name = "hammett's blog",
+				Author = "hamilton verissimo"
+			};
+			blog.Save();
 
-				Assert.IsNotNull(blogs);
-				Assert.AreEqual(0, blogs.Count());
+			blogs = from b in Blog.All select b;
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(1, blogs.Count());
 
-				var blog = new Blog
-				           	{
-				           		Name = "hammett's blog",
-				           		Author = "hamilton verissimo"
-				           	};
-				blog.Save();
+			// this line will fail because of blogs.Count above
+			var retrieved = blogs.First();
+			Assert.IsNotNull(retrieved);
 
-				blogs = from b in Blog.Queryable select b;
-				Assert.IsNotNull(blogs);
-				Assert.AreEqual(1, blogs.Count());
-
-				// this line will fail because of blogs.Count above
-				var retrieved = blogs.First();
-				Assert.IsNotNull(retrieved);
-
-				Assert.AreEqual(blog.Name, retrieved.Name);
-				Assert.AreEqual(blog.Author, retrieved.Author);
-			}
+			Assert.AreEqual(blog.Name, retrieved.Name);
+			Assert.AreEqual(blog.Author, retrieved.Author);
 		}
 
 		[Test]
 		public void SimpleOperations2()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			Post.DeleteAll();
+			Blog.DeleteAll();
 
-			using (new SessionScope())
-			{
-				Recreate();
+			var blogs = Blog.All;
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(0, blogs.Count());
 
-				Post.DeleteAll();
-				Blog.DeleteAll();
+			Blog blog = new Blog();
+			blog.Name = "hammett's blog";
+			blog.Author = "hamilton verissimo";
+			blog.Create();
 
-				var blogs = Blog.Queryable;
-				Assert.IsNotNull(blogs);
-				Assert.AreEqual(0, blogs.Count());
+			Assert.AreEqual(1, (from b in Blog.All select b).Count());
 
-				Blog blog = new Blog();
-				blog.Name = "hammett's blog";
-				blog.Author = "hamilton verissimo";
-				blog.Create();
+			blogs = Blog.All;
+			Assert.AreEqual(blog.Name, blogs.First().Name);
+			Assert.AreEqual(blog.Author, blogs.First().Author);
 
-				Assert.AreEqual(1, (from b in Blog.Queryable select b).Count());
+			blog.Name = "something else1";
+			blog.Author = "something else2";
+			blog.Update();
 
-				blogs = Blog.Queryable;
-				Assert.AreEqual(blog.Name, blogs.First().Name);
-				Assert.AreEqual(blog.Author, blogs.First().Author);
-
-				blog.Name = "something else1";
-				blog.Author = "something else2";
-				blog.Update();
-
-				blogs = Blog.Queryable;
-				Assert.IsNotNull(blogs);
-				Assert.AreEqual(1, Blog.Queryable.Count());
-				Assert.AreEqual(blog.Name, blogs.First().Name);
-				Assert.AreEqual(blog.Author, blogs.First().Author);
-			}
+			blogs = Blog.All;
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(1, Blog.All.Count());
+			Assert.AreEqual(blog.Name, blogs.First().Name);
+			Assert.AreEqual(blog.Author, blogs.First().Author);
 		}
 
 		[Test]
 		public void RelationsOneToMany()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-
 			int blogId;
+			using (new SessionScope()) {
+				Post.DeleteAll();
+				Blog.DeleteAll();
 
-			Recreate();
+				Blog blog0 = new Blog();
+				blog0.Name = "hammett's blog";
+				blog0.Author = "hamilton verissimo";
+				blog0.Save();
 
-			Post.DeleteAll();
-			Blog.DeleteAll();
+				Post post1 = new Post(blog0, "title1", "contents", "category1");
+				Post post2 = new Post(blog0, "title2", "contents", "category2");
 
-			Blog blog0 = new Blog();
-			blog0.Name = "hammett's blog";
-			blog0.Author = "hamilton verissimo";
-			blog0.Save();
+				post1.Save();
+				post2.Save();
 
-			Post post1 = new Post(blog0, "title1", "contents", "category1");
-			Post post2 = new Post(blog0, "title2", "contents", "category2");
-
-			post1.Save();
-			post2.Save();
-
-			blogId = blog0.Id;
+				blogId = blog0.Id;
+			}
 
 
 			using (new SessionScope())
 			{
-				Blog blog = (from b in Blog.Queryable where b.Id == blogId select b).First();
+				Blog blog = (from b in Blog.All where b.Id == blogId select b).First();
 
-				Blog blog2 = Blog.Queryable.First(b => b.Id == blogId);
+				Blog blog2 = Blog.All.First(b => b.Id == blogId);
 				Assert.AreEqual(blog, blog2);
 
 				Blog blog3 = Blog.Find(blogId);
@@ -192,107 +190,39 @@ namespace Castle.ActiveRecord.Tests
 			}
 		}
 
-		[Test]
-		public void UsingLinqFromNonLinqBaseClass()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Widget));
-
-			Recreate();
-			Widget.DeleteAll();
-
-			Widget widget0 = new Widget { Name = "Hello world" };
-			widget0.Save();
-
-			using (new SessionScope())
-			{
-				var widgets = from w in ActiveRecordLinq.AsQueryable<Widget>() select w;
-				Assert.IsNotNull(widgets);
-				Assert.AreEqual(1, widgets.Count());
-
-				var widget = (from w in ActiveRecordLinq.AsQueryable<Widget>() select w).First();
-				Assert.IsNotNull(widget);
-				Assert.AreEqual("Hello world", widget.Name);
-
-				var widget2 = ActiveRecordLinq.AsQueryable<Widget>().First(w => w.Name == "Hello World");
-				Assert.IsNotNull(widget2);
-				Assert.AreEqual("Hello world", widget2.Name);
-
-				Assert.AreEqual(widget2, widget);
-			}
-		}
-
-
-		[Test]
-		public void UsingLinqViaSessionScopeVariable()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Widget));
-
-			using (ISessionScope scope = new SessionScope())
-			{
-				Recreate();
-				Widget.DeleteAll();
-
-				var widgets = from w in scope.AsQueryable<Widget>() select w;
-				Assert.IsNotNull(widgets);
-				Assert.AreEqual(0, widgets.Count());
-
-				Widget widget = new Widget { Name = "Hello world" };
-				widget.Save();
-
-				widgets = from w in scope.AsQueryable<Widget>() where w.Name == "Hello World" select w;
-				Assert.IsNotNull(widgets);
-				Assert.AreEqual(1, widgets.Count());
-			}
-		}
-
-
-
 		[Test, ExpectedException(typeof(ActiveRecordException))]
 		public void Linq_without_session_scope_should_fail()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Widget));
-			Recreate();
-			Widget.DeleteAll();
-
-			ActiveRecordLinq.AsQueryable<Widget>();
+			var array = ActiveRecord<Blog>.All.ToArray();
 		}
 
 		[Test]
 		public void Projecting()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Widget));
-
 			using (new SessionScope())
 			{
-				Recreate();
-				Widget.DeleteAll();
+				var blog = new Blog {Name = "foo", Author = "bar"};
+				blog.Save();
 
-				var widget = new Widget {Name = "foo"};
-				widget.Save();
+				var orderedQueryable = ActiveRecord<Blog>.All;
 
-				var orderedQueryable = ActiveRecordLinqBase<Widget>.Queryable;
-				var widgets = (from w in orderedQueryable
+				var blogs = (from w in orderedQueryable
 				               where w.Name.StartsWith("f")
 				               select w.Name).ToList();
 
-				Assert.IsNotNull(widgets);
-				Assert.AreEqual("foo", widgets.Single());
+				Assert.IsNotNull(blogs);
+				Assert.AreEqual("foo", blogs.FirstOrDefault());
 			}
 		}
 		[Test]
 		public void Projecting2()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Widget));
-
 			using (new SessionScope())
 			{
-				Recreate();
-				Widget.DeleteAll();
+				var blog = new Blog {Name = "foo", Author = "bar"};
+				blog.Save();
 
-				var widget = new Widget {Name = "foo"};
-				widget.Save();
-
-				var orderedQueryable = ActiveRecordLinqBase<Widget>.Queryable;
+				var orderedQueryable = Blog.All;
 				var name = (from w in orderedQueryable
 				            where w.Name.StartsWith("f")
 				            select w.Name).First();

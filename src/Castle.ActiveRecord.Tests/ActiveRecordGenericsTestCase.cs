@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+using NHibernate.Cfg;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System.Collections.Generic;
@@ -23,32 +28,42 @@ namespace Castle.ActiveRecord.Tests
 	public class ActiveRecordGenericsTestCase : AbstractActiveRecordTest
 	{
 		[SetUp]
-		public void Setup()
+		public override void Init()
 		{
-			ActiveRecordStarter.ResetInitializationFlag();
+			ActiveRecord.ResetInitialization();
 
-			ActiveRecordStarter.Initialize(GetConfigSource(),
-			                               typeof(Blog),
-			                               typeof(Post),
-			                               typeof(Company),
-			                               typeof(Award),
-			                               typeof(Employee),
-			                               typeof(Person));
+			ActiveRecord.OnConfigurationCreated += (cfg, sfcfg) =>
+				cfg.DataBaseIntegration( db => {
+					db.LogSqlInConsole = true;
+					db.LogFormattedSql = true;
+				}
+			);
+
+			ActiveRecord.Initialize(GetConfigSource());
 			Recreate();
 
-			Post.DeleteAll();
-			Blog.DeleteAll();
-			Company.DeleteAll();
-			Award.DeleteAll();
-			Employee.DeleteAll();
+			using (new SessionScope()) 
+			for (int i = 1; i <= 10; i++)
+			{
+				var blog = new Blog(i) { Name = "n" + i };
+				blog.Create();
+			}
+		}
+
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
 		}
 
 		[Test]
 		public void SimpleOperations()
 		{
-			Assert.IsTrue(NHibernate.Cfg.Environment.UseReflectionOptimizer);
+			Blog.DeleteAll();
 
-			Blog[] blogs = Blog.FindAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -58,7 +73,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "hamilton verissimo";
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -73,14 +88,14 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ExistsTest()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog.DeleteAll();
+
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			Assert.IsTrue(blog.Id > 0);
@@ -99,7 +114,9 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ExistsByCriterion()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog.DeleteAll();
+
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -110,30 +127,36 @@ namespace Castle.ActiveRecord.Tests
 			blog.Save();
 
 			Assert.IsTrue(blog.Id > 0);
-			Assert.IsTrue(Blog.Exists(
-			              	Expression.Eq("Name", blog.Name),
-			              	Expression.Eq("Author", blog.Author)));
+			Assert.IsTrue(
+				Blog.Exists(
+					Restrictions.Where<Blog>(b => b.Name == blog.Name),
+					Restrictions.Where<Blog>(b => b.Author == blog.Author)
+				)
+			);
 
 			blog = new Blog();
 			blog.Name = "chad's blog";
 			blog.Author = "chad humphries";
 			blog.Save();
 
-			Assert.IsTrue(Blog.Exists(
-			              	Expression.Eq("Name", blog.Name),
-			              	Expression.Eq("Author", blog.Author)));
+			Assert.IsTrue(
+				Blog.Exists(
+					Restrictions.Where<Blog>(b => b.Name == blog.Name),
+					Restrictions.Where<Blog>(b => b.Author == blog.Author)
+				)
+			);
 
-			Assert.IsFalse(Blog.Exists(
-			               	Expression.Eq("Name", "/\ndrew's Blog"),
-			               	Expression.Eq("Author", "Andrew Peters")));
+			Assert.IsFalse(
+				Blog.Exists(
+					Restrictions.Where<Blog>(b => b.Name == "/\ndrew's Blog"),
+					Restrictions.Where<Blog>(b => b.Author == "Andrew Peters")
+				)
+			);
 		}
 
 		[Test]
 		public void BlogExistsCriterionOverload()
 		{
-			var blogs = Blog.FindAll();
-			Assert.AreEqual(0, blogs.Length);
-
 			var blog = new Blog()
 			           	{
 			           		Author = "Dr. Who",
@@ -141,15 +164,19 @@ namespace Castle.ActiveRecord.Tests
 			           	};
 			blog.SaveAndFlush();
 
-			Assert.IsTrue(Blog.Exists(Expression.Like("Author","Who",MatchMode.Anywhere)));
+			Assert.IsTrue(
+				Blog.Exists(
+					Restrictions.Like("Author","Who",MatchMode.Anywhere)
+				)
+			);
 		}
 
 		[Test]
-		public void SlicedOperation()
+		public void SlicedOperation() 
 		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			Blog.DeleteAll();
+
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			Post post1 = new Post(blog, "title1", "contents", "category1");
@@ -161,14 +188,16 @@ namespace Castle.ActiveRecord.Tests
 			post3.Published = true;
 			post3.Save();
 
-			Post[] posts = Post.SlicedFindAll(1, 2, Expression.Eq("Blog", blog));
+			Post[] posts = Post.SlicedFindAll(1, 2, Restrictions.Where<Post>(p => p.Blog == blog)).ToArray();
 			Assert.AreEqual(2, posts.Length);
 		}
 
 		[Test]
 		public void SimpleOperations2()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog.DeleteAll();
+
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -178,7 +207,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "hamilton verissimo";
 			blog.Create();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(blog.Name, blogs[0].Name);
 			Assert.AreEqual(blog.Author, blogs[0].Author);
 
@@ -189,7 +218,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "something else2";
 			blog.Update();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -201,16 +230,17 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ComponentAttribute()
 		{
-			Company company = new Company("Castle Corp.");
-			company.Address = new PostalAddress(
-				"Embau St., 102", "Sao Paulo", "SP", "040390-060");
+			Company company = new Company("Castle Corp.") {
+				Address = new PostalAddress(
+				"Embau St., 102", "Sao Paulo", "SP", "040390-060")
+			};
 			company.Save();
 
-			Company[] companies = Company.FindAll();
+			var companies = Company.FindAll();
 			Assert.IsNotNull(companies);
-			Assert.AreEqual(1, companies.Length);
+			Assert.AreEqual(1, companies.Count());
 
-			Company corp = companies[0];
+			Company corp = companies.First();
 			Assert.IsNotNull(corp.Address);
 			Assert.AreEqual(corp.Address.Address, company.Address.Address);
 			Assert.AreEqual(corp.Address.City, company.Address.City);
@@ -221,9 +251,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void RelationsOneToMany()
 		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			Post post1 = new Post(blog, "title1", "contents", "category1");
@@ -232,6 +260,7 @@ namespace Castle.ActiveRecord.Tests
 			post1.Save();
 			post2.Save();
 
+			blog.Evict();
 			blog = Blog.Find(blog.Id);
 
 			Assert.IsNotNull(blog);
@@ -247,95 +276,56 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void RelationsOneToManyWithWhereAndOrder()
 		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			Post post1 = new Post(blog, "title1", "contents", "category1");
 			Post post2 = new Post(blog, "title2", "contents", "category2");
 			Post post3 = new Post(blog, "title3", "contents", "category3");
 
+			post1.Published = false;
+			post2.Published = false;
+			post3.Published = true;
+
 			post1.Save();
 			Thread.Sleep(1000); // Its a smalldatetime (small precision)
 			post2.Save();
 			Thread.Sleep(1000); // Its a smalldatetime (small precision)
-			post3.Published = true;
 			post3.Save();
 
 			blog = Blog.Find(blog.Id);
+			blog.Refresh();
 
 			Assert.IsNotNull(blog);
 			Assert.AreEqual(2, blog.UnPublishedPosts.Count);
 			Assert.AreEqual(1, blog.PublishedPosts.Count);
 
 			Assert.AreEqual(3, blog.RecentPosts.Count);
-			Assert.AreEqual(post3.Id, ((Post) blog.RecentPosts[0]).Id);
-			Assert.AreEqual(post2.Id, ((Post) blog.RecentPosts[1]).Id);
-			Assert.AreEqual(post1.Id, ((Post) blog.RecentPosts[2]).Id);
+			var recentposts = blog.RecentPosts.ToArray();
+			Assert.AreEqual(post3.Id, recentposts[2].Id);
+			Assert.AreEqual(post2.Id, recentposts[1].Id);
+			Assert.AreEqual(post1.Id, recentposts[0].Id);
 		}
 
-
-		[Test]
-		public void TestExpressionQuerySubProperty()
-		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
-
-			Blog blog2 = new Blog();
-			blog2.Name = "hammett's blog other blog";
-			blog2.Author = "hamilton verissimo 2";
-			blog2.Save();
-
-			Post post1 = new Post(blog, "title1", "contents", "category1");
-			Post post2 = new Post(blog, "title2", "contents", "category2");
-			Post post3 = new Post(blog, "title3", "contents", "category3");
-
-			Post post21 = new Post(blog2, "title21", "contents", "category21");
-			Post post22 = new Post(blog2, "title22", "contents", "category22");
-			Post post23 = new Post(blog2, "title23", "contents", "category23");
-
-			post1.Save();
-			post2.Save();
-			post3.Save();
-
-			post21.Save();
-			post22.Save();
-			post23.Save();
-
-			//no idea how to make this style of query work. 
-			//Post[] posts = Post.FindAll(
-			//            Expression.Eq("Blog.Name", blog2.Name)
-			//        );
-			//Assert.IsTrue(posts.Length > 0);
-
-			SimpleQuery<Post> q =
-				new SimpleQuery<Post>(typeof(Post), "from Post p where p.Id = ? or p.Blog.Name = ?", 1, "hammett's blog other blog");
-
-			Post[] p = q.Execute();
-
-			Assert.IsTrue(p.Length > 0);
-		}
 
 		[Test]
 		public void RelationsOneToOne()
 		{
-			Employee emp = new Employee();
-			emp.FirstName = "john";
-			emp.LastName = "doe";
+			Employee emp = new Employee {FirstName = "john", LastName = "doe"};
 			emp.Save();
 
-			Assert.AreEqual(1, Employee.FindAll().Length);
+			Assert.AreEqual(1, Employee.FindAll().Count());
 
 			Award award = new Award(emp);
 			award.Description = "Invisible employee";
 			award.Save();
 
-			Assert.AreEqual(1, Award.FindAll().Length);
+			emp.Award = award;
+			emp.Save();
 
-			Employee emp2 = Employee.Find(emp.ID);
+			Assert.AreEqual(1, Award.FindAll().Count());
+
+			Employee emp2 = Employee.Find(emp.Id);
 			Assert.IsNotNull(emp2);
 			Assert.IsNotNull(emp2.Award);
 			Assert.AreEqual(emp.FirstName, emp2.FirstName);
@@ -347,13 +337,16 @@ namespace Castle.ActiveRecord.Tests
 		[ExpectedException(typeof(NotFoundException))]
 		public void FindLoad()
 		{
-			Blog.Find(1);
+			var blog = Blog.Find(1000);
+			if (blog == null)
+				throw new NotFoundException("");
 		}
 
 		[Test]
 		public void SaveUpdate()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog.DeleteAll();
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
@@ -363,7 +356,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "hamilton verissimo";
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -372,7 +365,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "changed too";
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -384,78 +377,27 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void Delete()
 		{
-			Blog[] blogs = Blog.FindAll();
+			Blog.DeleteAll();
+			var blogs = Blog.FindAll();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
+			Assert.AreEqual(0, blogs.Count());
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			blogs = Blog.FindAll();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
+			Assert.AreEqual(1, blogs.Count());
 
 			blog.Delete();
 
 			blogs = Blog.FindAll();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
+			Assert.AreEqual(0, blogs.Count());
 		}
-
-		[Test]
-		public void ScalarProjectionQueryTest()
-		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
-
-			ScalarProjectionQuery<Blog, int> proj = new ScalarProjectionQuery<Blog, int>(Projections.RowCount());
-			int rowCount = proj.Execute();
-			Assert.AreEqual(1, rowCount);
-		}
-
-
-		[Test]
-		public void UnTypedProjectionQueryTest()
-		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
-
-			ProjectionQuery<Blog> proj = new ProjectionQuery<Blog>(
-				Projections.ProjectionList()
-					.Add(Projections.Property("Name"))
-					.Add(Projections.Property("Author")));
-			IList<object[]> results = proj.Execute();
-			Assert.AreEqual(blog.Name, results[0][0]);
-			Assert.AreEqual(blog.Author, results[0][1]);
-		}
-
-
-		[Test]
-		public void TypedProjectionQueryTest()
-		{
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
-
-			ProjectionQuery<Blog, KeyValuePair<string, string>> proj = new ProjectionQuery<Blog, KeyValuePair<string, string>>(
-				Projections.ProjectionList()
-					.Add(Projections.Property("Name"))
-					.Add(Projections.Property("Author")));
-			IList<KeyValuePair<string, string>> results = proj.Execute();
-			Assert.AreEqual(blog.Name, results[0].Key);
-			Assert.AreEqual(blog.Author, results[0].Value);
-		}
-
 
 		[Test]
 		public void UseBlogWithGenericPostCollection()
@@ -473,26 +415,6 @@ namespace Castle.ActiveRecord.Tests
 
 			Blog fromDB = Blog.Find(blog.Id);
 			Assert.AreEqual(1, fromDB.Posts.Count);
-		}
-
-		[Test(Description = "Fails when NHibernate.Cfg.Environment.UseReflectionOptimizer = true")]
-		public void AbstractClassTableName()
-		{
-			ActiveRecordStarter.ResetInitializationFlag();
-			Assert.IsTrue(NHibernate.Cfg.Environment.UseReflectionOptimizer);
-
-			ActiveRecordStarter.Initialize(GetConfigSource(),
-										   typeof(AbstractClass<>),
-										   typeof(ConcreteClass));
-			Assert.IsFalse(NHibernate.Cfg.Environment.UseReflectionOptimizer);
-
-			Recreate();
-
-			ConcreteClass c = new ConcreteClass();
-
-			c.Save();
-
-			Assert.IsTrue(ConcreteClass.FindAll().Length == 1);
 		}
 	}
 }
