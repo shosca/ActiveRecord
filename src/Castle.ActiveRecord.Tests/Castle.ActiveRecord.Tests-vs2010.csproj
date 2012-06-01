@@ -137,6 +137,54 @@
     <Compile Include="ActiveRecordBaseTestCase.cs" />
     <Compile Include="Config\AspNet2.0ConfigurationIntegration.cs" />
     <Compile Include="Config\ConfigurationSource.cs" />
+    <Compile Include="Event\AbstractEventListenerTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\AdditionalLoadListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\AttributedPreLoadListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\ContributorTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\EventListenerAttributeTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\EventListenerContributionTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\FirstBaseListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\MultipleListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\MultipleSingletonListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\MultipleSkippedListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\NHEventListenersTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\NonAttributedPreLoadListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\SamplePostDeleteListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\SamplePostInsertListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\SamplePostUpdateListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Event\SamplePreInsertListener.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Models\Blog.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\Employee.cs" />
@@ -218,6 +266,7 @@
       <Name>Castle.ActiveRecord-vs2010</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(RootPath)\Settings.proj" />
   <Import Project="$(BuildScriptsPath)\Castle.Common.targets" />

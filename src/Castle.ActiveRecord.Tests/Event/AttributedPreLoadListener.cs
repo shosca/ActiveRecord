@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace Castle.ActiveRecord.Tests.Model
-{
-	using System;
-	using NHibernate.Event;
+using Castle.ActiveRecord.Attributes;
+using NHibernate.Event;
+using NHibernate.Event.Default;
 
-	///[EventListener]
+namespace Castle.ActiveRecord.Tests.Event
+{
+	[EventListener]
 	public class AttributedPreLoadListener : IPreLoadEventListener
 	{
-		public void OnPreLoad(PreLoadEvent @event){}
+		public void OnPreLoad(PreLoadEvent @event) { }
 	}
 }

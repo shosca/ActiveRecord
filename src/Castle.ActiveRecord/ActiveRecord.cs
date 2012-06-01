@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Castle.ActiveRecord.Attributes;
 using Castle.ActiveRecord.Config;
 using Castle.ActiveRecord.Scopes;
 using Castle.Core.Configuration;
@@ -86,10 +87,6 @@ namespace Castle.ActiveRecord {
 			Initialize(source);
 		}
 
-		static bool IsClassMapperType(Type t) {
-			return t.Name.ToLower().EndsWith("mapping");
-		}
-
 		/// <summary>
 		/// Initialize the mappings using the configuration and 
 		/// the list of types
@@ -113,35 +110,16 @@ namespace Castle.ActiveRecord {
 				ConfigurationSource = source;
 
 				foreach (var key in source.GetAllConfigurationKeys()) {
-					var mapper = new ConventionModelMapper();
-					if (OnMapperCreated != null)
-						OnMapperCreated(mapper, source);
 
 					var config = source.GetConfiguration(key);
-					var mappingtypes = config.Assemblies.SelectMany(a => a.GetExportedTypes()).Where(IsClassMapperType).ToArray();
 
-					if (config.Assemblies.Count < 1 || mappingtypes.Length < 1) {
-						throw new ActiveRecordException("No assembly defined in configuration that contains mappings.");
-					}
 					foreach (var asm in config.Assemblies) {
 						if (_registeredassemblies.Contains(asm))
 							throw new ActiveRecordException(string.Format("Assembly {0} has already been registered.", asm));
 
 					}
 
-					mapper.AddMappings(mappingtypes);
-
-					if (AfterMappingsAdded != null)
-						AfterMappingsAdded(mapper, source);
-
-					var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
-					var cfg = CreateConfiguration(config);
-
-					if (OnConfigurationCreated != null)
-						OnConfigurationCreated(cfg);
-
-					cfg.AddMapping(mapping);
-					Holder.RegisterConfiguration(cfg);
+					Holder.RegisterConfiguration(config.BuildConfiguration());
 				}
 
 			}
@@ -445,18 +423,6 @@ namespace Castle.ActiveRecord {
 			}
 		}
 
-		private static Configuration CreateConfiguration(SessionFactoryConfig config)
-		{
-
-			Configuration cfg = new Configuration();
-
-			foreach(var key in config.Properties.AllKeys)
-			{
-				cfg.Properties[key] = config.Properties[key];
-			}
-
-			return cfg;
-		}
 
 		private static void RaiseSessionFactoryHolderCreated(ISessionFactoryHolder holder)
 		{
@@ -510,6 +476,7 @@ namespace Castle.ActiveRecord {
 			}
 		}
 
+
 		/// <summary>
 		/// Generate a file name based on the original file name specified, using the 
 		/// count to give it some order.
@@ -524,6 +491,21 @@ namespace Castle.ActiveRecord {
 			string extension = Path.GetExtension(originalFileName);
 
 			return Path.Combine(path, string.Format("{0}_{1}{2}", fileName, fileCount, extension));
+		}
+
+		public static void RaiseOnMapperCreated(ConventionModelMapper mapper, SessionFactoryConfig sessionFactoryConfig) {
+			if (OnMapperCreated != null)
+				OnMapperCreated(mapper, sessionFactoryConfig);
+		}
+
+		public static void RaiseAfterMappingsAdded(ConventionModelMapper mapper, SessionFactoryConfig sessionFactoryConfig) {
+			if (AfterMappingsAdded != null)
+				AfterMappingsAdded(mapper, sessionFactoryConfig);
+		}
+
+		public static void RaiseOnConfigurationCreated(Configuration cfg, SessionFactoryConfig sessionFactoryConfig) {
+			if (OnConfigurationCreated != null)
+				OnConfigurationCreated(cfg, sessionFactoryConfig);
 		}
 	}
 }

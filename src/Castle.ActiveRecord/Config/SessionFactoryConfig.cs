@@ -1,13 +1,19 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
+using Castle.ActiveRecord.Attributes;
 using Castle.ActiveRecord.ByteCode;
 using NHibernate.Cfg;
+using NHibernate.Mapping.ByCode;
+using Environment = NHibernate.Cfg.Environment;
 
 namespace Castle.ActiveRecord.Config {
 	public class SessionFactoryConfig {
 		public SessionFactoryConfig(IActiveRecordConfiguration source) {
 			Assemblies = new List<Assembly>();
+			Contributors = new List<INHContributor>();
 			Properties = new NameValueCollection();
 			Name = string.Empty;
 			this.Source = source;
@@ -18,6 +24,7 @@ namespace Castle.ActiveRecord.Config {
 		public string Name { get; set; }
 		public IList<Assembly> Assemblies { get; private set; }
 		public NameValueCollection Properties { get; private set; }
+		public IList<INHContributor> Contributors { get; private set; }
 
 		public SessionFactoryConfig AddAssembly(Assembly assembly) {
 			Assemblies.Add(assembly);
@@ -45,6 +52,93 @@ namespace Castle.ActiveRecord.Config {
 				Set(property.Key, property.Value);
 			}
 			return this;
+		}
+
+		public IEnumerable<INHContributor> GetContributors() {
+			var contributors = Assemblies.SelectMany(a => a.GetExportedTypes())
+				.Where(t => typeof (INHContributor).IsAssignableFrom(t))
+				.Select(c => (INHContributor) Activator.CreateInstance(c))
+				.ToList();
+
+			return contributors;
+		}
+
+		public Configuration BuildConfiguration() {
+			var mappingtypes = Assemblies.SelectMany(a => a.GetTypes()).Where(IsClassMapperType).ToArray();
+
+			if (Assemblies.Count < 1 || mappingtypes.Length < 1) {
+				throw new ActiveRecordException("No assembly defined in configuration that contains mappings.");
+			}
+
+			var mapper = new ConventionModelMapper();
+
+			ActiveRecord.RaiseOnMapperCreated(mapper, this);
+
+			mapper.AddMappings(mappingtypes);
+
+			ActiveRecord.RaiseAfterMappingsAdded(mapper, this);
+
+			var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
+
+			var cfg = new Configuration();
+
+			foreach(var key in Properties.AllKeys)
+			{
+				cfg.Properties[key] = Properties[key];
+			}
+
+			ActiveRecord.RaiseOnConfigurationCreated(cfg, this);
+
+			CollectAllContributorsAndRegister(cfg);
+
+			cfg.AddMapping(mapping);
+			return cfg;
+		}
+
+		static bool IsClassMapperType(Type t) {
+			return t.Name.ToLower().EndsWith("mapping");
+		}
+
+		void CollectAllContributorsAndRegister(Configuration cfg) {
+			var exportedtypes = Assemblies.SelectMany(a => a.GetTypes()).ToArray();
+
+			Contributors.Add(GetEventListenerContributor(exportedtypes));
+			foreach(var c in Assemblies.SelectMany(a => a.GetExportedTypes())
+								.Where(t => !t.IsInterface && !t.IsAbstract && typeof (INHContributor).IsAssignableFrom(t))
+								.Select(c => (INHContributor) Activator.CreateInstance(c))) {
+				Contributors.Add(c);
+			}
+
+			foreach (var nhContributor in Contributors) {
+				nhContributor.Contribute(cfg);
+			}
+		}
+
+		INHContributor GetEventListenerContributor(IEnumerable<Type> exportedtypes)
+		{
+			var contributor = new EventListenerContributor();
+			foreach (var type in exportedtypes)
+			{
+				var eventListenerAttributes = type.GetCustomAttributes(typeof(EventListenerAttribute), false);
+				if (eventListenerAttributes.Length == 1)
+				{
+					var attribute = (EventListenerAttribute)eventListenerAttributes[0];
+					var config = new EventListenerConfig(type)
+					{
+						ReplaceExisting = attribute.ReplaceExisting,
+						SkipEvent = attribute.SkipEvent,
+						Singleton = attribute.Singleton
+					};
+
+					contributor.Add(config);
+				}
+			}
+
+			return contributor;
+		}
+
+		public void AddContributor(INHContributor contributor) {
+			Contributors.Add(contributor);
 		}
 	}
 }

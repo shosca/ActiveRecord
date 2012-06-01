@@ -34,7 +34,7 @@ limitations under the License.
 		<ProjectName>Castle.ActiveRecord</ProjectName>
 		
 		<!-- Versioning -->
-		<Project_Major>3</Project_Major>
+		<Project_Major>4</Project_Major>
 		<Project_Minor>0</Project_Minor>
 		<Project_Build>0</Project_Build>
 
@@ -49,8 +49,6 @@ limitations under the License.
 		The items are resolved relative to $(OutputPath)
 		-->
 		<PackageFiles Include="$(OutputPath)NHibernate.dll" />
-		<PackageFiles Include="$(OutputPath)NHibernate.Search.dll" />
-		<PackageFiles Include="$(OutputPath)NHibernate.ByteCode.Castle.dll" />
 		<PackageFiles Include="$(OutputPath)Iesi.Collections.dll" />
 		<PackageFiles Include="$(OutputPath)log4net.dll" />
 	</ItemGroup>

@@ -16,7 +16,6 @@ namespace Castle.ActiveRecord.Tests.Event
 {
 	using NUnit.Framework;
 	using NHibernate.Event;
-	using Castle.ActiveRecord.Framework;
 	using System;
 	using System.Collections.Generic;
 

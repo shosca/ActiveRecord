@@ -70,7 +70,7 @@ namespace Castle.ActiveRecord.Config
 		/// <summary>
 		/// Sets the flush behaviour for <see cref="ISessionScope"/> when no
 		/// other behaviour is specified in the scope itself. The default for
-		/// this configuration is <see cref="DefaultFlushType.Classic"/>. See
+		/// this configuration is <cref>DefaultFlushType.Classic</cref>. See
 		/// <see cref="DefaultFlushType"/> for what the options mean.
 		/// </summary>
 		/// <param name="flushType">The default flushing behaviour to set.</param>

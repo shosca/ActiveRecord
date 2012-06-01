@@ -18,7 +18,7 @@ using NHibernate.Mapping.ByCode;
 namespace Castle.ActiveRecord
 {
 	/// <summary>
-	/// Delegate for use in <see cref="ActiveRecord.SessionFactoryHolderCreated"/> and <see cref="ActiveRecord.MappingRegisteredInConfiguration"/>
+	/// Delegate for use in <see cref="ActiveRecord.SessionFactoryHolderCreated"/>
 	/// </summary>
 	/// <param name="holder"></param>
 	public delegate void SessionFactoryHolderDelegate(ISessionFactoryHolder holder);
@@ -27,10 +27,10 @@ namespace Castle.ActiveRecord
 	/// Delegate for use in <see cref="ActiveRecord.OnMapperCreated"/>
 	/// and <see cref="ActiveRecord.AfterMappingsAdded"/>
 	/// </summary>
-	public delegate void MapperDelegate(ModelMapper mapper, IActiveRecordConfiguration source);
+	public delegate void MapperDelegate(ModelMapper mapper, SessionFactoryConfig config);
 
 	/// <summary>
 	/// Delegate for use in <see cref="ActiveRecord.OnConfigurationCreated"/>
 	/// </summary>
-	public delegate void ConfigurationDelegate(NHibernate.Cfg.Configuration configuration);
+	public delegate void ConfigurationDelegate(NHibernate.Cfg.Configuration cfg, SessionFactoryConfig sfcfg);
 }

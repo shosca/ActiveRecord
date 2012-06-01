@@ -31,7 +31,7 @@ namespace Castle.ActiveRecord.Tests {
 		public void Setup() {
 			ActiveRecord.ResetInitialization();
 
-			ActiveRecord.OnConfigurationCreated += cfg =>
+			ActiveRecord.OnConfigurationCreated += (cfg, sfcfg) =>
 				cfg.DataBaseIntegration( db => {
 					db.LogSqlInConsole = true;
 					db.LogFormattedSql = true;

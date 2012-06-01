@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests.Event
 {
 	using System;
@@ -20,35 +22,20 @@ namespace Castle.ActiveRecord.Tests.Event
 
 	public abstract class AbstractEventListenerTest:AbstractActiveRecordTest
 	{
-		protected static void AssertListenerWasRegistered<TEventListener>(Func<EventListeners, object[]> listenerTypeSelector)
-		{
-			AssertListenerWasRegistered<TEventListener, ActiveRecordBase>(listenerTypeSelector);
-		}
-
-		protected static void AssertListenerWasRegistered<TEventListener, TBaseClass>(
-			Func<EventListeners, object[]> listenerTypeSelector)
+		protected static void AssertListenerWasRegistered<TEventListener, TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
 		{
 			Assert.IsTrue(
 				ListenerWasRegistered<TEventListener, TBaseClass>(listenerTypeSelector),
-				"Event listener class {0} was not registered", typeof (TEventListener).FullName);
+				"Event listener class {0} was not registered", typeof (TEventListener).FullName
+			);
 		}
 
-		protected static void AssertListenerWasNotRegistered<TEventListener>(Func<EventListeners, object[]> listenerTypeSelector)
-		{
-			AssertListenerWasNotRegistered<TEventListener, ActiveRecordBase>(listenerTypeSelector);
-		}
-
-		protected static void AssertListenerWasNotRegistered<TEventListener, TBaseClass>(
-			Func<EventListeners, object[]> listenerTypeSelector)
+		protected static void AssertListenerWasNotRegistered<TEventListener, TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
 		{
 			Assert.IsFalse(
 				ListenerWasRegistered<TEventListener, TBaseClass>(listenerTypeSelector),
-				"Event listener class {0} was registered, but should not be", typeof (TEventListener).FullName);
-		}
-
-		private bool ListenerWasRegistered<TEventListener>(Func<EventListeners, object[]> listenerTypeSelector)
-		{
-			return ListenerWasRegistered<TEventListener, ActiveRecordBase>(listenerTypeSelector);
+				"Event listener class {0} was registered, but should not be", typeof (TEventListener).FullName
+			);
 		}
 
 		private static bool ListenerWasRegistered<TEventListener, TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
@@ -65,25 +52,23 @@ namespace Castle.ActiveRecord.Tests.Event
 
 		protected static object[] GetRegisteredListeners(Func<EventListeners, object[]> listenerTypeSelector)
 		{
-			return listenerTypeSelector(
-				ActiveRecordMediator.GetSessionFactoryHolder().GetConfiguration(typeof (ActiveRecordBase)).EventListeners);
+			return listenerTypeSelector(ActiveRecord.Holder.GetConfiguration(typeof(Blog)).EventListeners);
 		}
 
-		private static object[] GetRegisteredListeners<TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
+		protected static object[] GetRegisteredListeners<TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
 		{
-			return listenerTypeSelector(
-				ActiveRecordMediator.GetSessionFactoryHolder().GetConfiguration(typeof (TBaseClass)).EventListeners);
+			return listenerTypeSelector(ActiveRecord.Holder.GetConfiguration(typeof(TBaseClass)).EventListeners);
 		}
 
 		public override void Init()
 		{
 			base.Init();
-			ActiveRecordStarter.ClearContributors();
+			//ActiveRecord.ClearContributors();
 		}
 
 		public override void Drop()
 		{
-			ActiveRecordStarter.ClearContributors();
+			//ActiveRecord.ClearContributors();
 			base.Drop();
 		}
 	}

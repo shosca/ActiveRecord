@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActiveRecord.cs" />
+    <Compile Include="Attributes\EventListenerAttribute.cs" />
     <Compile Include="ByteCode\LazyInitializer.cs" />
     <Compile Include="ByteCode\ProxyFactory.cs" />
     <Compile Include="ByteCode\ARProxyFactoryFactory.cs" />
@@ -161,13 +162,17 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DictionaryAdapter.cs" />
+    <Compile Include="EventListenerConfig.cs" />
+    <Compile Include="EventListenerContributor.cs" />
     <Compile Include="HookDispatcher.cs" />
+    <Compile Include="INHContributor.cs" />
     <Compile Include="ISessionFactoryHolder.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IThreadScopeInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="NHEventListeners.cs" />
     <Compile Include="NotFoundException.cs">
       <SubType>Code</SubType>
     </Compile>

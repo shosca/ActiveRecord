@@ -16,7 +16,6 @@ namespace Castle.ActiveRecord.Tests.Event
 {
 	using NUnit.Framework;
 	using NHibernate.Event;
-	using Castle.ActiveRecord.Framework;
 	using System;
 	using System.Collections.Generic;
 	using Castle.ActiveRecord.Tests.Model;
@@ -26,47 +25,23 @@ namespace Castle.ActiveRecord.Tests.Event
 	public class ContributorTest : AbstractActiveRecordTest
 	{
 		[Test]
-		public void Appliability_is_tested() 
-		{
-			var contributor = new MockContributor(true);
-			ActiveRecordStarter.AddContributor(contributor);
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Assert.IsTrue(contributor.Tested);
-		}
-	
-		[Test]
 		public void Contributor_gets_called()
 		{
-			var contributor = new MockContributor(true);
-			ActiveRecordStarter.AddContributor(contributor);
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+			var contributor = new MockContributor();
+			var source = GetConfigSource();
+			source.GetConfiguration(string.Empty).AddContributor(contributor);
+			ActiveRecord.Initialize(GetConfigSource());
 			Assert.IsTrue(contributor.Called);
 		}
-
-		[Test]
-		public void Contributor_that_doesnt_apply_is_not_called()
-		{
-			var contributor = new MockContributor(false);
-			ActiveRecordStarter.AddContributor(contributor);
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Assert.IsTrue(contributor.Tested);
-			Assert.IsFalse(contributor.Called);
-		}
 		
-		private class MockContributor : AbstractNHContributor
+		public class MockContributor : INHContributor
 		{
-			public MockContributor(bool isAppliable)
-			{
-				AppliesToRootType = ((t) => { Tested = true; return isAppliable; });
-			}
-
-			public override void Contribute(Configuration configuration)
+			public void Contribute(Configuration configuration)
 			{
 				Called = true;
 			}
 
 			public Boolean Called { get; private set; }
-			public Boolean Tested { get; private set; }
 		}
 	}
 }

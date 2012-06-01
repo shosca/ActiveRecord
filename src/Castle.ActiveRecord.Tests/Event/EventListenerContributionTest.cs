@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+
 namespace Castle.ActiveRecord.Tests.Event
 {
 	using NUnit.Framework;
 	using NHibernate.Event;
-	using Castle.ActiveRecord.Framework;
 	using System;
 	using System.Collections.Generic;
 	using Castle.ActiveRecord.Tests.Model;
@@ -25,18 +27,27 @@ namespace Castle.ActiveRecord.Tests.Event
 	[TestFixture]
 	public class EventListenerContributionTest : AbstractActiveRecordTest
 	{
+		[SetUp]
+		public override void Init()
+		{
+			base.Init();
+			ActiveRecord.ResetInitialization();
+		}
+
 		[Test]
 		public void Listener_is_added_to_config() 
 		{
 			var contributor = new NHEventListeners();
 			var listener = new MockListener();
 			contributor.Add(listener);
-			ActiveRecordStarter.AddContributor(contributor);
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+
+			var source = GetConfigSource();
+			source.GetConfiguration(string.Empty).AddContributor(contributor);
+			ActiveRecord.Initialize(source);
 			Recreate();
 
 			Blog.FindAll();
-			var listeners = Blog.Holder.GetConfiguration(typeof(ActiveRecordBase)).EventListeners.PostInsertEventListeners;
+			var listeners = ActiveRecord.Holder.GetConfiguration(typeof(Blog)).EventListeners.PostInsertEventListeners;
 			Assert.Greater(Array.IndexOf(listeners, listener),-1);
 		}
 	
@@ -46,25 +57,29 @@ namespace Castle.ActiveRecord.Tests.Event
 			var contributor = new NHEventListeners();
 			var listener = new MockListener();
 			contributor.Add(listener);
-			ActiveRecordStarter.AddContributor(contributor);
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
+
+			var source = GetConfigSource();
+			source.GetConfiguration(string.Empty).AddContributor(contributor);
+			ActiveRecord.Initialize(source);
 			Recreate();
 
-			Blog.FindAll();
-			new Blog() { Name = "Foo", Author = "Bar" }.SaveAndFlush();
-			Assert.IsTrue(listener.Called);
+			using (new SessionScope()) {
+				new Blog { Name = "Foo", Author = "Bar" }.Create();
+			}
+
+			Assert.IsTrue(IsCalled);
 		}
 
-		private class MockListener : IPostInsertEventListener
-		{
+		static bool IsCalled = false;
 
-			public Boolean Called { get; private set; }
+		public class MockListener : IPostInsertEventListener
+		{
 
 			#region IPostInsertEventListener Members
 
 			public void OnPostInsert(PostInsertEvent @event)
 			{
-				Called = true;
+				IsCalled = true;
 			}
 
 			#endregion
