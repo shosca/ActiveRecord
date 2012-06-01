@@ -101,7 +101,7 @@ namespace Castle.ActiveRecord.Config
 			var sfconfig = source.CreateConfiguration();
 			sfconfig.Properties[connection_provider] = LongName<DriverConnectionProvider>();
 			sfconfig.Properties[Environment.UseSecondLevelCache] = false.ToString(CultureInfo.InvariantCulture);
-			sfconfig.Properties[proxyfactory_factory_class] = LongName<ProxyFactoryFactory>();
+			sfconfig.Properties[proxyfactory_factory_class] = LongName<ARProxyFactoryFactory>();
 			sfconfig.Properties[dialect] = LongName<TDialect>();
 			sfconfig.Properties[connection_driver_class] = LongName<TDriver>();
 			foreach (var d in configuration) {

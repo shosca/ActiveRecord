@@ -79,7 +79,7 @@ namespace Castle.ActiveRecord.Tests
 			using (new StatelessSessionScope())
 			{
 				Assert.IsTrue(ActiveRecord<Ship>.Exists(ship.Id));
-				Assert.AreEqual("Andrea Doria",ActiveRecord<Ship>.FindByPrimaryKey(ship.Id).Name);
+				Assert.AreEqual("Andrea Doria",ActiveRecord<Ship>.Find(ship.Id).Name);
 			}
 		}
 

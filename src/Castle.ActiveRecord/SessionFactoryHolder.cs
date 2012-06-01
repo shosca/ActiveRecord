@@ -145,6 +145,7 @@ namespace Castle.ActiveRecord
 				return CreateScopeSession(type);
 			}
 
+			// Create a sessionscope implicitly
 			new SessionScope();
 
 			return CreateSession(type);

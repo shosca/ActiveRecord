@@ -139,7 +139,7 @@
     <Compile Include="ActiveRecord.cs" />
     <Compile Include="ByteCode\LazyInitializer.cs" />
     <Compile Include="ByteCode\ProxyFactory.cs" />
-    <Compile Include="ByteCode\ProxyFactoryFactory.cs" />
+    <Compile Include="ByteCode\ARProxyFactoryFactory.cs" />
     <Compile Include="ActiveRecordException.cs">
       <SubType>Code</SubType>
     </Compile>

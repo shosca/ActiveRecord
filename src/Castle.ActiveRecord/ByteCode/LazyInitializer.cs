@@ -22,8 +22,8 @@ namespace Castle.ActiveRecord.ByteCode {
 	using NHibernate.Engine;
 	using NHibernate.Type;
 
-	public class LazyInitializer : DefaultLazyInitializer {
-		public LazyInitializer(string entityName, Type persistentClass, object id,
+	public class ARLazyInitializer : DefaultLazyInitializer {
+		public ARLazyInitializer(string entityName, Type persistentClass, object id,
 		                       MethodInfo getIdentifierMethod, MethodInfo setIdentifierMethod,
 		                       IAbstractComponentType componentIdType, ISessionImplementor session) :
 		                       	base(entityName, persistentClass, id, getIdentifierMethod, setIdentifierMethod, componentIdType, session) {

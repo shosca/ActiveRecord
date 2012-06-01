@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using NHibernate.Linq;
 
 namespace Castle.ActiveRecord
 {
@@ -200,7 +201,7 @@ namespace Castle.ActiveRecord
 
 		#endregion
 
-		#region Find/TryFind
+		#region Find/Peek
 
 		/// <summary>
 		/// Finds an object instance by an unique ID 
@@ -210,18 +211,18 @@ namespace Castle.ActiveRecord
 		/// <returns>T</returns>
 		public static T Find(object id)
 		{
-			return ActiveRecord<T>.FindByPrimaryKey(id, true);
+			return ActiveRecord<T>.Find(id);
 		}
 
 		/// <summary>
 		/// Finds an object instance by an unique ID.
-		/// If the row is not found this method will not throw an exception.
+		/// If the row is not found this method will return null
 		/// </summary>
 		/// <param name="id">ID value</param>
 		/// <returns>A <typeparamref name="T"/></returns>
-		public static T TryFind(object id)
+		public static T Peek(object id)
 		{
-			return ActiveRecord<T>.FindByPrimaryKey(id, false);
+			return ActiveRecord<T>.Peek(id);
 		}
 
 		#endregion
@@ -373,6 +374,15 @@ namespace Castle.ActiveRecord
 		}
 
 		#endregion
+
+
+		/// <summary>
+		/// Provide an IQueryable.
+		/// Make sure we are in a scope
+		/// </summary>
+		public static IQueryable<T> All {
+			get { return ActiveRecord<T>.All; }
+		}
 
 		/// <summary>
 		/// The QueryOver method is used as a Linq collection

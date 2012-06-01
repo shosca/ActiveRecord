@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Castle.ActiveRecord.Scopes
 {
@@ -23,19 +23,19 @@ namespace Castle.ActiveRecord.Scopes
 	/// </summary>
 	public sealed class ThreadScopeInfo : AbstractThreadScopeInfo
 	{
-		[ThreadStatic] static Stack stack;
+		[ThreadStatic] static Stack<ISessionScope> stack;
 
 		/// <summary>
 		/// Gets the current stack.
 		/// </summary>
 		/// <value>The current stack.</value>
-		public override Stack CurrentStack
+		public override Stack<ISessionScope> CurrentStack
 		{
 			get
 			{
 				if (stack == null)
 				{
-					stack = new Stack();
+					stack = new Stack<ISessionScope>();
 				}
 
 				return stack;

@@ -180,7 +180,7 @@ namespace Castle.ActiveRecord.Tests {
 			post2.SaveAndFlush();
 			blog.Refresh();
 
-			var fromdb = Blog.TryFind(blog.Id);
+			var fromdb = Blog.Peek(blog.Id);
 
 			Assert.IsNotNull(fromdb);
 			Assert.IsNotNull(fromdb.Posts, "posts collection is null");

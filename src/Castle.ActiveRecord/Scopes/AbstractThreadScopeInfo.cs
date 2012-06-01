@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Castle.ActiveRecord.Scopes
 {
@@ -27,7 +29,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// Gets the current stack.
 		/// </summary>
 		/// <value>The current stack.</value>
-		public abstract Stack CurrentStack { get; }
+		public abstract Stack<ISessionScope> CurrentStack { get; }
 
 		/// <summary>
 		/// Registers the scope.
@@ -44,7 +46,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// <returns></returns>
 		public ISessionScope GetRegisteredScope()
 		{
-			Stack stack = CurrentStack;
+			var stack = CurrentStack;
 
 			if (stack.Count == 0)
 			{

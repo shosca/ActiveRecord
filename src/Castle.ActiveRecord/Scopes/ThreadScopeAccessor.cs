@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Castle.ActiveRecord.Scopes
 {
@@ -53,7 +53,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// Gets the current stack.
 		/// </summary>
 		/// <value>The current stack.</value>
-		public Stack CurrentStack
+		public Stack<ISessionScope> CurrentStack
 		{
 			get { return scopeInfo.CurrentStack; }
 		}

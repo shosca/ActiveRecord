@@ -42,7 +42,7 @@ namespace Castle.ActiveRecord.Testing
 			var conf = source.CreateConfiguration(DatabaseType.SQLite, "Data Source=:memory:;Version=3;New=True")
 					.AddAssemblies(GetAssemblies())
 					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof (InMemoryConnectionProvider).AssemblyQualifiedName)
-					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof(ProxyFactoryFactory).AssemblyQualifiedName)
+					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName)
 					.Set(GetProperties());
 
 			source.Add(conf);

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Castle.Components.Validator;
+using NHibernate.Linq;
 
 namespace Castle.ActiveRecord
 {
@@ -99,40 +100,32 @@ namespace Castle.ActiveRecord
 		/// Finds an object instance by its primary key.
 		/// </summary>
 		/// <param name="id">ID value</param>
-		/// <param name="throwOnNotFound"><c>true</c> if you want an exception to be thrown
-		/// if the object is not found</param>
-		/// <exception cref="NHibernate.ObjectNotFoundException">if <c>throwOnNotFound</c> is set to 
-		/// <c>true</c> and the row is not found</exception>
-		public static T FindByPrimaryKey(object id, bool throwOnNotFound)
-		{
-			EnsureInitialized();
+		public static T Find(object id) {
 			bool hasScope = ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope;
-			return Execute(session => {
-				// Load() and Get() has different semantics with regard to the way they
-				// handle null values, Get() _must_ check that the value exists, Load() is allowed
-				// to return an uninitialized proxy that will throw when you access it later.
-				// in order to play well with proxies, we need to use this approach.
-				T loaded = throwOnNotFound ? session.Get<T>(id) : session.Load<T>(id);
-
-				//If we are not in a scope, we want to initialize the entity eagerly, since other wise the 
-				//user will get an exception when it access the entity's property, and it will try to lazy load itself and find that
-				//it has no session.
-				//If we are in a scope, it is the user responsability to keep the scope alive if he wants to use 
-				if (!hasScope)
-				{
-					NHibernateUtil.Initialize(loaded);
-				}
-				return loaded;
+			T entity = null;
+			Execute(session => {
+				entity = session.Get<T>(id);
+				// If not in a scope, eager load entity
+				if (!hasScope) NHibernateUtil.Initialize(entity);
 			});
+			return entity;
 		}
 
 		/// <summary>
-		/// Finds an object instance by its primary key.
+		/// Peeks for an object instance by its primary key,
+		/// returns null if not found
 		/// </summary>
 		/// <param name="id">ID value</param>
-		public static T FindByPrimaryKey(object id)
+		public static T Peek(object id)
 		{
-			return FindByPrimaryKey(id, true);
+			bool hasScope = ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope;
+			T entity = null;
+			Execute(session => {
+				entity = session.Load<T>(id);
+				// If not in a scope, eager load entity
+				if (!hasScope) NHibernateUtil.Initialize(entity);
+			});
+			return entity;
 		}
 
 		/// <summary>
@@ -455,7 +448,7 @@ namespace Castle.ActiveRecord
 			return Execute(session => {
 				int counter = 0;
 				foreach (var pkvalue in pkvalues) {
-					T obj = FindByPrimaryKey(pkvalue, false);
+					T obj = Peek(pkvalue);
 					if (obj != null) {
 						Delete(obj);
 						counter++;
@@ -464,6 +457,19 @@ namespace Castle.ActiveRecord
 				return counter;
 			});
 				
+		}
+
+		/// <summary>
+		/// Provide an IQueryable.
+		/// Make sure we are in a scope
+		/// </summary>
+		public static IQueryable<T> All {
+			get {
+				if (ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope)
+					throw new ActiveRecordException("You need to be in an IScope to do linq queries.");
+
+				return Execute(s => s.Query<T>());
+			}
 		}
 
 		/// <summary>

@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Web;
 
@@ -31,13 +32,13 @@ namespace Castle.ActiveRecord.Scopes
 	{
 		const string ActiveRecordCurrentStack = "activerecord.currentstack";
 
-		[ThreadStatic] static Stack stack;
+		[ThreadStatic] static Stack<ISessionScope> stack;
 
 		/// <summary>
 		/// Gets the current stack.
 		/// </summary>
 		/// <value>The current stack.</value>
-		public override Stack CurrentStack
+		public override Stack<ISessionScope> CurrentStack
 		{
 			[MethodImpl(MethodImplOptions.Synchronized)]
 			get
@@ -48,17 +49,17 @@ namespace Castle.ActiveRecord.Scopes
 				{
 					if (stack == null)
 					{
-						stack = new Stack();
+						stack = new Stack<ISessionScope>();
 					}
 
 					return stack;
 				}
 
-				Stack contextstack = (Stack)current.Items[ActiveRecordCurrentStack];
+				var contextstack = current.Items[ActiveRecordCurrentStack] as Stack<ISessionScope>;
 
 				if (contextstack == null)
 				{
-					contextstack = new Stack();
+					contextstack = new Stack<ISessionScope>();
 
 					current.Items[ActiveRecordCurrentStack] = contextstack;
 				}

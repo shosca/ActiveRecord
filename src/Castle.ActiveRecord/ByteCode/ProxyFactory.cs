@@ -1,4 +1,4 @@
-﻿// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
+// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace Castle.ActiveRecord.ByteCode
 	using NHibernate.Proxy;
 	using NHibernate.Proxy.DynamicProxy;
 
-    class ProxyFactory : DefaultProxyFactory 
+    class ARProxyFactory : DefaultProxyFactory 
     {
 		private readonly NHibernate.Proxy.DynamicProxy.ProxyFactory _factory = new NHibernate.Proxy.DynamicProxy.ProxyFactory();
 
@@ -31,7 +31,7 @@ namespace Castle.ActiveRecord.ByteCode
 		{
 			try
 			{
-				var initializer = new LazyInitializer(EntityName, PersistentClass, id, GetIdentifierMethod, SetIdentifierMethod, ComponentIdType, session);
+				var initializer = new ARLazyInitializer(EntityName, PersistentClass, id, GetIdentifierMethod, SetIdentifierMethod, ComponentIdType, session);
 
 				object proxyInstance = IsClassProxy
 										? _factory.CreateProxy(PersistentClass, initializer, Interfaces)

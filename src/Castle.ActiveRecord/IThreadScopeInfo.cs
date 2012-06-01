@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections;
-using Castle.ActiveRecord.Scopes;
 
 namespace Castle.ActiveRecord
 {
+	using System.Collections.Generic;
+	using Castle.ActiveRecord.Scopes;
+
 	/// <summary>
 	/// Implementation of this interface provide a way to get the current scope.
 	/// This is used by the rest of the Active Record framework to grab a scope (and from it a session).
@@ -27,7 +28,7 @@ namespace Castle.ActiveRecord
 		/// Gets the current stack.
 		/// </summary>
 		/// <value>The current stack.</value>
-		Stack CurrentStack { get; }
+		Stack<ISessionScope> CurrentStack { get; }
 
 		/// <summary>
 		/// Gets the registered scope.

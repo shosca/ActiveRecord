@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
+using Castle.ActiveRecord.ByteCode;
+using NHibernate.Cfg;
 
 namespace Castle.ActiveRecord.Config {
 	public class SessionFactoryConfig {
@@ -9,12 +11,13 @@ namespace Castle.ActiveRecord.Config {
 			Properties = new NameValueCollection();
 			Name = string.Empty;
 			this.Source = source;
+			Properties[Environment.ProxyFactoryFactoryClass] = typeof (ARProxyFactoryFactory).AssemblyQualifiedName;
 		}
 
 		public IActiveRecordConfiguration Source { get; private set; }
 		public string Name { get; set; }
-		public IList<Assembly> Assemblies { get; set; }
-		public NameValueCollection Properties { get; set; }
+		public IList<Assembly> Assemblies { get; private set; }
+		public NameValueCollection Properties { get; private set; }
 
 		public SessionFactoryConfig AddAssembly(Assembly assembly) {
 			Assemblies.Add(assembly);
