@@ -219,9 +219,6 @@
     <Compile Include="Config\DefaultDatabaseConfigurationExtensions.cs" />
     <Compile Include="Config\DatabaseType.cs" />
     <Compile Include="Config\DefaultFlushType.cs" />
-    <Compile Include="Config\DefaultStorageConfiguration.cs" />
-    <Compile Include="Config\IStorageConfiguration.cs" />
-    <Compile Include="Config\StorageTypeSelection.cs" />
     <Compile Include="Scopes\ConversationalScope.cs" />
     <Compile Include="Scopes\ConversationCanceledEventArgs.cs" />
     <Compile Include="Scopes\IConversation.cs" />
