@@ -788,16 +788,4 @@ namespace Castle.ActiveRecord
 			return SlicedFindAll(0, 1, detachedQuery).Any();
 		}
 	}
-
-	public static class QueryOverExtensions {
-		public static IEnumerable<T> List<T>(this QueryOver<T> query) where T : class
-		{
-			return ActiveRecord<T>.Execute(session => query.GetExecutableQueryOver(session).List<T>());
-		}
-
-		public static IEnumerable<TR> List<T, TR>(this QueryOver<T> query) where T : class
-		{
-			return ActiveRecord<T>.Execute(session => query.GetExecutableQueryOver(session).List<TR>());
-		}
-	}
 }
