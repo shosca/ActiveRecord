@@ -44,18 +44,10 @@ namespace Castle.ActiveRecord.Scopes
 		/// Gets the registered scope.
 		/// </summary>
 		/// <returns></returns>
-		public ISessionScope GetRegisteredScope()
-		{
+		public ISessionScope GetRegisteredScope() {
 			var stack = CurrentStack;
 
-			if (stack.Count == 0)
-			{
-				return null;
-			}
-			else
-			{
-				return stack.Peek() as ISessionScope;
-			}
+			return stack.Count == 0 ? null : stack.Peek();
 		}
 
 		/// <summary>
