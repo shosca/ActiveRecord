@@ -444,15 +444,12 @@ namespace Castle.ActiveRecord
 		/// Deletes all rows for the supplied primary keys 
 		/// </summary>
 		/// <param name="pkvalues">A list of primary keys</param>
-		public static int DeleteAll(IEnumerable pkvalues) {
+		public static int DeleteAll(IEnumerable<object> pkvalues) {
 			return Execute(session => {
-				int counter = 0;
-				foreach (var pkvalue in pkvalues) {
-					T obj = Peek(pkvalue);
-					if (obj != null) {
-						Delete(obj);
-						counter++;
-					}
+				var counter = 0;
+				foreach (var obj in pkvalues.Select(Peek).Where(o => o != null)) {
+					Delete(obj);
+					counter++;
 				}
 				return counter;
 			});

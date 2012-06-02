@@ -62,7 +62,7 @@ namespace Castle.ActiveRecord
 		/// supplied on <paramref name="pkValues" />.
 		/// </summary>
 		/// <returns>The number of objects deleted</returns>
-		public static int DeleteAll(IEnumerable pkValues)
+		public static int DeleteAll(IEnumerable<object> pkValues)
 		{
 			return ActiveRecord<T>.DeleteAll(pkValues);
 		}
