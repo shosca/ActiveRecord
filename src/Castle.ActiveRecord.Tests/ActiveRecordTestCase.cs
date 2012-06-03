@@ -12,51 +12,93 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
+using Castle.ActiveRecord.Scopes;
+using Castle.ActiveRecord.Tests.Models;
+using NHibernate.Cfg;
+using NHibernate.Impl;
+
 namespace Castle.ActiveRecord.Tests
 {
-	using System;
 	using System.Threading;
-	using Castle.ActiveRecord.Framework;
 	using NHibernate.Criterion;
 	using NUnit.Framework;
 
 	[TestFixture]
 	public class ActiveRecordTestCase : AbstractActiveRecordTest
 	{
-		[Test,
-		 ExpectedException(typeof(ActiveRecordInitializationException),
-			ExpectedMessage = "You can't invoke ActiveRecordStarter.Initialize more than once")]
-		public void InitializeCantBeInvokedMoreThanOnce()
+		[SetUp]
+		public override void Init()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post));
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Blog));
+			ActiveRecord.ResetInitialization();
+
+			ActiveRecord.OnConfigurationCreated += (cfg, sfcfg) =>
+				cfg.DataBaseIntegration( db => {
+					db.LogSqlInConsole = true;
+					db.LogFormattedSql = true;
+				}
+			);
+
+			ActiveRecord.Initialize(GetConfigSource());
+			Recreate();
+
+			using (new SessionScope()) 
+			for (var i = 1; i <= 10; i++)
+			{
+				var blog = new Blog(i) { Name = "n" + i };
+				blog.Create();
+			}
 		}
 
+		[TearDown]
+		public override void Drop()
+		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
+		}
 
 		[Test]
 		public void SimpleOperations()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
 			Blog.DeleteAll();
 
-			Blog[] blogs = Blog.FindAll();
+			var blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
+
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
 
-			Blog retrieved = blogs[0];
+			var retrieved = blogs[0];
+			Assert.IsNotNull(retrieved);
+
+			Assert.AreEqual(blog.Name, retrieved.Name);
+			Assert.AreEqual(blog.Author, retrieved.Author);
+		}
+
+		[Test]
+		public void SimpleOperations1() {
+			Blog[] blogs = Blog.FindAll().ToArray();
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Length);
+
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.SaveAndFlush();
+
+			blogs = Blog.FindAll().ToArray();
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(11, blogs.Length);
+
+			Blog retrieved = Blog.Find(blog.Id);
 			Assert.IsNotNull(retrieved);
 
 			Assert.AreEqual(blog.Name, retrieved.Name);
@@ -66,23 +108,17 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SimpleOperations2()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
 			Blog.DeleteAll();
 
-			Blog[] blogs = Blog.FindAll();
+			var blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(0, blogs.Length);
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Create();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(blog.Name, blogs[0].Name);
 			Assert.AreEqual(blog.Author, blogs[0].Author);
 
@@ -93,7 +129,7 @@ namespace Castle.ActiveRecord.Tests
 			blog.Author = "something else2";
 			blog.Update();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
 			Assert.AreEqual(1, blogs.Length);
@@ -102,53 +138,140 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Query_by_example()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog[] blogs = Blog.FindAll();
+		public void SimpleOperations3() {
+			Blog[] blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
+			Assert.AreEqual(10, blogs.Length);
 
-			var blog = new Blog { Name = "hammett's blog", Author = "hamilton verissimo" };
-			blog.Create();
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.CreateAndFlush();
 
-			var count = Blog.FetchCount(Example.Create(new Blog { Name = "hammett" })
-                                 				.EnableLike(MatchMode.Start)
-                                 				.ExcludeNulls()
-                                 				.ExcludeZeroes());
-			Assert.AreEqual(1, count);
+			blogs = Blog.FindAll().ToArray();
+			Assert.AreEqual(blog.Name, blogs[10].Name);
+			Assert.AreEqual(blog.Author, blogs[10].Author);
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(11, blogs.Length);
+
+			blog.Name = "something else1";
+			blog.Author = "something else2";
+			blog.UpdateAndFlush();
+
+			blogs = Blog.FindAll().ToArray();
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(11, blogs.Length);
+			blog = blogs.Last();
+			Assert.AreEqual(blog.Name, blog.Name);
+			Assert.AreEqual(blog.Author, blog.Author);
+		}
+
+		[Test]
+		public void ExistsTest()
+		{
+			var blogs = Blog.FindAll().ToArray();
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Length);
+
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.Save();
+
+			Assert.IsTrue(blog.Id > 0);
+			Assert.IsTrue(Blog.Exists(blog.Id));
+
+			blog = new Blog {Name = "chad's blog", Author = "chad humphries"};
+			blog.Save();
+
+			Assert.IsTrue(Blog.Exists(blog.Id));
+
+			Assert.IsFalse(Blog.Exists(1000));
+		}
+
+		[Test]
+		public void ExistsByCriterion()
+		{
+			Blog[] blogs = Blog.FindAll().ToArray();
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Length);
+
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.Save();
+
+			Assert.IsTrue(blog.Id > 0);
+			Assert.IsTrue(
+				Blog.Exists(
+					Restrictions.Where<Blog>(b => b.Name == blog.Name),
+					Restrictions.Where<Blog>(b => b.Author == blog.Author)
+				)
+			);
+
+			blog = new Blog {Name = "chad's blog", Author = "chad humphries"};
+			blog.Save();
+
+			Assert.IsTrue(
+				Blog.Exists(
+					Restrictions.Where<Blog>(b => b.Name == blog.Name),
+					Restrictions.Where<Blog>(b => b.Author == blog.Author)
+				)
+			);
+
+			Assert.IsFalse(
+				Blog.Exists(
+					Restrictions.Where<Blog>(b => b.Name == "/\ndrew's Blog"),
+					Restrictions.Where<Blog>(b => b.Author == "Andrew Peters")
+				)
+			);
+		}
+
+		[Test]
+		public void BlogExistsCriterionOverload()
+		{
+			var blog = new Blog { Author = "Dr. Who", Name = "Exaggerated Murmuring" };
+			blog.SaveAndFlush();
+
+			Assert.IsTrue(
+				Blog.Exists(
+					Restrictions.Like("Author", "Who", MatchMode.Anywhere)
+				)
+			);
+		}
+
+		[Test]
+		public void SlicedOperation() 
+		{
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.Save();
+
+			var post1 = new Post(blog, "title1", "contents", "category1");
+			var post2 = new Post(blog, "title2", "contents", "category2");
+			var post3 = new Post(blog, "title3", "contents", "category3");
+
+			post1.Save();
+			post2.Save();
+			post3.Published = true;
+			post3.Save();
+
+			var posts = Post.SlicedFindAll(1, 2, Restrictions.Where<Post>(p => p.Blog == blog)).ToArray();
+			Assert.AreEqual(2, posts.Length);
 		}
 
 		[Test]
 		public void ComponentAttribute()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(),
-			                               typeof(Company),
-										   typeof(Client),
-										   typeof(Firm), 
-										   typeof(Person),
-										   typeof(Post),
-										   typeof(Blog));
-			Recreate();
-
-			Company.DeleteAll();
-
-			Company company = new Company("Castle Corp.");
-			company.Address = new PostalAddress(
-				"Embau St., 102", "Sao Paulo", "SP", "040390-060");
+			var company = new Company("Castle Corp.") {
+				Address = new PostalAddress(
+				"Embau St., 102", "Sao Paulo", "SP", "040390-060")
+			};
 			company.Save();
 
-			Company[] companies = Company.FindAll();
+			var companies = Company.FindAll();
 			Assert.IsNotNull(companies);
-			Assert.AreEqual(1, companies.Length);
+			Assert.AreEqual(1, companies.Count());
 
-			Company corp = companies[0];
+			Company corp = companies.First();
 			Assert.IsNotNull(corp.Address);
 			Assert.AreEqual(corp.Address.Address, company.Address.Address);
 			Assert.AreEqual(corp.Address.City, company.Address.City);
@@ -157,175 +280,81 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void RelationsOneToMany()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+		public void RelationsOneToMany() {
+			Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			Post post1 = new Post(blog, "title1", "contents", "category1");
 			Post post2 = new Post(blog, "title2", "contents", "category2");
 
 			post1.Save();
-			post2.Save();
+			post2.SaveAndFlush();
+			blog.Refresh();
 
-			blog = Blog.Find(blog.Id);
+			var fromdb = Blog.Peek(blog.Id);
 
-			Assert.IsNotNull(blog);
-			Assert.IsNotNull(blog.Posts, "posts collection is null");
-			Assert.AreEqual(2, blog.Posts.Count);
+			Assert.IsNotNull(fromdb);
+			Assert.IsNotNull(fromdb.Posts, "posts collection is null");
+			Assert.AreEqual(2, Post.FindAll().Count());
+			Assert.AreEqual(2, fromdb.Posts.Count);
 
-			foreach(Post post in blog.Posts)
+			foreach (Post post in fromdb.Posts)
 			{
 				Assert.AreEqual(blog.Id, post.Blog.Id);
 			}
 		}
 
 		[Test]
-		public void RelationsWithCompositeKey()
-		{
-			// User HasAndBelongsToMany Groups
-			// Groups HasAndBelongsToMany Users
-			// User HasMany Groups
-			// 
-			ActiveRecordStarter.Initialize(GetConfigSource(),
-			                               typeof(Group),
-			                               typeof(Agent),
-			                               typeof(Org));
-			Recreate();
-
-			Agent.DeleteAll();
-			Org.DeleteAll();
-			Group.DeleteAll();
-
-			Org org = new Org("org1", "Test Org.");
-			org.Save();
-
-			Group group1 = new Group();
-			group1.Name = "Group1";
-			group1.Save();
-
-			Group group2 = new Group();
-			group2.Name = "Group2";
-			group2.Save();
-
-			AgentKey agentKey1 = new AgentKey("org1", "rbellamy");
-			Agent agent1 = new Agent(agentKey1);
-			agent1.Save();
-			agent1.Groups.Add(group1);
-			group1.Agents.Add(agent1);
-			agent1.Save();
-			agent1.Groups.Add(group2);
-			group2.Agents.Add(agent1);
-			agent1.Save();
-
-			AgentKey agentKey2 = new AgentKey("org1", "hammett");
-			Agent agent2 = new Agent(agentKey2);
-			agent2.Groups.Add(group1);
-			agent2.Save();
-
-			using(new SessionScope())
-			{
-				org = Org.Find(org.Id);
-				group1 = Group.Find(group1.Id);
-				group2 = Group.Find(group2.Id);
-				agent1 = Agent.Find(agentKey1);
-				agent2 = Agent.Find(agentKey2);
-
-				Assert.IsNotNull(org);
-				Assert.IsNotNull(group1);
-				Assert.IsNotNull(group2);
-				Assert.IsNotNull(agent1);
-				Assert.IsNotNull(org.Agents, "Org agent collection is null.");
-				Assert.IsNotNull(group1.Agents, "Group1 agent collection is null");
-				Assert.IsNotNull(group2.Agents, "Group2 agent collection is null");
-				Assert.IsNotNull(agent1.Groups, "Agent group collection is null.");
-				Assert.IsNotNull(agent1.Org, "Agent's org is null.");
-				Assert.AreEqual(2, group1.Agents.Count);
-				Assert.AreEqual(2, agent1.Groups.Count);
-				Assert.AreEqual(1, agent2.Groups.Count);
-
-				foreach(Agent agentLoop in org.Agents)
-				{
-					Assert.IsTrue(agentLoop.Groups.Contains(group1));
-				}
-			}
-		}
-
-		[Test]
 		public void RelationsOneToManyWithWhereAndOrder()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
-			Post post1 = new Post(blog, "title1", "contents", "category1");
-			Post post2 = new Post(blog, "title2", "contents", "category2");
-			Post post3 = new Post(blog, "title3", "contents", "category3");
+			var post1 = new Post(blog, "title1", "contents", "category1");
+			var post2 = new Post(blog, "title2", "contents", "category2");
+			var post3 = new Post(blog, "title3", "contents", "category3");
+
+			post1.Published = false;
+			post2.Published = false;
+			post3.Published = true;
 
 			post1.Save();
 			Thread.Sleep(1000); // Its a smalldatetime (small precision)
 			post2.Save();
 			Thread.Sleep(1000); // Its a smalldatetime (small precision)
-			post3.Published = true;
 			post3.Save();
 
 			blog = Blog.Find(blog.Id);
+			blog.Refresh();
 
 			Assert.IsNotNull(blog);
 			Assert.AreEqual(2, blog.UnPublishedPosts.Count);
 			Assert.AreEqual(1, blog.PublishedPosts.Count);
 
 			Assert.AreEqual(3, blog.RecentPosts.Count);
-			Assert.AreEqual(post3.Id, ((Post) blog.RecentPosts[0]).Id);
-			Assert.AreEqual(post2.Id, ((Post) blog.RecentPosts[1]).Id);
-			Assert.AreEqual(post1.Id, ((Post) blog.RecentPosts[2]).Id);
+			var recentposts = blog.RecentPosts.ToArray();
+			Assert.AreEqual(post3.Id, recentposts[2].Id);
+			Assert.AreEqual(post2.Id, recentposts[1].Id);
+			Assert.AreEqual(post1.Id, recentposts[0].Id);
 		}
 
 		[Test]
 		public void RelationsOneToOne()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Employee), typeof(Award));
-			Recreate();
+			var emp = new Employee {FirstName = "john", LastName = "doe"};
+			emp.Save();
 
-			Award.DeleteAll();
-			Employee.DeleteAll();
+			Assert.AreEqual(1, Employee.FindAll().Count());
 
-			Award award;
-			Employee emp = new Employee();
+			var award = new Award(emp) {Description = "Invisible employee"};
+			award.Save();
 
-			using(new SessionScope())
-			{
-				emp.FirstName = "john";
-				emp.LastName = "doe";
-				emp.Save();
+			emp.Award = award;
+			emp.Save();
 
-				Assert.AreEqual(1, Employee.FindAll().Length);
-				Assert.AreEqual(0, Award.FindAll().Length);
+			Assert.AreEqual(1, Award.FindAll().Count());
 
-				award = new Award(emp);
-				award.Description = "Invisible employee";
-				award.Save();
-			}
-
-			Assert.AreEqual(1, Award.FindAll().Length);
-			Assert.AreEqual(1, Employee.FindAll().Length);
-
-			Employee emp2 = Employee.Find(emp.ID);
+			var emp2 = Employee.Find(emp.Id);
 			Assert.IsNotNull(emp2);
 			Assert.IsNotNull(emp2.Award);
 			Assert.AreEqual(emp.FirstName, emp2.FirstName);
@@ -337,422 +366,451 @@ namespace Castle.ActiveRecord.Tests
 		[ExpectedException(typeof(NotFoundException))]
 		public void FindLoad()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog blog = Blog.Find(0);
-			Assert.IsNull(blog);
+			var blog = Blog.Find(1000);
+			if (blog == null)
+				throw new NotFoundException("");
 		}
 
 		[Test]
 		public void SaveUpdate()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog[] blogs = Blog.FindAll();
+			var blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
+			Assert.AreEqual(10, blogs.Length);
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
+			Assert.AreEqual(11, blogs.Length);
 
 			blog.Name = "Something else";
 			blog.Author = "changed too";
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			blogs = Blog.FindAll().ToArray();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
+			Assert.AreEqual(11, blogs.Length);
 
-			Assert.AreEqual(blog.Name, blogs[0].Name);
-			Assert.AreEqual(blog.Author, blogs[0].Author);
+			var fromdb = blogs.Last();
+			Assert.AreEqual(blog.Name, fromdb.Name);
+			Assert.AreEqual(blog.Author, fromdb.Author);
 		}
 
 		[Test]
 		public void Delete()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog[] blogs = Blog.FindAll();
+			var blogs = Blog.FindAll();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
+			Assert.AreEqual(10, blogs.Count());
 
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
 			blogs = Blog.FindAll();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
+			Assert.AreEqual(11, blogs.Count());
 
 			blog.Delete();
 
 			blogs = Blog.FindAll();
 
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
+			Assert.AreEqual(10, blogs.Count());
 		}
 
 		[Test]
-		public void DeleteAll()
+		public void DeleteWithExpression()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog[] blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
-
-			Blog blog1 = new Blog();
-			blog1.Name = "hammett's blog";
-			blog1.Author = "hamilton verissimo";
-			blog1.Save();
-
-			Blog blog2 = new Blog();
-			blog2.Name = "richard's blog";
-			blog2.Author = "g. richard bellamy";
-			blog2.Save();
-
-			blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(2, blogs.Length);
-
-			Blog.DeleteAll("Author = 'g. richard bellamy'");
-
-			blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
-			Assert.AreEqual("hamilton verissimo", blogs[0].Author);
-
-			blog1.Delete();
-
-			blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
-		}
-
-		[Test]
-		public void ExecuteAndCallback()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog[] blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
-
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
-			blogs = Blog.FindAll();
+			Blog.DeleteAll(b => b.Author == "hamilton verissimo");
 
+			var blogs = Blog.FindAll();
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
-
-			blog.CustomAction();
-
-			blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
+			Assert.AreEqual(10, blogs.Count());
 		}
 
 		[Test]
-		[Ignore("Need to complete this test case!")]
-		public void RelationMap()
+		public void DeleteWithCriteria()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(IntlName), typeof(Snippet));
-			Recreate();
-
-			IntlName n1 = new IntlName();
-			n1.AddSnippet("pt-br", "bom dia");
-			n1.AddSnippet("en-us", "good morning");
-			n1.Save();
-		}
-
-		[Test]
-		public void TestTimestampedClass()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(TimeStamped));
-			Recreate();
-
-			TimeStamped ts = new TimeStamped();
-			ts.name = "a timestamped record";
-
-			Assert.IsTrue(ts.LastSaved == DateTime.MinValue);
-			ts.Save();
-			Assert.IsFalse(ts.LastSaved == DateTime.MinValue);
-
-			//DateTime origional_lastsaved = ts.LastSaved;
-
-			ts.name = "another name";
-			ts.Save();
-
-			// Assert.IsFalse(ts.LastSaved == origional_lastsaved);
-		}
-
-		[Test]
-		public void FetchCount()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Assert.AreEqual(0, Post.FetchCount());
-			Assert.AreEqual(0, Blog.FetchCount());
-
-			Blog[] blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
-			Assert.IsFalse(Blog.Exists());
-
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 			blog.Save();
 
-			Assert.AreEqual(1, Blog.FetchCount());
-			Assert.IsTrue(Blog.Exists());
+			Blog.DeleteAll(Restrictions.Where<Blog>(b => b.Author == "hamilton verissimo"));
 
-			blogs = Blog.FindAll();
+			var blogs = Blog.FindAll();
 			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
+			Assert.AreEqual(10, blogs.Count());
+		}
 
-			Blog blog2 = new Blog();
-			blog2.Name = "joe's blog";
-			blog2.Author = "joe doe";
-			blog2.Save();
+		[Test]
+		public void DeleteWithQueryOver()
+		{
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.Save();
 
-			Assert.AreEqual(2, Blog.FetchCount());
-			Assert.AreEqual(1, Blog.FetchCount("Name=?", "hammett's blog"), "Try to fetch the number of blogs with the specified name, " 
-				+ "having in mind the capatalization of column \"Name\" (not \"name\").");
-			Assert.IsTrue(Blog.Exists("Name=?", "hammett's blog"));
+			Blog.DeleteAll(QueryOver.Of<Blog>().Where(b => b.Author == "hamilton verissimo"));
 
-			Blog retrieved = blogs[0];
+			var blogs = Blog.FindAll();
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Count());
+		}
+
+		[Test]
+		public void DeleteWithCriteriaExtension()
+		{
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.Save();
+
+			DetachedCriteria.For<Blog>()
+				.Add(Restrictions.Where<Blog>(b => b.Author == "hamilton verissimo"))
+				.DeleteAll<Blog>();
+
+			var blogs = Blog.FindAll();
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Count());
+		}
+
+		[Test]
+		public void DeleteWithQueryOverExtension()
+		{
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.Save();
+
+			QueryOver.Of<Blog>().Where(b => b.Author == "hamilton verissimo").DeleteAll();
+
+			var blogs = Blog.FindAll();
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Count());
+		}
+
+		[Test]
+		public void UseBlogWithGenericPostCollection()
+		{
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+
+			blog.Save();
+
+			var p = new Post(blog, "a", "b", "c");
+			blog.Posts.Add(p);
+
+			p.Save();
+
+			var fromDB = Blog.Find(blog.Id);
+			Assert.AreEqual(1, fromDB.Posts.Count);
+		}
+
+		[Test]
+		public void ExistsCriterionOverload()
+		{
+			var blog = new Blog() { Author = "Dr. Who", Name = "Exaggerated Murmuring" };
+			blog.SaveAndFlush();
+
+			Assert.IsTrue(
+				Blog.Exists(
+					Restrictions.Like("Author", "Who", MatchMode.Anywhere)
+				)
+			);
+		}
+
+		[Test]
+		public void HasManyAndBelongsToMany() {
+			var company = new Company("Castle Corp.") {
+			Address =
+				new PostalAddress("Embau St., 102", "Sao Paulo", "SP", "040390-060")
+			};
+			company.Save();
+
+			var person = new Person {Name = "ayende"};
+			person.Save();
+
+			person.Companies.Add(company);
+			company.People.Add(person);
+			company.Save();
+			person.Save();
+
+			Company fromDB = Company.Find(company.Id);
+			Assert.AreEqual(1, fromDB.People.Count);
+
+			Assert.AreEqual("ayende", fromDB.People.First().Name);
+		}
+
+		[Test]
+		public void LinqSimpleOperations()
+		{
+			new SessionScope();
+			var blogs = from b in Blog.All select b;
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Count());
+
+			var blog = new Blog {
+				Name = "hammett's blog",
+				Author = "hamilton verissimo"
+			};
+			blog.Save();
+
+			blogs = from b in Blog.All select b;
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(11, blogs.Count());
+
+			var retrieved = Blog.All.ToArray().Last();
 			Assert.IsNotNull(retrieved);
 
 			Assert.AreEqual(blog.Name, retrieved.Name);
 			Assert.AreEqual(blog.Author, retrieved.Author);
+		}
 
-			Assert.AreEqual(1, Blog.FetchCount(
-			                   	Expression.Eq("Name", blog.Name),
-			                   	Expression.Eq("Author", blog.Author)));
+		[Test]
+		public void LinqSimpleOperationsShowingBug()
+		{
+			using (new SessionScope())
+			{
+				var blogs = from b in Blog.All select b;
 
-			Assert.AreEqual(0, Blog.FetchCount(
-			                   	Expression.Eq("Name", "/\ndrew's Blog"),
-			                   	Expression.Eq("Author", "Andrew Peters")));
+				Assert.IsNotNull(blogs);
+				Assert.AreEqual(10, blogs.Count());
+
+				var blog = new Blog {
+					Name = "hammett's blog",
+					Author = "hamilton verissimo"
+				};
+				blog.Save();
+
+				blogs = from b in Blog.All orderby b.Id descending select b;
+				Assert.IsNotNull(blogs);
+				Assert.AreEqual(11, blogs.Count());
+
+				// this line will fail because of blogs.Count above
+				var retrieved = blogs.First();
+				Assert.IsNotNull(retrieved);
+
+				Assert.AreEqual(blog.Name, retrieved.Name);
+				Assert.AreEqual(blog.Author, retrieved.Author);
+			}
+		}
+
+		[Test]
+		public void LinqSimpleOperations2()
+		{
+			new SessionScope();
+			var blogs = Blog.All;
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Count());
+
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+			blog.Create();
+
+			Assert.AreEqual(11, (from b in Blog.All select b).Count());
+
+			blogs = Blog.All.OrderByDescending(b => b.Id);
+			Assert.AreEqual(blog.Name, blogs.First().Name);
+			Assert.AreEqual(blog.Author, blogs.First().Author);
+
+			blog.Name = "something else1";
+			blog.Author = "something else2";
+			blog.Update();
+
+			blogs = Blog.All.OrderByDescending(b => b.Id);
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(11, Blog.All.Count());
+			Assert.AreEqual(blog.Name, blogs.First().Name);
+			Assert.AreEqual(blog.Author, blogs.First().Author);
+		}
+
+		[Test]
+		public void LinqRelationsOneToMany()
+		{
+			int blogId;
+			using (new SessionScope()) {
+				Post.DeleteAll();
+				Blog.DeleteAll();
+
+				Blog blog0 = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+				blog0.Save();
+
+				Post post1 = new Post(blog0, "title1", "contents", "category1");
+				Post post2 = new Post(blog0, "title2", "contents", "category2");
+
+				post1.Save();
+				post2.Save();
+
+				blogId = blog0.Id;
+			}
+
+
+			using (new SessionScope())
+			{
+				Blog blog = (from b in Blog.All where b.Id == blogId select b).First();
+
+				Blog blog2 = Blog.All.First(b => b.Id == blogId);
+				Assert.AreEqual(blog, blog2);
+
+				Blog blog3 = Blog.Find(blogId);
+				Assert.AreEqual(blog, blog3);
+
+				Assert.IsNotNull(blog);
+				Assert.IsNotNull(blog.Posts, "posts collection is null");
+				Assert.AreEqual(2, blog.Posts.Count);
+
+				foreach (Post post in blog.Posts)
+				{
+					Assert.AreEqual(blog.Id, post.Blog.Id);
+				}
+			}
+		}
+
+		[Test, ExpectedException(typeof(ActiveRecordException))]
+		public void LinqWithoutSessionScopeShouldFail()
+		{
+			var array = ActiveRecord<Blog>.All.ToArray();
+			if (array.Length > 0) return;
+		}
+
+		[Test]
+		public void LinqProjecting()
+		{
+			using (new SessionScope())
+			{
+				var blog = new Blog {Name = "foo", Author = "bar"};
+				blog.Save();
+
+				var orderedQueryable = ActiveRecord<Blog>.All;
+
+				var blogs = (from w in orderedQueryable
+				               where w.Name.StartsWith("f")
+				               select w.Name).ToList();
+
+				Assert.IsNotNull(blogs);
+				Assert.AreEqual("foo", blogs.FirstOrDefault());
+			}
+		}
+		[Test]
+		public void LinqProjecting2()
+		{
+			using (new SessionScope())
+			{
+				var blog = new Blog {Name = "foo", Author = "bar"};
+				blog.Save();
+
+				var orderedQueryable = Blog.All;
+				var name = (from w in orderedQueryable
+				            where w.Name.StartsWith("f")
+				            select w.Name).First();
+
+				Assert.IsNotNull(name);
+				Assert.AreEqual("foo", name);
+			}
+		}
+
+		[Test]
+		public void ExistsDetachedQuery() 
+		{
+
+			Assert.AreEqual(10, Blog.FindAll(new DetachedQuery("from Blog")).Count());
+
+			for (int i = 1; i <= 10; i++)
+			{
+				Assert.AreEqual(true, Blog.Exists(
+					new DetachedQuery("from Blog f where f.Id=:value").SetInt32("value", i)));
+			}
+		}
+
+		[Test]
+		public void FindAllDetachedQuery() {
+
+			Blog[] list = Blog.FindAll(new DetachedQuery("from Blog Order By Id")).ToArray();
+
+			Assert.AreEqual(10, list.Length);
+			Assert.AreEqual(1, list[0].Id);
+			Assert.AreEqual("n1", list[0].Name);
+			Assert.AreEqual(10, list[9].Id);
+			Assert.AreEqual("n10", list[9].Name);
+		}
+
+		[Test]
+		public void FindOneDetachedQuery()
+		{
+			Blog f = Blog.FindOne(
+				new DetachedQuery("from Blog f where f.Id=:value").SetInt32("value", 10));
+
+			Assert.IsNotNull(f);
+			Assert.AreEqual(10, f.Id);
+			Assert.AreEqual("n10", f.Name);
+		}
+
+		[Test]
+		public void SlidedFindAllDetachedQuery()
+		{
+			Blog[] list = Blog.SlicedFindAll(5, 9, new DetachedQuery("from Blog")).ToArray();
+
+			Assert.AreEqual(5, list.Length);
+
+			Assert.AreEqual(6, list[0].Id);
+			Assert.AreEqual("n6", list[0].Name);
+
+			Assert.AreEqual(10, list[4].Id);
+			Assert.AreEqual("n10", list[4].Name);
 		}
 
 		[Test]
 		public void LifecycleMethods()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(Post), typeof(Blog));
-			Recreate();
+			var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
 
-			Post.DeleteAll();
-			Blog.DeleteAll();
+			Assert.IsFalse(blog.OnSaveCalled());
+			Assert.IsFalse(blog.OnDeleteCalled());
+			Assert.IsFalse(blog.OnLoadCalled());
+			Assert.IsFalse(blog.OnUpdateCalled());
 
-			Blog blog = new Blog();
+			blog.SaveAndFlush();
 
-			Assert.IsTrue(blog.OnDeleteCalled == blog.OnLoadCalled == blog.OnSaveCalled == blog.OnUpdateCalled);
-
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
-
-			Assert.IsTrue(blog.OnSaveCalled);
-			Assert.IsFalse(blog.OnDeleteCalled);
-			Assert.IsFalse(blog.OnLoadCalled);
-			Assert.IsFalse(blog.OnUpdateCalled);
+			Assert.IsTrue(blog.OnSaveCalled());
+			Assert.IsFalse(blog.OnDeleteCalled());
+			Assert.IsFalse(blog.OnLoadCalled());
+			Assert.IsFalse(blog.OnUpdateCalled());
 
 			blog.Name = "hammett's blog x";
 			blog.Author = "hamilton verissimo x";
-			blog.Save();
-			Assert.IsTrue(blog.OnUpdateCalled);
+			blog.SaveAndFlush();
+			Assert.IsTrue(blog.OnUpdateCalled());
+			blog.Evict();
 
 			blog = Blog.Find(blog.Id);
-			Assert.IsTrue(blog.OnLoadCalled);
+			Assert.IsTrue(blog.OnLoadCalled());
 
 			blog.Delete();
-			Assert.IsTrue(blog.OnDeleteCalled);
+			Assert.IsTrue(blog.OnDeleteCalled());
 		}
 
 		[Test]
-		public void RegisterTypeTest()
+		public void FindByPropertyTestName()
 		{
-			ActiveRecordStarter.Initialize(GetConfigSource());
-			ActiveRecordStarter.RegisterTypes(typeof(Blog), typeof(Post));
-			Recreate();
-
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			Blog[] blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
-
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
+			var blog = new Blog {Name = null, Author = "hamilton verissimo"};
 			blog.Save();
 
-			blogs = Blog.FindAll();
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(1, blogs.Length);
+			var blogs = Blog.FindByProperty("Name", null);
 
-			Blog retrieved = blogs[0];
-			Assert.IsNotNull(retrieved);
+			Assert.IsTrue(blogs.Count() == 1);
 
-			Assert.AreEqual(blog.Name, retrieved.Name);
-			Assert.AreEqual(blog.Author, retrieved.Author);
-		}
-
-		[Test]
-		public void TestName()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource());
-			ActiveRecordStarter.RegisterTypes(typeof(Blog), typeof(Post));
-			Recreate();
-
-			Blog blog = new Blog();
-			blog.Name = null;
-			blog.Author = "hamilton verissimo";
+			blog.Name = "Hammetts blog";
 			blog.Save();
-
-			Blog[] blogs = Blog.FindByProperty("Name", null);
-
-			Assert.IsTrue(blogs.Length == 1);
-
-			using(new SessionScope())
-			{
-				blog.Name = "Hammetts blog";
-				blog.Save();
-			}
 
 			blogs = Blog.FindByProperty("Name", null);
 
-			Assert.IsTrue(blogs.Length == 0);
+			Assert.IsTrue(blogs.Count() == 0);
 
 			blogs = Blog.FindByProperty("Name", "Hammetts blog");
 
-			Assert.IsTrue(blogs.Length == 1);
+			Assert.IsTrue(blogs.Count() == 1);
 		}
-
-		[Test]
-		public void ExistsTest()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource());
-			ActiveRecordStarter.RegisterTypes(typeof(Blog), typeof(Post));
-			Recreate();
-
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
-
-			Assert.IsTrue(blog.Id > 0);
-			Assert.IsTrue(Blog.Exists(blog.Id));
-
-			blog = new Blog();
-			blog.Name = "chad's blog";
-			blog.Author = "chad humphries";
-			blog.Save();
-
-			Assert.IsTrue(Blog.Exists(blog.Id));
-
-			Assert.IsFalse(Blog.Exists(1000));
-		}
-
-		[Test]
-		public void ExistsByCriterion()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource());
-			ActiveRecordStarter.RegisterTypes(typeof(Blog), typeof(Post));
-			Recreate();
-
-			Blog[] blogs = Blog.FindAll();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(0, blogs.Length);
-
-			Blog blog = new Blog();
-			blog.Name = "hammett's blog";
-			blog.Author = "hamilton verissimo";
-			blog.Save();
-
-			Assert.IsTrue(blog.Id > 0);
-			Assert.IsTrue(Blog.Exists(
-			              	Expression.Eq("Name", blog.Name),
-			              	Expression.Eq("Author", blog.Author)));
-
-			blog = new Blog();
-			blog.Name = "chad's blog";
-			blog.Author = "chad humphries";
-			blog.Save();
-
-			Assert.IsTrue(Blog.Exists(
-			              	Expression.Eq("Name", blog.Name),
-			              	Expression.Eq("Author", blog.Author)));
-
-			Assert.IsFalse(Blog.Exists(
-			               	Expression.Eq("Name", "/\ndrew's Blog"),
-			               	Expression.Eq("Author", "Andrew Peters")));
-		}
-
-		[Test, ExpectedExceptionAttribute(typeof(ActiveRecordException), ExpectedMessage = "Could not perform Save for ModelClassWithBrokenField")]
-		public void SaveWithBadTableSchemaThrowsException()
-		{
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(ModelClassUsedToCreateTableForClassWithBrokenField));
-			Recreate();
-
-			ActiveRecordStarter.ResetInitializationFlag();
-			ActiveRecordStarter.Initialize(GetConfigSource(), typeof(ModelClassWithBrokenField));
-
-			ModelClassWithBrokenField brokenClass = new ModelClassWithBrokenField();
-			brokenClass.Broken = true;
-			brokenClass.Save();
-		}
-
 	}
 }
