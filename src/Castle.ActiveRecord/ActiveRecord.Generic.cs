@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+using System.Linq.Expressions;
+
 namespace Castle.ActiveRecord
 {
 	using System;
@@ -32,23 +34,23 @@ namespace Castle.ActiveRecord
 	/// </summary>
 	public class ActiveRecord<T> where T : class {
 
-		internal static void EnsureInitialized()
+		internal static void EnsureInitialized(Type type)
 		{
 			if (!ActiveRecord.IsInitialized)
 			{
 				var message = string.Format("An ActiveRecord class ({0}) was used but the framework seems not " +
 											   "properly initialized. Did you forget about ActiveRecordStarter.Initialize() ?",
-											   typeof(T).FullName);
+											   type.FullName);
 				throw new ActiveRecordException(message);
 			}
 
-			var sf = ActiveRecord.Holder.GetSessionFactory(typeof (T));
+			var sf = ActiveRecord.Holder.GetSessionFactory(type);
 
 			if (sf.GetClassMetadata(typeof(T)) == null)
 			{
 				var message = string.Format("You have accessed an ActiveRecord class that wasn't properly initialized. " +
 											   "There are two possible explanations: that the call to ActiveRecordStarter.Initialize() didn't include {0} class, or that {0} class is not decorated with the [ActiveRecord] attribute.",
-											   typeof(T).FullName);
+											   type.FullName);
 				throw new ActiveRecordException(message);
 			}
 		}
@@ -63,7 +65,7 @@ namespace Castle.ActiveRecord
 		public static TK Execute<TK>(Func<ISession, T, TK> func, T instance) {
 			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
 
-			EnsureInitialized();
+			EnsureInitialized(typeof(T));
 
 			ISession session = ActiveRecord.Holder.CreateSession(typeof (T));
 
@@ -350,17 +352,44 @@ namespace Castle.ActiveRecord
 
 		/// <summary>
 		/// Deletes all rows for the specified ActiveRecord type that matches
-		/// the supplied HQL condition
+		/// the supplied criteria
 		/// </summary>
 		/// <remarks>
 		/// This method is usually useful for test cases.
 		/// </remarks>
-		public static void DeleteAll()
+		public static void DeleteAll(DetachedCriteria criteria)
 		{
-			Execute(session => {
-				session.Delete("from " + typeof(T).FullName);
-				session.Flush();
-			});
+			var pks = criteria.SetProjection(Projections.Id()).List<T, object>();
+			DeleteAll(pks);
+		}
+
+		/// <summary>
+		/// Deletes all rows for the specified ActiveRecord type that matches
+		/// the supplied criteria
+		/// </summary>
+		/// <remarks>
+		/// This method is usually useful for test cases.
+		/// </remarks>
+		public static void DeleteAll(params ICriterion[] criteria) {
+			if (criteria != null && criteria.Length > 0)
+				DeleteAll(DetachedCriteria.For<T>().AddCriterias(criteria));
+			else
+				Execute(session => {
+					session.CreateQuery("delete from " + typeof(T).FullName)
+						.ExecuteUpdate();
+					session.Flush();
+				});
+
+		}
+
+		public static void DeleteAll(Expression<Func<T, bool>> expression) {
+			var pks = QueryOver.Of<T>().Where(expression).Select(Projections.Id()).List<T, object>();
+			DeleteAll(pks);
+		}
+
+		public static void DeleteAll(QueryOver<T, T> queryover) {
+			var pks = queryover.Select(Projections.Id()).List<T, object>();
+			DeleteAll(pks);
 		}
 
 		/// <summary>
@@ -383,16 +412,37 @@ namespace Castle.ActiveRecord
 		/// Deletes all rows for the supplied primary keys 
 		/// </summary>
 		/// <param name="pkvalues">A list of primary keys</param>
-		public static int DeleteAll(IEnumerable<object> pkvalues) {
-			return Execute(session => {
-				var counter = 0;
-				foreach (var obj in pkvalues.Select(Peek).Where(o => o != null)) {
-					Delete(obj);
-					counter++;
-				}
-				return counter;
-			});
+		public static void DeleteAll(IEnumerable<object> pkvalues) {
+			var cm = ActiveRecord.Holder.GetSessionFactory(typeof (T)).GetClassMetadata(typeof (T));
+			var pkname = cm.IdentifierPropertyName;
+			var pktype = cm.IdentifierType.ReturnedClass;
+
+			if (pktype == typeof(int) || pktype == typeof(long))
+			{
+				var hql = "delete from {0} _this where _this.{1} in ({2})";
+				Execute(session => {
+					session.CreateQuery(string.Format(hql, typeof(T).FullName, pkname, string.Join(",", pkvalues)))
+						.ExecuteUpdate();
+				});
+
+			}
+			else if (pktype == typeof(Guid) || pktype == typeof(string))
+			{
+				var hql = "delete from {0} _this where _this.{1} in ('{2}')";
+				Execute(session => {
+					session.CreateQuery(string.Format(hql, typeof(T).FullName, pkname, string.Join("','", pkvalues)))
+						.ExecuteUpdate();
+				});
 				
+			}
+			else
+			{
+				Execute(session => {
+					foreach (var obj in pkvalues.Select(Peek).Where(o => o != null)) {
+						Delete(obj);
+					}
+				});
+			}
 		}
 
 		/// <summary>
@@ -705,7 +755,7 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Check if any instance matching the criteria exists in the database.
 		/// </summary>
-		/// <param name="detachedCriteria">The criteria expression</param>		
+		/// <param name="detachedCriteria">The criteria expression</param>
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(DetachedCriteria detachedCriteria)
 		{

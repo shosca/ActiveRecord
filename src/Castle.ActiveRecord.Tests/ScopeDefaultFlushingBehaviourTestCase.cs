@@ -25,6 +25,13 @@ namespace Castle.ActiveRecord.Tests
 	public class ScopeDefaultFlushingBehaviourTestCase : AbstractActiveRecordTest
 	{
 
+		[TearDown]
+		public override void Drop() {
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+			base.Drop();
+		}
+
 		[Test] 
 		public void TestClassicBehaviour() {TestBehaviour(DefaultFlushType.Classic, FlushMode.Auto, FlushMode.Commit);}
 		[Test]

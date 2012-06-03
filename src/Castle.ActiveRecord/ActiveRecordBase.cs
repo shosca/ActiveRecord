@@ -34,17 +34,6 @@ namespace Castle.ActiveRecord
 		#region DeleteAll
 
 		/// <summary>
-		/// Deletes all rows for the specified ActiveRecord type
-		/// </summary>
-		/// <remarks>
-		/// This method is usually useful for test cases.
-		/// </remarks>
-		public static void DeleteAll()
-		{
-			ActiveRecord<T>.DeleteAll();
-		}
-
-		/// <summary>
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied HQL condition
 		/// </summary>
@@ -62,9 +51,48 @@ namespace Castle.ActiveRecord
 		/// supplied on <paramref name="pkValues" />.
 		/// </summary>
 		/// <returns>The number of objects deleted</returns>
-		public static int DeleteAll(IEnumerable<object> pkValues)
+		public static void DeleteAll(IEnumerable<object> pkValues)
 		{
-			return ActiveRecord<T>.DeleteAll(pkValues);
+			ActiveRecord<T>.DeleteAll(pkValues);
+		}
+
+		/// <summary>
+		/// Deletes all rows for the specified ActiveRecord type that matches
+		/// the supplied criteria
+		/// </summary>
+		/// <remarks>
+		/// This method is usually useful for test cases.
+		/// </remarks>
+		public static void DeleteAll(DetachedCriteria criteria)
+		{
+			ActiveRecord<T>.DeleteAll(criteria);
+		}
+
+		/// <summary>
+		/// Deletes all rows for the specified ActiveRecord type that matches
+		/// the supplied criteria
+		/// </summary>
+		/// <remarks>
+		/// This method is usually useful for test cases.
+		/// </remarks>
+		public static void DeleteAll(QueryOver<T, T> queryover)
+		{
+			ActiveRecord<T>.DeleteAll(queryover);
+		}
+
+		/// <summary>
+		/// Deletes all rows for the specified ActiveRecord type that matches
+		/// the supplied criteria
+		/// </summary>
+		/// <remarks>
+		/// This method is usually useful for test cases.
+		/// </remarks>
+		public static void DeleteAll(params ICriterion[] criteria) {
+			ActiveRecord<T>.DeleteAll(criteria);
+		}
+
+		public static void DeleteAll(Expression<Func<T, bool>> expression) {
+			ActiveRecord<T>.DeleteAll(expression);
 		}
 
 		#endregion

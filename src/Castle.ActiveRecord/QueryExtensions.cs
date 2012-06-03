@@ -30,6 +30,11 @@ namespace Castle.ActiveRecord {
 			return ActiveRecord<T>.Execute(session => query.GetExecutableQueryOver(session).List<TR>());
 		}
 
+		public static void DeleteAll<T>(this QueryOver<T, T> query) where T : class
+		{
+			ActiveRecord<T>.DeleteAll(query);
+		}
+
 		public static IEnumerable<T> List<T>(this DetachedCriteria query) where T : class
 		{
 			return ActiveRecord<T>.Execute(session => query.GetExecutableCriteria(session).List<T>());
@@ -38,6 +43,11 @@ namespace Castle.ActiveRecord {
 		public static IEnumerable<TR> List<T, TR>(this DetachedCriteria query) where T : class
 		{
 			return ActiveRecord<T>.Execute(session => query.GetExecutableCriteria(session).List<TR>());
+		}
+
+		public static void DeleteAll<T>(this DetachedCriteria query) where T : class
+		{
+			ActiveRecord<T>.DeleteAll(query);
 		}
 
 		public static IEnumerable<T> List<T>(this IDetachedQuery query) where T : class
