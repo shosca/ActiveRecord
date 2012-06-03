@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Castle.Components.Validator;
-using NHibernate.Linq;
 
 namespace Castle.ActiveRecord
 {
 	using System;
-	using System.Collections;
 	using System.Collections.Generic;
 	using System.Linq;
 
+	using Castle.Components.Validator;
 	using NHibernate;
+
+	using NHibernate.Linq;
 	using NHibernate.Transform;
 	using NHibernate.Criterion;
 
@@ -36,15 +36,17 @@ namespace Castle.ActiveRecord
 		{
 			if (!ActiveRecord.IsInitialized)
 			{
-				String message = String.Format("An ActiveRecord class ({0}) was used but the framework seems not " +
+				var message = string.Format("An ActiveRecord class ({0}) was used but the framework seems not " +
 											   "properly initialized. Did you forget about ActiveRecordStarter.Initialize() ?",
 											   typeof(T).FullName);
 				throw new ActiveRecordException(message);
 			}
-			ISessionFactory sf = ActiveRecord.Holder.GetSessionFactory(typeof (T));
+
+			var sf = ActiveRecord.Holder.GetSessionFactory(typeof (T));
+
 			if (sf.GetClassMetadata(typeof(T)) == null)
 			{
-				String message = String.Format("You have accessed an ActiveRecord class that wasn't properly initialized. " +
+				var message = string.Format("You have accessed an ActiveRecord class that wasn't properly initialized. " +
 											   "There are two possible explanations: that the call to ActiveRecordStarter.Initialize() didn't include {0} class, or that {0} class is not decorated with the [ActiveRecord] attribute.",
 											   typeof(T).FullName);
 				throw new ActiveRecordException(message);
@@ -73,7 +75,7 @@ namespace Castle.ActiveRecord
 				throw;
 
 			} catch (ObjectNotFoundException ex) {
-				String message = String.Format("Could not find {0} with id {1}", ex.EntityName, ex.Identifier);
+				var message = string.Format("Could not find {0} with id {1}", ex.EntityName, ex.Identifier);
 				throw new NotFoundException(message, ex);
 
 			} catch (Exception ex) {
@@ -101,14 +103,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="id">ID value</param>
 		public static T Find(object id) {
-			bool hasScope = ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope;
-			T entity = null;
-			Execute(session => {
-				entity = session.Get<T>(id);
-				// If not in a scope, eager load entity
-				if (!hasScope) NHibernateUtil.Initialize(entity);
-			});
-			return entity;
+			return Execute(session => session.Get<T>(id));
 		}
 
 		/// <summary>
@@ -118,14 +113,7 @@ namespace Castle.ActiveRecord
 		/// <param name="id">ID value</param>
 		public static T Peek(object id)
 		{
-			bool hasScope = ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope;
-			T entity = null;
-			Execute(session => {
-				entity = session.Load<T>(id);
-				// If not in a scope, eager load entity
-				if (!hasScope) NHibernateUtil.Initialize(entity);
-			});
-			return entity;
+			return Execute(session => session.Load<T>(id));
 		}
 
 		/// <summary>
@@ -163,16 +151,6 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Searches and returns the first row.
 		/// </summary>
-		/// <param name="criteria">The criteria expression</param>
-		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
-		public static T FindFirst(DetachedCriteria criteria)
-		{
-			return SlicedFindAll(0, 1, criteria).FirstOrDefault();
-		}
-
-		/// <summary>
-		/// Searches and returns the first row.
-		/// </summary>
 		/// <param name="detachedQuery">The expression query.</param>
 		/// <returns>A <c>targetType</c> instance or <c>null.</c></returns>
 		public static T FindFirst(IDetachedQuery detachedQuery)
@@ -187,11 +165,11 @@ namespace Castle.ActiveRecord
 		/// <returns>A instance the targetType or <c>null</c></returns>
 		public static T FindOne(params ICriterion[] criterias)
 		{
-			IEnumerable<T> result = SlicedFindAll(0, 2, criterias);
+			var result = SlicedFindAll(0, 2, criterias).ToList();
 
-			if (result.Count() > 1)
+			if (result.Count > 1)
 			{
-				throw new ActiveRecordException(typeof(T).Name + ".FindOne returned " + result.Count() +
+				throw new ActiveRecordException("ActiveRecord.FindOne returned " + result.Count() +
 												" rows. Expecting one or none");
 			}
 
@@ -206,11 +184,11 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(DetachedCriteria criteria)
 		{
-			IEnumerable<T> result = SlicedFindAll(0, 2, criteria);
+			var result = SlicedFindAll(0, 2, criteria).ToList();
 
-			if (result.Count() > 1)
+			if (result.Count > 1)
 			{
-				throw new ActiveRecordException(typeof(T).Name + ".FindOne returned " + result.Count() +
+				throw new ActiveRecordException("ActiveRecord.FindOne returned " + result.Count() +
 												" rows. Expecting one or none");
 			}
 
@@ -225,11 +203,11 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(IDetachedQuery detachedQuery)
 		{
-			IEnumerable<T> result = SlicedFindAll(0, 2, detachedQuery);
+			var result = SlicedFindAll(0, 2, detachedQuery).ToList();
 
-			if (result.Count() > 1)
+			if (result.Count > 1)
 			{
-				throw new ActiveRecordException(typeof(T).Name + ".FindOne returned " + result.Count() +
+				throw new ActiveRecordException("ActiveRecord.FindOne returned " + result.Count() +
 												" rows. Expecting one or none");
 			}
 
@@ -242,7 +220,7 @@ namespace Castle.ActiveRecord
 		/// <param name="property">A property name (not a column name)</param>
 		/// <param name="value">The value to be equals to</param>
 		/// <returns></returns>
-		public static IEnumerable<T> FindAllByProperty(String property, object value)
+		public static IEnumerable<T> FindAllByProperty(string property, object value)
 		{
 			ICriterion criteria = (value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value);
 			return FindAll(criteria);
@@ -255,7 +233,7 @@ namespace Castle.ActiveRecord
 		/// <param name="property">A property name (not a column name)</param>
 		/// <param name="value">The value to be equals to</param>
 		/// <returns></returns>
-		public static IEnumerable<T> FindAllByProperty(String orderByColumn, String property, object value)
+		public static IEnumerable<T> FindAllByProperty(string orderByColumn, string property, object value)
 		{
 			ICriterion criteria = (value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value);
 			return FindAll(new Order[] {Order.Asc(orderByColumn)}, criteria);
@@ -270,19 +248,11 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		public static IEnumerable<T> FindAll(Order[] orders, params ICriterion[] criterias)
 		{
-			EnsureInitialized();
-			return Execute(session => {
-				ICriteria sessionCriteria = session.CreateCriteria<T>();
-
-				foreach(ICriterion cond in criterias)
-				{
-					sessionCriteria.Add(cond);
-				}
-
-				AddOrdersToCriteria(sessionCriteria, orders);
-
-				return sessionCriteria.List<T>();
-			});
+			return DetachedCriteria.For<T>()
+				.SetResultTransformer(Transformers.DistinctRootEntity)
+				.AddCriterias(criterias)
+				.AddOrders(orders)
+				.List<T>();
 		}
 
 		/// <summary>
@@ -293,10 +263,7 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		public static IEnumerable<T> FindAll(params ICriterion[] criterias)
 		{
-			if (criterias == null) {
-				return FindAll(DetachedCriteria.For<T>().SetResultTransformer(Transformers.DistinctRootEntity));
-			} 
-			return FindAll(null, criterias);
+			return FindAll(DetachedCriteria.For<T>().SetResultTransformer(Transformers.DistinctRootEntity).AddCriterias(criterias));
 		}
 
 		/// <summary>
@@ -304,27 +271,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public static IEnumerable<T> FindAll(DetachedCriteria detachedCriteria, params Order[] orders)
 		{
-			EnsureInitialized();
-			return Execute(session =>
-			{
-				ICriteria criteria = detachedCriteria.GetExecutableCriteria(session);
-
-				AddOrdersToCriteria(criteria, orders);
-
-				return criteria.List<T>();
-
-			});
-		}
-
-		private static void AddOrdersToCriteria(ICriteria criteria, IEnumerable<Order> orders)
-		{
-			if (orders != null)
-			{
-				foreach (Order order in orders)
-				{
-					criteria.AddOrder(order);
-				}
-			}
+			return detachedCriteria.AddOrders(orders).List<T>();
 		}
 
 		/// <summary>
@@ -334,61 +281,41 @@ namespace Castle.ActiveRecord
 		/// <returns>The <see cref="Array"/> of results.</returns>
 		public static IEnumerable<T> FindAll(IDetachedQuery detachedQuery)
 		{
-			EnsureInitialized();
-			return Execute(session => detachedQuery.GetExecutableQuery(session).List<T>());
+			return detachedQuery.List<T>();
 		}
 
 		/// <summary>
 		/// Returns a portion of the query results (sliced)
+		/// <param name="firstResult">The number of the first row to retrieve.</param>
+		/// <param name="maxResults">The maximum number of results retrieved.</param>
 		/// </summary>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order[] orders, params ICriterion[] criterias)
 		{
-			EnsureInitialized();
-			return Execute(session => {
-				ICriteria sessionCriteria = session.CreateCriteria(typeof(T));
-
-				foreach(ICriterion cond in criterias)
-				{
-					sessionCriteria.Add(cond);
-				}
-
-				if (orders != null)
-				{
-					foreach (Order order in orders)
-					{
-						sessionCriteria.AddOrder(order);
-					}
-				}
-
-				sessionCriteria.SetFirstResult(firstResult);
-				sessionCriteria.SetMaxResults(maxResults);
-
-				return sessionCriteria.List<T>();
-			});
+			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criterias), orders);
 		}
 
 		/// <summary>
 		/// Returns a portion of the query results (sliced)
+		/// <param name="firstResult">The number of the first row to retrieve.</param>
+		/// <param name="maxResults">The maximum number of results retrieved.</param>
 		/// </summary>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, params ICriterion[] criterias)
 		{
-			return SlicedFindAll(firstResult, maxResults, null, criterias);
+			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criterias));
 		}
 
 		/// <summary>
 		/// Returns a portion of the query results (sliced)
+		/// <param name="firstResult">The number of the first row to retrieve.</param>
+		/// <param name="maxResults">The maximum number of results retrieved.</param>
 		/// </summary>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders)
 		{
-			return Execute(session =>
-			{
-				ICriteria executableCriteria = criteria.GetExecutableCriteria(session);
-				AddOrdersToCriteria(executableCriteria, orders);
-				executableCriteria.SetFirstResult(firstResult);
-				executableCriteria.SetMaxResults(maxResults);
-
-				return executableCriteria.List<T>();
-			});
+			return criteria
+				.AddOrders(orders)
+				.SetFirstResult(firstResult)
+				.SetMaxResults(maxResults)
+				.List<T>();
 		}
 
 		/// <summary>
@@ -400,13 +327,25 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, IDetachedQuery detachedQuery)
 		{
-			return Execute(session =>
-			{
-				IQuery executableQuery = detachedQuery.GetExecutableQuery(session);
-				executableQuery.SetFirstResult(firstResult);
-				executableQuery.SetMaxResults(maxResults);
-				return executableQuery.List<T>();
-			});
+			return detachedQuery
+					.SetFirstResult(firstResult)
+					.SetMaxResults(maxResults)
+					.List<T>();
+		}
+
+		/// <summary>
+		/// Returns a portion of the query results (sliced)
+		/// </summary>
+		/// <param name="firstResult">The number of the first row to retrieve.</param>
+		/// <param name="maxResults">The maximum number of results retrieved.</param>
+		/// <param name="queryover">Queryover</param>
+		/// <returns>The sliced query results.</returns>
+		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, QueryOver<T, T> queryover)
+		{
+			return queryover
+					.Skip(firstResult)
+					.Take(maxResults)
+					.List<T>();
 		}
 
 		/// <summary>
@@ -435,7 +374,7 @@ namespace Castle.ActiveRecord
 		public static void DeleteAll(string where)
 		{
 			Execute(session => {
-				session.Delete(String.Format("from {0} where {1}", typeof(T).FullName, where));
+				session.Delete(string.Format("from {0} where {1}", typeof(T).FullName, where));
 				session.Flush();
 			});
 		}
@@ -516,35 +455,35 @@ namespace Castle.ActiveRecord
 			});
 		}
 
-        /// <summary>
-        /// Saves a copy of the instance to the database. If the primary key is uninitialized
-        /// it creates the instance in the database. Otherwise it updates it.
-        /// <para>
-        /// If the primary key is assigned, then you must invoke <see cref="Create"/>
-        /// or <see cref="Update"/> instead.
-        /// </para>
-        /// </summary>
-        /// <param name="instance">The transient instance to be saved</param>
-        /// <returns>The saved ActiveRecord instance</returns>
+		/// <summary>
+		/// Saves a copy of the instance to the database. If the primary key is uninitialized
+		/// it creates the instance in the database. Otherwise it updates it.
+		/// <para>
+		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
+		/// or <see cref="Update"/> instead.
+		/// </para>
+		/// </summary>
+		/// <param name="instance">The transient instance to be saved</param>
+		/// <returns>The saved ActiveRecord instance</returns>
 		public static T SaveCopy(T instance)
 		{
 			return InternalSaveCopy(instance, false);
 		}
 
-        /// <summary>
-        /// Saves a copy of the instance to the database and flushes the session. If the primary key is uninitialized
-        /// it creates the instance in the database. Otherwise it updates it.
-        /// <para>
-        /// If the primary key is assigned, then you must invoke <see cref="Create"/>
-        /// or <see cref="Update"/> instead.
-        /// </para>
-        /// </summary>
-        /// <param name="instance">The transient instance to be saved</param>
-        /// <returns>The saved ActiveRecord instance</returns>
-        protected internal static T SaveCopyAndFlush(T instance)
-        {
-            return InternalSaveCopy(instance, true);
-        }
+		/// <summary>
+		/// Saves a copy of the instance to the database and flushes the session. If the primary key is uninitialized
+		/// it creates the instance in the database. Otherwise it updates it.
+		/// <para>
+		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
+		/// or <see cref="Update"/> instead.
+		/// </para>
+		/// </summary>
+		/// <param name="instance">The transient instance to be saved</param>
+		/// <returns>The saved ActiveRecord instance</returns>
+		protected internal static T SaveCopyAndFlush(T instance)
+		{
+			return InternalSaveCopy(instance, true);
+		}
 
 		/// <summary>
 		/// Saves a copy of the instance to the database. If the primary key is unitialized
@@ -564,8 +503,8 @@ namespace Castle.ActiveRecord
 			  T persistent = session.Merge(instance);
 			  if (flush) session.Flush();
 			  return persistent;
-		   });
-        }
+			});
+		}
 
 		/// <summary>
 		/// Creates (Saves) a new instance to the database.
@@ -726,11 +665,10 @@ namespace Castle.ActiveRecord
 		/// <returns>The count result</returns>
 		public static int Count(params ICriterion[] criteria)
 		{
-			DetachedCriteria dc = DetachedCriteria.For<T>();
-			foreach (var criterion in criteria) {
-				dc.Add(criterion);
-			}
-			dc.SetProjection(Projections.RowCount());
+			var dc = DetachedCriteria.For<T>()
+				.AddCriterias(criteria)
+				.SetProjection(Projections.RowCount());
+
 			return Count(dc);
 		}
 

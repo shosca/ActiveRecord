@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Collections.Generic;
+using Castle.Core.Internal;
+using NHibernate;
 using NHibernate.Criterion;
 using NHibernate.Impl;
 
@@ -38,14 +40,24 @@ namespace Castle.ActiveRecord {
 			return ActiveRecord<T>.Execute(session => query.GetExecutableCriteria(session).List<TR>());
 		}
 
-		public static IEnumerable<T> List<T>(this DetachedQuery query) where T : class
+		public static IEnumerable<T> List<T>(this IDetachedQuery query) where T : class
 		{
 			return ActiveRecord<T>.Execute(session => query.GetExecutableQuery(session).List<T>());
 		}
 
-		public static IEnumerable<TR> List<T, TR>(this DetachedQuery query) where T : class
+		public static IEnumerable<TR> List<T, TR>(this IDetachedQuery query) where T : class
 		{
 			return ActiveRecord<T>.Execute(session => query.GetExecutableQuery(session).List<TR>());
+		}
+
+		public static DetachedCriteria AddOrders(this DetachedCriteria criteria, params Order[] orders) {
+			orders.ForEach(o => criteria.AddOrder(o));
+			return criteria;
+		}
+
+		public static DetachedCriteria AddCriterias(this DetachedCriteria criteria, params ICriterion[] criterias) {
+			criterias.ForEach(o => criteria.Add(o));
+			return criteria;
 		}
 	}
 }
