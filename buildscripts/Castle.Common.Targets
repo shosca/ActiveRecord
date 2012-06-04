@@ -142,7 +142,7 @@ limitations under the License.
 	
 	<!-- 3rd Party Program Paths -->
 	<PropertyGroup>
-		<NUnitPath Condition="'$(NUnitPath)' == ''">$(ToolsPath)/NUnit/bin</NUnitPath>
+		<NUnitPath Condition="'$(NUnitPath)' == ''">$(RootPath)/packages/NUnit.Runners.2.6.0.12051/tools</NUnitPath>
 		<MSBuildCommunityTasksPath Condition="'$(MSBuildCommunityTasksPath)' == ''">$(ToolsPath)/MSBuildCommunityTasks</MSBuildCommunityTasksPath>
 	</PropertyGroup>
 

@@ -187,7 +187,7 @@ limitations under the License.
 		
 		<Message Text="Running tests from assemblies: $(TestAssemblies)" />
 		
-		<Exec Command="$(NUnitPath)/nunit-console.exe /nologo $(TestAssemblies) /xml=$(NUnitTestResultXmlFiles) /framework=$(TargetFrameworkVersion)" Condition=" '$(TEAMCITY_VERSION)' == '' " />
+		<Exec Command="&quot;$(NUnitPath)/nunit-console.exe&quot; /nologo $(TestAssemblies) /xml=$(NUnitTestResultXmlFiles) /framework=$(TargetFrameworkVersion)" Condition=" '$(TEAMCITY_VERSION)' == '' " />
 
 		<Exec Command="$(MonoShell) $(teamcity_dotnet_nunitlauncher) mono-2.0 x86 NUnit-2.5.5 $(OutputPath)Castle.Core.Tests.dll" Condition="$(MonoShell) != ''" />
 		
