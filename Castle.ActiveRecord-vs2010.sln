@@ -14,18 +14,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		{B4F97281-0DBD-4835-9ED8-7DFB966E87FF} = {B4F97281-0DBD-4835-9ED8-7DFB966E87FF}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Castle.ActiveRecord-vs2010", "src\Castle.ActiveRecord\Castle.ActiveRecord-vs2010.csproj", "{652F95D4-86E2-40B6-919D-CFC6E449386B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Castle.ActiveRecord", "src\Castle.ActiveRecord\Castle.ActiveRecord.csproj", "{652F95D4-86E2-40B6-919D-CFC6E449386B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Castle.ActiveRecord.Tests-vs2010", "src\Castle.ActiveRecord.Tests\Castle.ActiveRecord.Tests-vs2010.csproj", "{DA3F2E47-AB8A-4CEC-9EDE-81DFC029E53F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Castle.ActiveRecord.Tests", "src\Castle.ActiveRecord.Tests\Castle.ActiveRecord.Tests.csproj", "{DA3F2E47-AB8A-4CEC-9EDE-81DFC029E53F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Castle.ActiveRecord.Tests.Model-vs2010", "src\Castle.ActiveRecord.Tests.Model\Castle.ActiveRecord.Tests.Model-vs2010.csproj", "{DC2D80AC-4641-4798-B059-C90AA162D2AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Castle.ActiveRecord.Tests.Model", "src\Castle.ActiveRecord.Tests.Model\Castle.ActiveRecord.Tests.Model.csproj", "{DC2D80AC-4641-4798-B059-C90AA162D2AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Castle.ActiveRecord.Web", "src\Castle.ActiveRecord.Web\Castle.ActiveRecord.Web.csproj", "{3A0B9A64-8140-429E-A3F0-5B1617CEB466}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{06B80980-8769-44A6-9056-00362837894F}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\packages.config = .nuget\packages.config
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
