@@ -137,54 +137,22 @@
     <Compile Include="ActiveRecordTestCase.cs" />
     <Compile Include="Config\AspNet2.0ConfigurationIntegration.cs" />
     <Compile Include="Config\ConfigurationSource.cs" />
-    <Compile Include="Event\AbstractEventListenerTest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\AdditionalLoadListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\AttributedPreLoadListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\ContributorTest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\EventListenerAttributeTest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\EventListenerContributionTest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\FirstBaseListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\MultipleListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\MultipleSingletonListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\MultipleSkippedListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\NHEventListenersTest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\NonAttributedPreLoadListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\SamplePostDeleteListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\SamplePostInsertListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\SamplePostUpdateListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Event\SamplePreInsertListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
+	<Compile Include="Event\AbstractEventListenerTest.cs" />
+    <Compile Include="Event\AdditionalLoadListener.cs" />
+    <Compile Include="Event\AttributedPreLoadListener.cs" />
+    <Compile Include="Event\ContributorTest.cs" />
+    <Compile Include="Event\EventListenerAttributeTest.cs" />
+    <Compile Include="Event\EventListenerContributionTest.cs" />
+    <Compile Include="Event\FirstBaseListener.cs" />
+    <Compile Include="Event\MultipleListener.cs" />
+    <Compile Include="Event\MultipleSingletonListener.cs" />
+    <Compile Include="Event\MultipleSkippedListener.cs" />
+    <Compile Include="Event\NHEventListenersTest.cs" />
+    <Compile Include="Event\NonAttributedPreLoadListener.cs" />
+    <Compile Include="Event\SamplePostDeleteListener.cs" />
+    <Compile Include="Event\SamplePostInsertListener.cs" />
+    <Compile Include="Event\SamplePostUpdateListener.cs" />
+    <Compile Include="Event\SamplePreInsertListener.cs" />
     <Compile Include="Models\Blog.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\Employee.cs" />
@@ -195,21 +163,9 @@
     <Compile Include="DifferentDatabaseScopeTestCase.cs" />
     <Compile Include="Models\SSAFEntity.cs" />
     <Compile Include="Models\UserDB.cs" />
-    <Compile Include="MultipleDatabasesTestCase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SessionScopeTestCase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TransactionScopeTestCase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="MultipleDatabasesTestCase.cs" />
+    <Compile Include="SessionScopeTestCase.cs" />
+    <Compile Include="TransactionScopeTestCase.cs" />
     <Compile Include="Config\ConfigureTests.cs" />
     <Compile Include="Conversation\ConversationScenarioTest.cs" />
     <Compile Include="Conversation\ScopedConversationTests.cs" />
@@ -221,6 +177,10 @@
     <Compile Include="SessionScopeAutoflushTestCase.cs" />
     <Compile Include="Testing\CustomizationTest.cs" />
     <Compile Include="Testing\InitializationTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />

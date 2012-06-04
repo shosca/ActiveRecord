@@ -141,74 +141,34 @@
     <Compile Include="ByteCode\LazyInitializer.cs" />
     <Compile Include="ByteCode\ProxyFactory.cs" />
     <Compile Include="ByteCode\ARProxyFactoryFactory.cs" />
-    <Compile Include="ActiveRecordException.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="ActiveRecordException.cs" />
     <Compile Include="ActiveRecord.Generic.cs" />
     <Compile Include="Config\SessionFactoryConfig.cs" />
-    <Compile Include="Delegates.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Config\ActiveRecordSectionHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Config\IActiveRecordConfiguration.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Config\DefaultActiveRecordConfiguration.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Config\XmlActiveRecordConfiguration.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Delegates.cs" />
+    <Compile Include="Config\ActiveRecordSectionHandler.cs" />
+    <Compile Include="Config\IActiveRecordConfiguration.cs" />
+    <Compile Include="Config\DefaultActiveRecordConfiguration.cs" />
+    <Compile Include="Config\XmlActiveRecordConfiguration.cs" />
     <Compile Include="DictionaryAdapter.cs" />
     <Compile Include="EventListenerConfig.cs" />
     <Compile Include="EventListenerContributor.cs" />
     <Compile Include="HookDispatcher.cs" />
     <Compile Include="INHContributor.cs" />
-    <Compile Include="ISessionFactoryHolder.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="IThreadScopeInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="ISessionFactoryHolder.cs" />
+    <Compile Include="IThreadScopeInfo.cs" />
     <Compile Include="NHEventListeners.cs" />
-    <Compile Include="NotFoundException.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="NotFoundException.cs" />
     <Compile Include="QueryExtensions.cs" />
-    <Compile Include="Scopes\AbstractScope.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scopes\AbstractThreadScopeInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scopes\ISessionScope.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scopes\ScopeMachineryException.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scopes\SessionScope.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scopes\ThreadScopeAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scopes\ThreadScopeInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Scopes\TransactionScope.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SessionFactoryHolder.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TransactionException.cs">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="Scopes\AbstractScope.cs" />
+    <Compile Include="Scopes\AbstractThreadScopeInfo.cs" />
+    <Compile Include="Scopes\ISessionScope.cs" />
+    <Compile Include="Scopes\ScopeMachineryException.cs" />
+    <Compile Include="Scopes\SessionScope.cs" />
+    <Compile Include="Scopes\ThreadScopeAccessor.cs" />
+    <Compile Include="Scopes\ThreadScopeInfo.cs" />
+    <Compile Include="Scopes\TransactionScope.cs" />
+    <Compile Include="SessionFactoryHolder.cs" />
+    <Compile Include="TransactionException.cs" />
     <Compile Include="..\..\buildscripts\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
