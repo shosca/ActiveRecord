@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Castle.Core.Internal;
 using NHibernate;
 using NHibernate.Criterion;
@@ -30,6 +32,11 @@ namespace Castle.ActiveRecord {
 			return ActiveRecord<T>.Execute(session => query.GetExecutableQueryOver(session).List<TR>());
 		}
 
+		public static TR UniqueResult<T, TR>(this QueryOver<T> query) where T : class
+		{
+			return ActiveRecord<T>.Execute(session => query.GetExecutableQueryOver(session).List<TR>()).FirstOrDefault();
+		}
+
 		public static void DeleteAll<T>(this QueryOver<T, T> query) where T : class
 		{
 			ActiveRecord<T>.DeleteAll(query);
@@ -44,6 +51,12 @@ namespace Castle.ActiveRecord {
 		{
 			return ActiveRecord<T>.Execute(session => query.GetExecutableCriteria(session).List<TR>());
 		}
+
+		public static TR UniqueResult<T, TR>(this DetachedCriteria query) where T : class
+		{
+			return ActiveRecord<T>.Execute(session => query.GetExecutableCriteria(session).List<TR>()).FirstOrDefault();
+		}
+
 
 		public static void DeleteAll<T>(this DetachedCriteria query) where T : class
 		{

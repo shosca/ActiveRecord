@@ -797,18 +797,18 @@ namespace Castle.ActiveRecord.Tests
 			var blog = new Blog {Name = null, Author = "hamilton verissimo"};
 			blog.Save();
 
-			var blogs = Blog.FindByProperty("Name", null);
+			var blogs = Blog.FindAllByProperty("Name", null);
 
 			Assert.IsTrue(blogs.Count() == 1);
 
 			blog.Name = "Hammetts blog";
 			blog.Save();
 
-			blogs = Blog.FindByProperty("Name", null);
+			blogs = Blog.FindAllByProperty("Name", null);
 
 			Assert.IsTrue(blogs.Count() == 0);
 
-			blogs = Blog.FindByProperty("Name", "Hammetts blog");
+			blogs = Blog.FindAllByProperty("Name", "Hammetts blog");
 
 			Assert.IsTrue(blogs.Count() == 1);
 		}

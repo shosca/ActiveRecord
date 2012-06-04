@@ -32,28 +32,9 @@ namespace Castle.ActiveRecord
 	/// Allow programmers to use the 
 	/// ActiveRecord functionality without extending ActiveRecordBase/>
 	/// </summary>
-	public class ActiveRecord<T> where T : class {
+	public static class ActiveRecord<T> where T : class {
 
-		internal static void EnsureInitialized(Type type)
-		{
-			if (!ActiveRecord.IsInitialized)
-			{
-				var message = string.Format("An ActiveRecord class ({0}) was used but the framework seems not " +
-											   "properly initialized. Did you forget about ActiveRecordStarter.Initialize() ?",
-											   type.FullName);
-				throw new ActiveRecordException(message);
-			}
-
-			var sf = ActiveRecord.Holder.GetSessionFactory(type);
-
-			if (sf.GetClassMetadata(typeof(T)) == null)
-			{
-				var message = string.Format("You have accessed an ActiveRecord class that wasn't properly initialized. " +
-											   "There are two possible explanations: that the call to ActiveRecordStarter.Initialize() didn't include {0} class, or that {0} class is not decorated with the [ActiveRecord] attribute.",
-											   type.FullName);
-				throw new ActiveRecordException(message);
-			}
-		}
+		#region Execute
 
 		/// <summary>
 		/// Invokes the specified delegate passing a valid 
@@ -100,6 +81,10 @@ namespace Castle.ActiveRecord
 			return Execute((session, arg2) => func(session), null);
 		}
 
+		#endregion
+
+		#region Find/Peek
+
 		/// <summary>
 		/// Finds an object instance by its primary key.
 		/// </summary>
@@ -116,6 +101,132 @@ namespace Castle.ActiveRecord
 		public static T Peek(object id)
 		{
 			return Execute(session => session.Load<T>(id));
+		}
+
+		#endregion
+
+		#region Exists/Count
+
+		/// <summary>
+		/// Check if the <paramref name="id"/> exists in the database.
+		/// </summary>
+		/// <param name="id">The id to check on</param>
+		/// <returns><c>true</c> if the ID exists; otherwise <c>false</c>.</returns>
+		public static bool Exists(object id)
+		{
+			return Execute(session => session.Get<T>(id) != null);
+		}
+
+		/// <summary>
+		/// Check if any instance matches the query.
+		/// </summary>
+		/// <param name="detachedQuery">The query expression</param>
+		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
+		public static bool Exists(IDetachedQuery detachedQuery)
+		{
+			return SlicedFindAll(0, 1, detachedQuery).Any();
+		}
+
+		/// <summary>
+		/// Check if any instance matches the criteria.
+		/// </summary>
+		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
+		public static bool Exists(params ICriterion[] criterias)
+		{
+			return Count(criterias) > 0;
+		}
+
+		/// <summary>
+		/// Check if any instance matching the criteria exists in the database.
+		/// </summary>
+		/// <param name="expression">The queryover expression</param>
+		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
+		public static bool Exists(Expression<Func<T, bool>> expression)
+		{
+			return Count(expression) > 0;
+		}
+
+		/// <summary>
+		/// Check if any instance matching the criteria exists in the database.
+		/// </summary>
+		/// <param name="queryover">The queryover expression</param>
+		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
+		public static bool Exists(QueryOver<T, T> queryover)
+		{
+			return Count(queryover) > 0;
+		}
+
+		/// <summary>
+		/// Check if any instance matching the criteria exists in the database.
+		/// </summary>
+		/// <param name="detachedCriteria">The criteria expression</param>
+		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
+		public static bool Exists(DetachedCriteria detachedCriteria)
+		{
+			return Count(detachedCriteria) > 0;
+		}
+
+		/// <summary>
+		/// Returns the number of records of the specified 
+		/// type in the database that match the given critera
+		/// </summary>
+		/// <param name="criteria">The criteria expression</param>
+		/// <returns>The count result</returns>
+		public static int Count(params ICriterion[] criteria)
+		{
+			var dc = DetachedCriteria.For<T>()
+				.AddCriterias(criteria);
+
+			return Count(dc);
+		}
+
+		/// <summary>
+		/// Returns the number of records of the specified 
+		/// type in the database
+		/// </summary>
+		/// <param name="expression">The criteria expression</param>
+		/// <returns>The count result</returns>
+		public static int Count(Expression<Func<T, bool>> expression)
+		{
+			var queryover = NHibernate.Criterion.QueryOver.Of<T>().Where(expression);
+			return Count(queryover);
+		}
+
+		/// <summary>
+		/// Returns the number of records of the specified 
+		/// type in the database
+		/// </summary>
+		/// <param name="queryover">The criteria expression</param>
+		/// <returns>The count result</returns>
+		public static int Count(QueryOver<T, T> queryover)
+		{
+			return queryover.Select(Projections.RowCount()).UniqueResult<T, int>();
+		}
+
+		/// <summary>
+		/// Returns the number of records of the specified 
+		/// type in the database
+		/// </summary>
+		/// <param name="detachedCriteria">The criteria expression</param>
+		/// <returns>The count result</returns>
+		public static int Count(DetachedCriteria detachedCriteria)
+		{
+			return detachedCriteria.SetProjection(Projections.RowCount()).UniqueResult<T, int>();
+		}
+
+		#endregion
+
+		#region FindFirst
+
+		/// <summary>
+		/// Searches and returns the first row for <typeparamref name="T"/>
+		/// </summary>
+		/// <param name="order">The sort order - used to determine which record is the first one</param>
+		/// <param name="criteria">The criteria expression</param>
+		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
+		public static T FindFirst(Order order, params ICriterion[] criteria)
+		{
+			return ActiveRecord<T>.FindFirst(new Order[] {order}, criteria);
 		}
 
 		/// <summary>
@@ -160,6 +271,10 @@ namespace Castle.ActiveRecord
 			return SlicedFindAll(0, 1, detachedQuery).FirstOrDefault();
 		}
 
+		#endregion
+
+		#region FindOne
+
 		/// <summary>
 		/// Searches and returns the first row.
 		/// </summary>
@@ -177,6 +292,26 @@ namespace Castle.ActiveRecord
 
 			return result.FirstOrDefault();
 		}
+
+		/// <summary>
+		/// Searches and returns a row. If more than one is found, 
+		/// throws <see cref="ActiveRecordException"/>
+		/// </summary>
+		/// <param name="queryover">The QueryOver</param>
+		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
+		public static T FindOne(QueryOver<T,T> queryover)
+		{
+			var result = SlicedFindAll(0, 2, queryover).ToList();
+
+			if (result.Count > 1)
+			{
+				throw new ActiveRecordException("ActiveRecord.FindOne returned " + result.Count() +
+												" rows. Expecting one or none");
+			}
+
+			return result.FirstOrDefault();
+		}
+
 
 		/// <summary>
 		/// Searches and returns a row. If more than one is found, 
@@ -216,6 +351,9 @@ namespace Castle.ActiveRecord
 			return result.FirstOrDefault();
 		}
 
+		#endregion
+
+		#region FindAllByProperty
 		/// <summary>
 		/// Finds records based on a property value - automatically converts null values to IS NULL style queries. 
 		/// </summary>
@@ -239,6 +377,22 @@ namespace Castle.ActiveRecord
 		{
 			ICriterion criteria = (value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value);
 			return FindAll(new Order[] {Order.Asc(orderByColumn)}, criteria);
+		}
+
+		#endregion
+
+		#region FindAll
+
+		/// <summary>
+		/// Returns all instances found for the specified type 
+		/// using sort orders and criteria.
+		/// </summary>
+		/// <param name="order">An <see cref="Order"/> object.</param>
+		/// <param name="criteria">The criteria expression</param>
+		/// <returns>The <see cref="Array"/> of results.</returns>
+		public static IEnumerable<T> FindAll(Order order, params ICriterion[] criteria)
+		{
+			return FindAll(new[] {order}, criteria);
 		}
 
 		/// <summary>
@@ -271,6 +425,14 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Returns all instances found for the specified type according to the criteria
 		/// </summary>
+		public static IEnumerable<T> FindAll(QueryOver<T, T> queryover)
+		{
+			return queryover.List<T>();
+		}
+
+		/// <summary>
+		/// Returns all instances found for the specified type according to the criteria
+		/// </summary>
 		public static IEnumerable<T> FindAll(DetachedCriteria detachedCriteria, params Order[] orders)
 		{
 			return detachedCriteria.AddOrders(orders).List<T>();
@@ -286,31 +448,56 @@ namespace Castle.ActiveRecord
 			return detachedQuery.List<T>();
 		}
 
+		#endregion
+
+		#region SlicedFindAll
+
 		/// <summary>
 		/// Returns a portion of the query results (sliced)
+		/// </summary>
 		/// <param name="firstResult">The number of the first row to retrieve.</param>
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
-		/// </summary>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order[] orders, params ICriterion[] criterias)
+		/// <param name="order">order</param>
+		/// <param name="criteria">criteria</param>
+		/// <returns>The sliced query results.</returns>
+		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order order, params ICriterion[] criteria)
 		{
-			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criterias), orders);
+			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), order);
 		}
 
 		/// <summary>
 		/// Returns a portion of the query results (sliced)
+		/// </summary>
 		/// <param name="firstResult">The number of the first row to retrieve.</param>
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
-		/// </summary>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, params ICriterion[] criterias)
+		/// <param name="orders">An <see cref="Array"/> of <see cref="Order"/> objects.</param>
+		/// <param name="criteria">The criteria expression</param>
+		/// <returns>The sliced query results.</returns>
+		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria)
 		{
-			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criterias));
+			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), orders);
 		}
 
 		/// <summary>
 		/// Returns a portion of the query results (sliced)
+		/// </summary>
 		/// <param name="firstResult">The number of the first row to retrieve.</param>
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
+		/// <param name="criteria">The criteria expression</param>
+		/// <returns>The sliced query results.</returns>
+		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, params ICriterion[] criteria)
+		{
+			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria));
+		}
+
+		/// <summary>
+		/// Returns a portion of the query results (sliced)
 		/// </summary>
+		/// <param name="firstResult">The number of the first row to retrieve.</param>
+		/// <param name="maxResults">The maximum number of results retrieved.</param>
+		/// <param name="orders">An <see cref="Array"/> of <see cref="Order"/> objects.</param>
+		/// <param name="criteria">The criteria expression</param>
+		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders)
 		{
 			return criteria
@@ -350,13 +537,14 @@ namespace Castle.ActiveRecord
 					.List<T>();
 		}
 
+		#endregion
+
+		#region DeleteAll
+
 		/// <summary>
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied criteria
 		/// </summary>
-		/// <remarks>
-		/// This method is usually useful for test cases.
-		/// </remarks>
 		public static void DeleteAll(DetachedCriteria criteria)
 		{
 			var pks = criteria.SetProjection(Projections.Id()).List<T, object>();
@@ -367,9 +555,6 @@ namespace Castle.ActiveRecord
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied criteria
 		/// </summary>
-		/// <remarks>
-		/// This method is usually useful for test cases.
-		/// </remarks>
 		public static void DeleteAll(params ICriterion[] criteria) {
 			if (criteria != null && criteria.Length > 0)
 				DeleteAll(DetachedCriteria.For<T>().AddCriterias(criteria));
@@ -382,11 +567,19 @@ namespace Castle.ActiveRecord
 
 		}
 
+		/// <summary>
+		/// Deletes all rows for the specified ActiveRecord type that matches
+		/// the supplied expression criteria
+		/// </summary>
 		public static void DeleteAll(Expression<Func<T, bool>> expression) {
-			var pks = QueryOver.Of<T>().Where(expression).Select(Projections.Id()).List<T, object>();
+			var pks = NHibernate.Criterion.QueryOver.Of<T>().Where(expression).Select(Projections.Id()).List<T, object>();
 			DeleteAll(pks);
 		}
 
+		/// <summary>
+		/// Deletes all rows for the specified ActiveRecord type that matches
+		/// the supplied queryover
+		/// </summary>
 		public static void DeleteAll(QueryOver<T, T> queryover) {
 			var pks = queryover.Select(Projections.Id()).List<T, object>();
 			DeleteAll(pks);
@@ -396,9 +589,6 @@ namespace Castle.ActiveRecord
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied HQL condition
 		/// </summary>
-		/// <remarks>
-		/// This method is usually useful for test cases.
-		/// </remarks>
 		/// <param name="where">HQL condition to select the rows to be deleted</param>
 		public static void DeleteAll(string where)
 		{
@@ -445,18 +635,9 @@ namespace Castle.ActiveRecord
 			}
 		}
 
-		/// <summary>
-		/// Provide an IQueryable.
-		/// Make sure we are in a scope
-		/// </summary>
-		public static IQueryable<T> All {
-			get {
-				if (!ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope)
-					throw new ActiveRecordException("You need to be in an ISessionScope to do linq queries.");
+		#endregion
 
-				return Execute(s => s.Query<T>());
-			}
-		}
+		#region Save/Flush
 
 		/// <summary>
 		/// Saves the instance to the database. If the primary key is unitialized
@@ -481,7 +662,7 @@ namespace Castle.ActiveRecord
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
-		protected internal static void SaveAndFlush(object instance)
+		public static void SaveAndFlush(object instance)
 		{
 			InternalSave(instance, true);
 		}
@@ -505,6 +686,10 @@ namespace Castle.ActiveRecord
 			});
 		}
 
+		#endregion
+
+		#region SaveCopy/Flush
+
 		/// <summary>
 		/// Saves a copy of the instance to the database. If the primary key is uninitialized
 		/// it creates the instance in the database. Otherwise it updates it.
@@ -515,7 +700,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <returns>The saved ActiveRecord instance</returns>
-		public static T SaveCopy(T instance)
+		public static T SaveCopy(object instance)
 		{
 			return InternalSaveCopy(instance, false);
 		}
@@ -530,7 +715,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <returns>The saved ActiveRecord instance</returns>
-		protected internal static T SaveCopyAndFlush(T instance)
+		public static T SaveCopyAndFlush(object instance)
 		{
 			return InternalSaveCopy(instance, true);
 		}
@@ -546,15 +731,19 @@ namespace Castle.ActiveRecord
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <param name="flush">if set to <c>true</c>, the operation will be followed by a session flush.</param>
 		/// <returns>The saved ActiveRecord instance.</returns>
-		private static T InternalSaveCopy(T instance, bool flush)
+		private static T InternalSaveCopy(object instance, bool flush)
 		{
-		if (instance == null) throw new ArgumentNullException("instance");
+			if (instance == null) throw new ArgumentNullException("instance");
 			return Execute(session => {
-			  T persistent = session.Merge(instance);
-			  if (flush) session.Flush();
-			  return persistent;
+				var persistent = (T)session.Merge(instance);
+				if (flush) session.Flush();
+				return persistent;
 			});
 		}
+
+		#endregion
+
+		#region Create/Flush
 
 		/// <summary>
 		/// Creates (Saves) a new instance to the database.
@@ -587,6 +776,10 @@ namespace Castle.ActiveRecord
 				if (flush) session.Flush();
 			});
 		}
+
+		#endregion
+
+		#region Update/Flush
 
 		/// <summary>
 		/// Persists the modification on the instance
@@ -624,6 +817,10 @@ namespace Castle.ActiveRecord
 			});
 		}
 
+		#endregion
+
+		#region Delete/Flush
+
 		/// <summary>
 		/// Deletes the instance from the database.
 		/// </summary>
@@ -656,11 +853,15 @@ namespace Castle.ActiveRecord
 			});
 		}
 
+		#endregion
+
+		#region Refresh/Merge/Evict/Replicate
+
 		/// <summary>
 		/// Refresh the instance from the database.
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be reloaded</param>
-		protected internal static void Refresh(object instance)
+		public static void Refresh(object instance)
 		{
 			if (instance == null) throw new ArgumentNullException("instance");
 			Execute(session => session.Refresh(instance));
@@ -691,86 +892,88 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="instance">The instance.</param>
 		/// <param name="replicationMode">The replication mode.</param>
-		public static void Replicate(T instance, ReplicationMode replicationMode)
+		public static void Replicate(object instance, ReplicationMode replicationMode)
 		{
 			if (instance == null) { throw new ArgumentNullException("instance"); }
 			Execute(session => session.Replicate(instance, replicationMode));
 		}
 
+		#endregion
+
+		#region Linq/QueryOver
+
 		/// <summary>
-		/// Check if any instance matches the query.
+		/// Provide an IQueryable.
+		/// Make sure we are in a scope
 		/// </summary>
-		/// <param name="detachedQuery">The query expression</param>
-		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(IDetachedQuery detachedQuery)
-		{
-			return SlicedFindAll(0, 1, detachedQuery).Any();
+		public static IQueryable<T> All {
+			get {
+				if (!ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope)
+					throw new ActiveRecordException("You need to be in an ISessionScope to do linq queries.");
+
+				return Execute(s => s.Query<T>());
+			}
+		}
+
+
+		/// <summary>
+		/// The QueryOver method is used as a Linq collection
+		/// or as the in argument in a Linq expression. 
+		/// </summary>
+		/// <remarks>You must have an open Session Scope.</remarks>
+		public static QueryOver<T,T> QueryOver() {
+			return NHibernate.Criterion.QueryOver.Of<T>();
 		}
 
 		/// <summary>
-		/// Returns the number of records of the specified 
-		/// type in the database that match the given critera
+		/// The QueryOver method is used as a Linq collection
+		/// or as the in argument in a Linq expression. 
 		/// </summary>
-		/// <param name="criteria">The criteria expression</param>
-		/// <returns>The count result</returns>
-		public static int Count(params ICriterion[] criteria)
-		{
-			var dc = DetachedCriteria.For<T>()
-				.AddCriterias(criteria)
-				.SetProjection(Projections.RowCount());
-
-			return Count(dc);
+		/// <remarks>You must have an open Session Scope.</remarks>
+		public static QueryOver<T,T> QueryOver(Expression<Func<T>> alias) {
+			return NHibernate.Criterion.QueryOver.Of(alias);
 		}
 
 		/// <summary>
-		/// Returns the number of records of the specified 
-		/// type in the database
+		/// The QueryOver method is used as a Linq collection
+		/// or as the in argument in a Linq expression. 
 		/// </summary>
-		/// <param name="detachedCriteria">The criteria expression</param>
-		/// <returns>The count result</returns>
-		public static int Count(DetachedCriteria detachedCriteria)
-		{
-			return Execute(session => detachedCriteria.GetExecutableCriteria(session).UniqueResult<int>());
+		/// <remarks>You must have an open Session Scope.</remarks>
+		public static QueryOver<T,T> QueryOver(string entityname) {
+			return NHibernate.Criterion.QueryOver.Of<T>(entityname);
 		}
 
 		/// <summary>
-		/// Check if the <paramref name="id"/> exists in the database.
+		/// The QueryOver method is used as a Linq collection
+		/// or as the in argument in a Linq expression. 
 		/// </summary>
-		/// <param name="id">The id to check on</param>
-		/// <returns><c>true</c> if the ID exists; otherwise <c>false</c>.</returns>
-		public static bool Exists(object id)
-		{
-			return Execute(session => session.Get<T>(id) != null);
+		/// <remarks>You must have an open Session Scope.</remarks>
+		public static QueryOver<T,T> QueryOver(string entityname, Expression<Func<T>> alias) {
+			return NHibernate.Criterion.QueryOver.Of(entityname, alias);
 		}
 
-		/// <summary>
-		/// Check if any instance matches the criteria.
-		/// </summary>
-		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(params ICriterion[] criterias)
+		#endregion
+
+		internal static void EnsureInitialized(Type type)
 		{
-			return Count(criterias) > 0;
+			if (!ActiveRecord.IsInitialized)
+			{
+				var message = string.Format("An ActiveRecord class ({0}) was used but the framework seems not " +
+											   "properly initialized. Did you forget about ActiveRecordStarter.Initialize() ?",
+											   type.FullName);
+				throw new ActiveRecordException(message);
+			}
+
+			var sf = ActiveRecord.Holder.GetSessionFactory(type);
+
+			if (sf.GetClassMetadata(typeof(T)) == null)
+			{
+				var message = string.Format("You have accessed an ActiveRecord class that wasn't properly initialized. " +
+											   "There are two possible explanations: that the call to ActiveRecordStarter.Initialize() didn't include {0} class, or that {0} class is not decorated with the [ActiveRecord] attribute.",
+											   type.FullName);
+				throw new ActiveRecordException(message);
+			}
 		}
 
-		/// <summary>
-		/// Check if any instance matching the criteria exists in the database.
-		/// </summary>
-		/// <param name="detachedCriteria">The criteria expression</param>
-		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(DetachedCriteria detachedCriteria)
-		{
-			return Count(detachedCriteria) > 0;
-		}
-
-		/// <summary>
-		/// Check if there is any records in the db for the target type
-		/// </summary>
-		/// <param name="targetType">The target type.</param>
-		/// <param name="detachedQuery"></param>
-		/// <returns><c>true</c> if there's at least one row</returns>
-		protected internal static bool Exists(Type targetType, IDetachedQuery detachedQuery)
-		{
-			return SlicedFindAll(0, 1, detachedQuery).Any();
-		}
 	}
 }

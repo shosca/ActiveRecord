@@ -286,13 +286,13 @@ namespace Castle.ActiveRecord.Tests
 				blog.Save();
 
 				//The change should not be in the db
-				blogs = Blog.FindByProperty("Author", "A New Author").ToArray();
+				blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
 				Assert.AreEqual(0, blogs.Length);
 								
 				SessionScope.Current.Flush();
 
 				//The change should now be in the db
-				blogs = Blog.FindByProperty("Author", "A New Author").ToArray();
+				blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
 				Assert.AreEqual(1, blogs.Length);
 
 				//This change will be save to the db because it uses the SaveNow method
@@ -300,7 +300,7 @@ namespace Castle.ActiveRecord.Tests
 				blog.SaveAndFlush();
 
 				//The change should now be in the db
-				blogs = Blog.FindByProperty("Name", "A New Name").ToArray();
+				blogs = Blog.FindAllByProperty("Name", "A New Name").ToArray();
 				Assert.AreEqual(1, blogs.Length);
 
 				//This deletion should not get to the db
@@ -342,7 +342,7 @@ namespace Castle.ActiveRecord.Tests
 				Assert.AreEqual(DefaultFlushType.Classic, ActiveRecord.ConfigurationSource.DefaultFlushType);
 
 				// Flushes automatically
-				Assert.AreEqual(1, Blog.FindByProperty("Name", "FooBarBaz").Count());
+				Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBarBaz").Count());
 			}
 
 			using (new SessionScope())
@@ -353,11 +353,11 @@ namespace Castle.ActiveRecord.Tests
 				using (new SessionScope())
 				{
 					// Not flushed here
-					Assert.AreEqual(0, Blog.FindByProperty("Name", "FooBar").Count());
+					Assert.AreEqual(0, Blog.FindAllByProperty("Name", "FooBar").Count());
 				}
 			}
 			// Here it is flushed
-			Assert.AreEqual(1, Blog.FindByProperty("Name", "FooBar").Count());
+			Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBar").Count());
 		}
 	}
 }
