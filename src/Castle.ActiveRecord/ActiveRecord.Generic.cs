@@ -21,7 +21,6 @@ namespace Castle.ActiveRecord
 	using System.Collections.Generic;
 	using System.Linq;
 
-	using Castle.Components.Validator;
 	using NHibernate;
 
 	using NHibernate.Linq;
@@ -34,7 +33,7 @@ namespace Castle.ActiveRecord
 	/// </summary>
 	public static class ActiveRecord<T> where T : class {
 
-		#region Execute
+		#region Execute/ExecuteStateless
 
 		/// <summary>
 		/// Invokes the specified delegate passing a valid 
@@ -48,14 +47,10 @@ namespace Castle.ActiveRecord
 
 			EnsureInitialized(typeof(T));
 
-			ISession session = ActiveRecord.Holder.CreateSession(typeof (T));
+			var session = ActiveRecord.Holder.CreateSession(typeof (T));
 
 			try {
 				return func(session, instance);
-
-			} catch (ValidationException) {
-				ActiveRecord.Holder.FailSession(session);
-				throw;
 
 			} catch (ObjectNotFoundException ex) {
 				var message = string.Format("Could not find {0} with id {1}", ex.EntityName, ex.Identifier);
@@ -70,6 +65,11 @@ namespace Castle.ActiveRecord
 			}
 		}
 
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="action">The delegate instance</param>
 		public static void Execute(Action<ISession> action) {
 			Execute(session => {
 				action(session);
@@ -77,8 +77,64 @@ namespace Castle.ActiveRecord
 			});
 		}
 
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="func">The delegate instance</param>
+		/// <returns>Whatever is returned by the delegate invocation</returns>
 		public static TK Execute<TK>(Func<ISession, TK> func) {
 			return Execute((session, arg2) => func(session), null);
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate stateless session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="func">The delegate instance</param>
+		/// <param name="instance">The ActiveRecord instance</param>
+		/// <returns>Whatever is returned by the delegate invocation</returns>
+		public static TK ExecuteStateless<TK>(Func<IStatelessSession, T, TK> func, T instance) {
+			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
+
+			EnsureInitialized(typeof(T));
+
+			var session = ActiveRecord.Holder.GetSessionFactory(typeof (T)).OpenStatelessSession();
+			var tx = session.BeginTransaction();
+			try {
+				var result = func(session, instance);
+				tx.Commit();
+				return result;
+			} catch (Exception ex) {
+				tx.Rollback();
+				throw new ActiveRecordException("Error performing Execute for " + typeof (T).Name, ex);
+
+			} finally {
+				tx.Dispose();
+				session.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate stateless session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="func">The delegate instance</param>
+		/// <returns>Whatever is returned by the delegate invocation</returns>
+		public static TK ExecuteStateless<TK>(Func<IStatelessSession, TK> func) {
+			return ExecuteStateless((session, arg2) => func(session), null);
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate stateless session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="action">The delegate instance</param>
+		public static void ExecuteStateless(Action<IStatelessSession> action) {
+			ExecuteStateless(session => {
+				action(session);
+				return string.Empty;
+			});
 		}
 
 		#endregion
@@ -226,7 +282,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindFirst(Order order, params ICriterion[] criteria)
 		{
-			return ActiveRecord<T>.FindFirst(new Order[] {order}, criteria);
+			return FindFirst(new[] {order}, criteria);
 		}
 
 		/// <summary>
@@ -376,7 +432,7 @@ namespace Castle.ActiveRecord
 		public static IEnumerable<T> FindAllByProperty(string orderByColumn, string property, object value)
 		{
 			ICriterion criteria = (value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value);
-			return FindAll(new Order[] {Order.Asc(orderByColumn)}, criteria);
+			return FindAll(new[] {Order.Asc(orderByColumn)}, criteria);
 		}
 
 		#endregion
@@ -427,7 +483,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public static IEnumerable<T> FindAll(QueryOver<T, T> queryover)
 		{
-			return queryover.List<T>();
+			return queryover.List();
 		}
 
 		/// <summary>
@@ -534,7 +590,7 @@ namespace Castle.ActiveRecord
 			return queryover
 					.Skip(firstResult)
 					.Take(maxResults)
-					.List<T>();
+					.List();
 		}
 
 		#endregion
@@ -609,7 +665,7 @@ namespace Castle.ActiveRecord
 
 			if (pktype == typeof(int) || pktype == typeof(long))
 			{
-				var hql = "delete from {0} _this where _this.{1} in ({2})";
+				const string hql = "delete from {0} _this where _this.{1} in ({2})";
 				Execute(session => {
 					session.CreateQuery(string.Format(hql, typeof(T).FullName, pkname, string.Join(",", pkvalues)))
 						.ExecuteUpdate();
@@ -618,7 +674,7 @@ namespace Castle.ActiveRecord
 			}
 			else if (pktype == typeof(Guid) || pktype == typeof(string))
 			{
-				var hql = "delete from {0} _this where _this.{1} in ('{2}')";
+				const string hql = "delete from {0} _this where _this.{1} in ('{2}')";
 				Execute(session => {
 					session.CreateQuery(string.Format(hql, typeof(T).FullName, pkname, string.Join("','", pkvalues)))
 						.ExecuteUpdate();
