@@ -22,7 +22,6 @@ namespace Castle.ActiveRecord.Tests.Validation
 	using NUnit.Framework;
 
 	using Castle.ActiveRecord.Tests.Validation.Model;
-	using Castle.Components.Validator;
 
 	[TestFixture]
 	public class ARValidatorTestCase : AbstractActiveRecordTest
