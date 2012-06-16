@@ -25,27 +25,10 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class MultipleDatabasesTestCase : AbstractActiveRecordTest
 	{
-		[SetUp]
-		public void Setup()
-		{
-			Init();
-
-			ActiveRecord.Initialize(GetConfigSource());
-
-			Recreate();
-		}
-
-		[TearDown]
-		public override void Drop()
-		{
-			SessionScope.Current.Dispose();
-			base.Drop();
-		}
-
 		[Test]
 		public void OperateOne()
 		{
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 
@@ -57,17 +40,15 @@ namespace Castle.ActiveRecord.Tests
 
 		private static void CreateBlog()
 		{
-			Blog blog = new Blog();
+			var blog = new Blog {Author = "Henry", Name = "Senseless"};
 
-			blog.Author = "Henry";
-			blog.Name = "Senseless";
 			blog.Save();
 		}
 
 		[Test]
 		public void OperateTheOtherOne()
 		{
-			Hand[] hands = Hand.FindAll().ToArray();
+			var hands = Hand.FindAll().ToArray();
 
 			Assert.AreEqual(0, hands.Length);
 
@@ -80,18 +61,15 @@ namespace Castle.ActiveRecord.Tests
 
 		private static void CreateHand()
 		{
-			Hand hand = new Hand();
-
-			hand.Side = "Right";
-
+			var hand = new Hand {Side = "Right"};
 			hand.Save();
 		}
 
 		[Test]
 		public void OperateBoth()
 		{
-			Blog[] blogs = Blog.FindAll().ToArray();
-			Hand[] hands = Hand.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
+			var hands = Hand.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 			Assert.AreEqual(0, hands.Length);

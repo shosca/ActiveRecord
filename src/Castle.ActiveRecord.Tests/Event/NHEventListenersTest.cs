@@ -1,4 +1,4 @@
-﻿// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
+// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ namespace Castle.ActiveRecord.Tests.Event
 	public class NHEventListenersTest
 	{
 		[Test]
-		public void GetEventListenerTypes_returns_at_least_one_type()
+		public void GetEventListenerTypesReturnsAtLeastOneType()
 		{
 			List<Type> types = new List<Type>(NHEventListeners.GetEventListenerTypes());
 			Assert.Greater(types.Count, 0);
 		}
 
 		[Test]
-		public void GetEventListenerTypes_returns_only_interfaces()
+		public void GetEventListenerTypesReturnsOnlyInterfaces()
 		{
 			foreach (var type in NHEventListeners.GetEventListenerTypes())
 			{
@@ -39,7 +39,7 @@ namespace Castle.ActiveRecord.Tests.Event
 		}
 
 		[Test]
-		public void GetEventListenerTypes_returns_only_event_listeners()
+		public void GetEventListenerTypesReturnsOnlyEventListeners()
 		{
 			foreach (var type in NHEventListeners.GetEventListenerTypes())
 			{
@@ -48,7 +48,7 @@ namespace Castle.ActiveRecord.Tests.Event
 		}
 
 		[Test]
-		public void NHEventListeners_serves_collection_semantics_for_event_listeners()
+		public void NhEventListenersServesCollectionSemanticsForEventListeners()
 		{
 			var sut = new NHEventListeners();
 
@@ -72,21 +72,21 @@ namespace Castle.ActiveRecord.Tests.Event
 
 		[Test]
 		[ExpectedException(typeof(ArgumentException))]
-		public void Add_works_only_for_event_listeners()
+		public void AddWorksOnlyForEventListeners()
 		{
 			new NHEventListeners().Add("String instance");
 		}
 
 		[Test]
 		[ExpectedException(typeof(ArgumentException))]
-		public void Remove_works_only_for_event_listeners()
+		public void RemoveWorksOnlyForEventListeners()
 		{
 			new NHEventListeners().Remove("String instance");
 		}
 
 		[Test]
 		[ExpectedException(typeof(ArgumentException))]
-		public void Contains_works_only_for_event_listeners()
+		public void ContainsWorksOnlyForEventListeners()
 		{
 			new NHEventListeners().Contains("String instance");
 		}

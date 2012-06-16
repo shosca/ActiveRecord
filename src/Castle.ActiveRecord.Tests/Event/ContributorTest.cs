@@ -1,4 +1,4 @@
-﻿// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
+// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,14 +24,17 @@ namespace Castle.ActiveRecord.Tests.Event
 	[TestFixture]
 	public class ContributorTest : AbstractActiveRecordTest
 	{
-		[Test]
-		public void Contributor_gets_called()
-		{
+		protected override Castle.ActiveRecord.Config.IActiveRecordConfiguration GetConfigSource() {
+			var source = base.GetConfigSource();
 			var contributor = new MockContributor();
-			var source = GetConfigSource();
 			source.GetConfiguration(string.Empty).AddContributor(contributor);
-			ActiveRecord.Initialize(GetConfigSource());
-			Assert.IsTrue(contributor.Called);
+			return source;
+		}
+
+		[Test]
+		public void ContributorGetsCalled()
+		{
+			Assert.IsTrue(MockContributor.Called);
 		}
 		
 		public class MockContributor : INHContributor
@@ -41,7 +44,7 @@ namespace Castle.ActiveRecord.Tests.Event
 				Called = true;
 			}
 
-			public Boolean Called { get; private set; }
+			public static bool Called { get; private set; }
 		}
 	}
 }

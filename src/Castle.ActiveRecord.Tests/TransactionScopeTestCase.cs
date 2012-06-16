@@ -25,32 +25,15 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class TransactionScopeTestCase : AbstractActiveRecordTest
 	{
-		[SetUp]
-		public override void Init() {
-			base.Init();
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-		}
-
-		[TearDown]
-		public override void Drop()
-		{
-			if (SessionScope.Current != null)
-				SessionScope.Current.Dispose();
-			base.Drop();
-		}
-
 		[Test]
 		public void TransactionScopeUsage()
 		{
-			ISession session1, session2, session3, session4;
-
 			using(new TransactionScope())
 			{
-				session1 = ActiveRecord.Holder.CreateSession(typeof(Blog));
-				session2 = ActiveRecord.Holder.CreateSession(typeof(Post));
-				session3 = ActiveRecord.Holder.CreateSession(typeof(Blog));
-				session4 = ActiveRecord.Holder.CreateSession(typeof(Post));
+				var session1 = ActiveRecord.Holder.CreateSession(typeof(Blog));
+				var session2 = ActiveRecord.Holder.CreateSession(typeof(Post));
+				var session3 = ActiveRecord.Holder.CreateSession(typeof(Blog));
+				var session4 = ActiveRecord.Holder.CreateSession(typeof(Post));
 
 				Assert.IsNotNull(session1);
 				Assert.IsNotNull(session2);
@@ -66,14 +49,12 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void RollbackVote()
 		{
-			using(TransactionScope transaction = new TransactionScope())
+			using(var transaction = new TransactionScope())
 			{
-				Blog blog = new Blog();
-				blog.Author = "hammett";
-				blog.Name = "some name";
+				var blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
-				Post post = new Post(blog, "title", "post contents", "Castle");
+				var post = new Post(blog, "title", "post contents", "Castle");
 				post.Save();
 
 				// pretend something went wrong
@@ -81,10 +62,10 @@ namespace Castle.ActiveRecord.Tests
 				transaction.VoteRollBack();
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(0, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
@@ -93,19 +74,17 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new TransactionScope(OnDispose.Rollback))
 			{
-				Blog blog = new Blog();
-				blog.Author = "hammett";
-				blog.Name = "some name";
+				var blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
-				Post post = new Post(blog, "title", "post contents", "Castle");
+				var post = new Post(blog, "title", "post contents", "Castle");
 				post.Save();
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(0, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
@@ -114,33 +93,31 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new TransactionScope())
 			{
-				Blog blog = new Blog {Author = "hammett", Name = "some name"};
+				var blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
-				Post post = new Post(blog, "title", "post contents", "Castle");
+				var post = new Post(blog, "title", "post contents", "Castle");
 				post.Save();
 
 				// Default to VoteCommit
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(1, posts.Length);
 		}
 
 		[Test]
 		public void RollbackUponException()
 		{
-			using(TransactionScope transaction = new TransactionScope())
+			using(var transaction = new TransactionScope())
 			{
-				Blog blog = new Blog();
-				blog.Author = "hammett";
-				blog.Name = "some name";
+				var blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
-				Post post = new Post(blog, "title", "post contents", "Castle");
+				var post = new Post(blog, "title", "post contents", "Castle");
 
 				try
 				{
@@ -152,10 +129,10 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(0, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
@@ -164,9 +141,9 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new TransactionScope())
 			{
-				Blog blog = new Blog();
+				var blog = new Blog();
 
-				using(TransactionScope t1 = new TransactionScope(TransactionMode.Inherits))
+				using(var t1 = new TransactionScope(TransactionMode.Inherits))
 				{
 					blog.Author = "hammett";
 					blog.Name = "some name";
@@ -175,9 +152,9 @@ namespace Castle.ActiveRecord.Tests
 					t1.VoteCommit();
 				}
 
-				using(TransactionScope t2 = new TransactionScope(TransactionMode.Inherits))
+				using(var t2 = new TransactionScope(TransactionMode.Inherits))
 				{
-					Post post = new Post(blog, "title", "post contents", "Castle");
+					var post = new Post(blog, "title", "post contents", "Castle");
 
 					try
 					{
@@ -190,10 +167,10 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(0, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
@@ -202,19 +179,19 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using (new TransactionScope())
 			{
-				Blog blog1 = new Blog();
+				var blog1 = new Blog();
 				Blog.FindAll();
 
-				ISession s1 = blog1.CurrentSession;
-				ITransaction tx1 = s1.Transaction;
+				var s1 = blog1.CurrentSession;
+				var tx1 = s1.Transaction;
 				Assert.IsNotNull(tx1);
 
 				using (new TransactionScope())
 				{
-					Blog blog2 = new Blog();
+					var blog2 = new Blog();
 					Blog.FindAll();
-					ISession s2 = blog2.CurrentSession;
-					ITransaction tx2 = s2.Transaction;
+					var s2 = blog2.CurrentSession;
+					var tx2 = s2.Transaction;
 
 					Assert.IsNotNull(tx2);
 					Assert.AreNotSame(tx1, tx2);
@@ -225,9 +202,9 @@ namespace Castle.ActiveRecord.Tests
 
 				using (new TransactionScope(TransactionMode.Inherits))
 				{
-					Blog blog3 = new Blog();
+					var blog3 = new Blog();
 					Blog.FindAll();
-					ITransaction tx3 = blog3.CurrentSession.Transaction;
+					var tx3 = blog3.CurrentSession.Transaction;
 
 					Assert.IsNotNull(tx3);
 					Assert.AreSame(tx1, tx3);
@@ -238,12 +215,12 @@ namespace Castle.ActiveRecord.Tests
 
 			using (new SessionScope())
 			{
-				Blog blog4 = new Blog();
+				var blog4 = new Blog();
 				Blog.FindAll();
 
 				using (new TransactionScope())
 				{
-					Blog blog5 = new Blog();
+					var blog5 = new Blog();
 
 					Assert.AreSame(blog4.CurrentSession.Transaction, blog5.CurrentSession.Transaction);
 				}
@@ -251,17 +228,17 @@ namespace Castle.ActiveRecord.Tests
 
 			using (new SessionScope())
 			{
-				Blog blog6 = new Blog();
-				ISession session = blog6.CurrentSession;
+				var blog6 = new Blog();
+				var session = blog6.CurrentSession;
 
 				Assert.IsNotNull(session.Transaction);
-				ITransaction tx4 = session.Transaction;
-				using (ITransaction tx5 = session.BeginTransaction())
+				var tx4 = session.Transaction;
+				using (var tx5 = session.BeginTransaction())
 				{
 					Assert.AreSame(tx4, tx5);
 					Blog.FindAll();
 
-					using (ITransaction tx6 = session.BeginTransaction())
+					using (var tx6 = session.BeginTransaction())
 					{
 						Assert.AreSame(tx5, tx6);
 					}
@@ -272,11 +249,11 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void LotsOfNestedTransactionWithDifferentConfigurations()
 		{
-			using(TransactionScope root = new TransactionScope())
+			using(var root = new TransactionScope())
 			{
-				using(TransactionScope t1 = new TransactionScope()) // Isolated
+				using(var t1 = new TransactionScope()) // Isolated
 				{
-					Blog blog = new Blog();
+					var blog = new Blog();
 
 					Blog.FindAll(); // Just to force a session association
 
@@ -291,7 +268,7 @@ namespace Castle.ActiveRecord.Tests
 
 					using(new TransactionScope(TransactionMode.Inherits))
 					{
-						Post post = new Post(blog, "title", "post contents", "Castle");
+						var post = new Post(blog, "title", "post contents", "Castle");
 
 						post.Save();
 					}
@@ -303,7 +280,7 @@ namespace Castle.ActiveRecord.Tests
 
 				using(new TransactionScope())
 				{
-					Blog blog = new Blog();
+					var blog = new Blog();
 					Blog.FindAll(); // Just to force a session association
 
 					using(new TransactionScope())
@@ -315,9 +292,9 @@ namespace Castle.ActiveRecord.Tests
 						blog.Save();
 					}
 
-					using(TransactionScope t1n = new TransactionScope(TransactionMode.Inherits))
+					using(var t1n = new TransactionScope(TransactionMode.Inherits))
 					{
-						Post post = new Post(blog, "title", "post contents", "Castle");
+						var post = new Post(blog, "title", "post contents", "Castle");
 
 						try
 						{
@@ -333,10 +310,10 @@ namespace Castle.ActiveRecord.Tests
 				root.VoteCommit();
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
@@ -345,11 +322,11 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new SessionScope())
 			{
-				using(TransactionScope root = new TransactionScope())
+				using(var root = new TransactionScope())
 				{
-					using(TransactionScope t1 = new TransactionScope()) // Isolated
+					using(var t1 = new TransactionScope()) // Isolated
 					{
-						Blog blog = new Blog();
+						var blog = new Blog();
 
 						Blog.FindAll(); // Just to force a session association
 
@@ -364,7 +341,7 @@ namespace Castle.ActiveRecord.Tests
 
 						using(new TransactionScope(TransactionMode.Inherits))
 						{
-							Post post = new Post(blog, "title", "post contents", "Castle");
+							var post = new Post(blog, "title", "post contents", "Castle");
 
 							post.Save();
 						}
@@ -376,7 +353,7 @@ namespace Castle.ActiveRecord.Tests
 
 					using(new TransactionScope())
 					{
-						Blog blog = new Blog();
+						var blog = new Blog();
 						Blog.FindAll(); // Just to force a session association
 
 						using(new TransactionScope())
@@ -388,9 +365,9 @@ namespace Castle.ActiveRecord.Tests
 							blog.Save();
 						}
 
-						using(TransactionScope t1n = new TransactionScope(TransactionMode.Inherits))
+						using(var t1 = new TransactionScope(TransactionMode.Inherits))
 						{
-							Post post = new Post(blog, "title", "post contents", "Castle");
+							var post = new Post(blog, "title", "post contents", "Castle");
 
 							try
 							{
@@ -398,7 +375,7 @@ namespace Castle.ActiveRecord.Tests
 							}
 							catch(Exception)
 							{
-								t1n.VoteRollBack();
+								t1.VoteRollBack();
 							}
 						}
 					}
@@ -407,17 +384,17 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
 		[Test]
 		public void MixingSessionScopeAndTransactionScopes2()
 		{
-			Blog b = new Blog();
+			var b = new Blog();
 
 			using(new SessionScope())
 			{
@@ -427,9 +404,9 @@ namespace Castle.ActiveRecord.Tests
 
 				using(new TransactionScope())
 				{
-					for(int i = 1; i <= 10; i++)
+					for(var i = 1; i <= 10; i++)
 					{
-						Post post = new Post(b, "t", "c", "General");
+						var post = new Post(b, "t", "c", "General");
 						post.Save();
 					}
 				}
@@ -444,7 +421,7 @@ namespace Castle.ActiveRecord.Tests
 				using(new TransactionScope())
 				{
 					if (b.Posts.Count > 0) {
-						foreach(Post p in b.Posts)
+						foreach(var p in b.Posts)
 						{
 							p.Delete();
 						}
@@ -454,17 +431,17 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(0, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
 		[Test]
 		public void MixingSessionScopeAndTransactionScopes3()
 		{
-			Blog b = new Blog();
+			var b = new Blog();
 
 			using(new SessionScope())
 			{
@@ -474,9 +451,9 @@ namespace Castle.ActiveRecord.Tests
 
 				using(new TransactionScope())
 				{
-					for(int i = 1; i <= 10; i++)
+					for(var i = 1; i <= 10; i++)
 					{
-						Post post = new Post(b, "t", "c", "General");
+						var post = new Post(b, "t", "c", "General");
 						post.Save();
 					}
 				}
@@ -488,10 +465,10 @@ namespace Castle.ActiveRecord.Tests
 
 				b = Blog.Find(b.Id);
 
-				using(TransactionScope transaction = new TransactionScope())
+				using(var transaction = new TransactionScope())
 				{
 					if (b.Posts.Count > 0)
-						foreach(Post p in b.Posts)
+						foreach(var p in b.Posts)
 						{
 							p.Delete();
 						}
@@ -502,17 +479,17 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(10, posts.Length);
 		}
 
 		[Test]
 		public void MixingSessionScopeAndTransactionScopes4()
 		{
-			Blog b = new Blog();
+			var b = new Blog();
 			Post post = null;
 
 			using(new SessionScope()) {
@@ -533,10 +510,8 @@ namespace Castle.ActiveRecord.Tests
 					b.Save();
 				}
 
-				{
-					Post.Find(post.Id);
-					Blog.Find(b.Id);
-				}
+				Post.Find(post.Id);
+				Blog.Find(b.Id);
 
 				using(new TransactionScope(TransactionMode.Inherits))
 				{
@@ -545,10 +520,10 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(1, posts.Length);
 		}
 
@@ -557,9 +532,9 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new TransactionScope())
 			{
-				Blog blog = new Blog();
+				var blog = new Blog();
 
-				using(TransactionScope t1 = new TransactionScope(TransactionMode.Inherits, OnDispose.Rollback))
+				using(var t1 = new TransactionScope(TransactionMode.Inherits, OnDispose.Rollback))
 				{
 					blog.Author = "hammett";
 					blog.Name = "some name";
@@ -568,9 +543,9 @@ namespace Castle.ActiveRecord.Tests
 					t1.VoteCommit();
 				}
 
-				using(TransactionScope t2 = new TransactionScope(TransactionMode.Inherits, OnDispose.Rollback))
+				using(var t2 = new TransactionScope(TransactionMode.Inherits, OnDispose.Rollback))
 				{
-					Post post = new Post(blog, "title", "post contents", "Castle");
+					var post = new Post(blog, "title", "post contents", "Castle");
 
 					try
 					{
@@ -585,10 +560,10 @@ namespace Castle.ActiveRecord.Tests
 				}
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual(0, blogs.Length);
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual(0, posts.Length);
 		}
 
@@ -597,10 +572,10 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new TransactionScope())
 			{
-				Company comp1 = new Company("comp1");
+				var comp1 = new Company("comp1");
 				comp1.Create();
 
-				Company comp2 = new Company("comp2");
+				var comp2 = new Company("comp2");
 				comp2.Create();
 			}
 		}
@@ -608,8 +583,8 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void ExplicitFlushInsideSecondTransactionProblem()
 		{
-			Company comp1 = new Company("comp1");
-			Company comp2 = new Company("comp2");
+			var comp1 = new Company("comp1");
+			var comp2 = new Company("comp2");
 			using(new SessionScope())
 			{
 				comp1.Create();
@@ -618,9 +593,9 @@ namespace Castle.ActiveRecord.Tests
 
 			using(new SessionScope(FlushAction.Never))
 			{
-				using(TransactionScope tx = new TransactionScope(OnDispose.Rollback))
+				using(var tx = new TransactionScope(OnDispose.Rollback))
 				{
-					Company comp2a = Company.Find(comp2.Id);
+					var comp2a = Company.Find(comp2.Id);
 					comp2a.Name = "changed";
 					tx.VoteCommit();
 				}
@@ -629,7 +604,7 @@ namespace Castle.ActiveRecord.Tests
 				{
 					var changedCompanies = ActiveRecord<Company>.FindAllByProperty("Name", "changed");
 					Assert.AreEqual(1, changedCompanies.Count());
-					Company e2a = changedCompanies.First();
+					var e2a = changedCompanies.First();
 					e2a.Delete();
 
 					SessionScope.Current.Flush();

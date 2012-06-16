@@ -24,14 +24,6 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class ScopeDefaultFlushingBehaviourTestCase : AbstractActiveRecordTest
 	{
-
-		[TearDown]
-		public override void Drop() {
-			if (SessionScope.Current != null)
-				SessionScope.Current.Dispose();
-			base.Drop();
-		}
-
 		[Test] 
 		public void TestClassicBehaviour() {TestBehaviour(DefaultFlushType.Classic, FlushMode.Auto, FlushMode.Commit);}
 		[Test]
@@ -43,9 +35,6 @@ namespace Castle.ActiveRecord.Tests
 		
 		private void TestBehaviour(DefaultFlushType flushType, FlushMode sessionScopeMode, FlushMode transactionScopeMode)
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			Post.DeleteAll();
 			Blog.DeleteAll();
 

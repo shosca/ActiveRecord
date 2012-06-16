@@ -28,48 +28,31 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class SessionScopeTestCase : AbstractActiveRecordTest
 	{
-		[SetUp]
-		public override void Init() {
-			base.Init();
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-		}
-
-		[TearDown]
-		public override void Drop()
-		{
-			if (SessionScope.Current != null)
-				SessionScope.Current.Dispose();
-			base.Drop();
-		}
-
-        [Test]
+		[Test]
 		[ExpectedException(typeof(ActiveRecordException), ExpectedMessage = "A scope tried to registered itself within the framework, but the Active Record was not initialized")]
-        public void GoodErrorMessageIfTryingToUseScopeWithoutInitializingFramework()
-        {
-            //Need to do this because other tests may have already initialized the framework.
-            IThreadScopeInfo scope = ThreadScopeAccessor.Instance.ScopeInfo;
-            ThreadScopeAccessor.Instance.ScopeInfo = null;
-            try
-            {
-                new SessionScope();
-            }
-            finally
-            {
-                ThreadScopeAccessor.Instance.ScopeInfo = scope;
-            }
-        }
-	    
+		public void GoodErrorMessageIfTryingToUseScopeWithoutInitializingFramework()
+		{
+			//Need to do this because other tests may have already initialized the framework.
+			var scope = ThreadScopeAccessor.Instance.ScopeInfo;
+			ThreadScopeAccessor.Instance.ScopeInfo = null;
+			try
+			{
+				new SessionScope();
+			}
+			finally
+			{
+				ThreadScopeAccessor.Instance.ScopeInfo = scope;
+			}
+		}
+
 		[Test, Ignore()]
 		public void OneDatabaseSameSession()
 		{
-			ISession session1, session2, session3, session4;
-
 			// No scope here
 			// So no optimization, thus different sessions
 
-			session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
-			session2 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+			var session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+			var session2 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
 
 			Assert.IsNotNull( session1 );
 			Assert.IsNotNull( session2 );
@@ -84,8 +67,8 @@ namespace Castle.ActiveRecord.Tests
 			{
 				session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
 				session2 = ActiveRecord.Holder.CreateSession( typeof(Post) );
-				session3 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
-				session4 = ActiveRecord.Holder.CreateSession( typeof(Post) );
+				var session3 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+				var session4 = ActiveRecord.Holder.CreateSession( typeof(Post) );
 
 				Assert.IsNotNull( session1 );
 				Assert.IsNotNull( session2 );
@@ -137,19 +120,17 @@ namespace Castle.ActiveRecord.Tests
 
 			using(new SessionScope())
 			{
-				Blog blog = new Blog();
-				blog.Author = "hammett";
-				blog.Name = "some name";
+				var blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
-				Post post = new Post(blog, "title", "post contents", "Castle");
+				var post = new Post(blog, "title", "post contents", "Castle");
 				post.Save();
 			}
 
-			Blog[] blogs = Blog.FindAll().ToArray();
+			var blogs = Blog.FindAll().ToArray();
 			Assert.AreEqual( 1, blogs.Length );
 
-			Post[] posts = Post.FindAll().ToArray();
+			var posts = Post.FindAll().ToArray();
 			Assert.AreEqual( 1, posts.Length );
 		}
 
@@ -187,7 +168,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NestedSessionScopeAndLazyLoad()
 		{
-			Product product = new Product();
+			var product = new Product();
 			product.Categories.Add( new Category("x") );
 			product.Categories.Add( new Category("y") );
 			product.Categories.Add( new Category("z") ); 
@@ -198,20 +179,20 @@ namespace Castle.ActiveRecord.Tests
 
 			using(new SessionScope())
 			{
-				Product product1 = Product.Find(product.Id);
+				var product1 = Product.Find(product.Id);
 				Assert.AreEqual( 3, product1.Categories.Count );
 
-				foreach(Category cat in product1.Categories)
+				foreach(var cat in product1.Categories)
 				{
 					object dummy = cat.Name;
 				}
 
-				Product product2 = Product.Find(product.Id);
+				var product2 = Product.Find(product.Id);
 				Assert.AreEqual( 3, product2.Categories.Count );
 
 				using(new SessionScope())
 				{
-					foreach(Category cat in product2.Categories)
+					foreach(var cat in product2.Categories)
 					{
 						object dummy = cat.Name;
 					}
@@ -219,10 +200,10 @@ namespace Castle.ActiveRecord.Tests
 
 				using(new SessionScope())
 				{
-					Product product3 = Product.Find(product.Id);
+					var product3 = Product.Find(product.Id);
 					Assert.AreEqual( 3, product3.Categories.Count );
 
-					foreach(Category cat in product3.Categories)
+					foreach(var cat in product3.Categories)
 					{
 						object dummy = cat.Name;
 					}
@@ -236,20 +217,19 @@ namespace Castle.ActiveRecord.Tests
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
-			Blog blog;
 			Post post;
 
 			// Prepare
 			using(new SessionScope())
 			{
-				blog = new Blog {Author = "hammett", Name = "some name"};
+				var blog = new Blog {Author = "hammett", Name = "some name"};
 				blog.Save();
 
 				post = new Post(blog, "title", "contents", "castle");
 				post.Save();
 			}
 
-			using(SessionScope session = new SessionScope())
+			using(var session = new SessionScope())
 			{
 				Assert.IsFalse(session.HasSessionError);
 
@@ -271,14 +251,12 @@ namespace Castle.ActiveRecord.Tests
 
 			using(new SessionScope(FlushAction.Never))
 			{
-				Blog blog = new Blog();					
-				blog.Author = "hammett";
-				blog.Name = "some name";
-				
+				var blog = new Blog {Author = "hammett", Name = "some name"};
+
 				//This gets flushed automatically because of the identity field
 				blog.Save();
 
-				Blog[] blogs = Blog.FindAll().ToArray();
+				var blogs = Blog.FindAll().ToArray();
 				Assert.AreEqual(1, blogs.Length);
 
 				//This change won't be saved to the db
@@ -323,18 +301,18 @@ namespace Castle.ActiveRecord.Tests
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
-			int blogId = 0;
+			var blogId = 0;
 
 			using (new SessionScope())
 			{
-				Blog blog = new Blog {Author = "MZY", Name = "FooBar"};
+				var blog = new Blog {Author = "MZY", Name = "FooBar"};
 				blog.Save(); // Flushes due to IDENTITY
 				blogId = blog.Id;
 			}
 
 			using (new SessionScope())
 			{
-				Blog blog = Blog.Find(blogId);
+				var blog = Blog.Find(blogId);
 				blog.Name = "FooBarBaz";
 
 				//Assert.AreEqual(FlushMode.Auto, blog.CurrentSession.FlushMode);
@@ -347,7 +325,7 @@ namespace Castle.ActiveRecord.Tests
 
 			using (new SessionScope())
 			{
-				Blog blog = Blog.Find(blogId);
+				var blog = Blog.Find(blogId);
 				blog.Name = "FooBar";
 
 				using (new SessionScope())

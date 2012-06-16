@@ -16,6 +16,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Iesi.Collections;
 using Iesi.Collections.Generic;
 using NHibernate.Cfg;
 
@@ -98,15 +99,18 @@ namespace Castle.ActiveRecord {
 					continue;
 
 				var currentListeners = CollectListeners(eventType);
-				var listenerInstances = Array.ConvertAll(currentListeners, config => GetInstance(config));
-				bool replaceExistingListeners = Array.Exists(currentListeners, config => config.ReplaceExisting);
+				var listenerInstances = currentListeners.Select(GetInstance);
+				var replaceExistingListeners = currentListeners.Any(c => c.ReplaceExisting);
 
-				var listenersToSet = new ArrayList();
-				if (!replaceExistingListeners)
-					listenersToSet.AddRange(GetExistingListeners(configuration, eventType));
-				listenersToSet.AddRange(listenerInstances);
+				var listenersToSet = replaceExistingListeners
+				                     	? new HashedSet<object>()
+				                     	: new HashedSet<object>(GetExistingListeners(configuration, eventType));
 
-				SetListeners(configuration, eventType, listenersToSet.ToArray(eventType));
+				foreach (var l in listenerInstances.Where(l => listenersToSet.All(o => o.GetType() != l.GetType()))) {
+					listenersToSet.Add(l);
+				}
+
+				SetListeners(configuration, eventType, new ArrayList(listenersToSet).ToArray(eventType));
 			}
 		}
 
@@ -134,7 +138,7 @@ namespace Castle.ActiveRecord {
 		{
 			var property = NHEventListeners.GetProperty(eventType);
 
-			return (object[])property.GetValue(configuration.EventListeners, null);
+			return (object[]) property.GetValue(configuration.EventListeners, null);
 		}
 
 		private static void SetListeners(Configuration configuration, Type eventType, Array listenersToSet)

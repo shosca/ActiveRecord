@@ -1,4 +1,4 @@
-﻿// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
+// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Linq;
 using Castle.ActiveRecord.Scopes;
 using Castle.ActiveRecord.Tests.Models;
 
@@ -27,42 +28,26 @@ namespace Castle.ActiveRecord.Tests.Event
 	[TestFixture]
 	public class EventListenerContributionTest : AbstractActiveRecordTest
 	{
-		[SetUp]
-		public override void Init()
-		{
-			base.Init();
-			ActiveRecord.ResetInitialization();
+		NHEventListeners contributor = new NHEventListeners();
+		MockListener listener = new MockListener();
+
+		protected override Castle.ActiveRecord.Config.IActiveRecordConfiguration GetConfigSource() {
+			contributor.Add(listener);
+			var source = base.GetConfigSource();
+			source.GetConfiguration(string.Empty).AddContributor(contributor);
+			return source;
 		}
 
 		[Test]
-		public void Listener_is_added_to_config() 
+		public void ListenerIsAddedToConfig() 
 		{
-			var contributor = new NHEventListeners();
-			var listener = new MockListener();
-			contributor.Add(listener);
-
-			var source = GetConfigSource();
-			source.GetConfiguration(string.Empty).AddContributor(contributor);
-			ActiveRecord.Initialize(source);
-			Recreate();
-
-			Blog.FindAll();
 			var listeners = ActiveRecord.Holder.GetConfiguration(typeof(Blog)).EventListeners.PostInsertEventListeners;
-			Assert.Greater(Array.IndexOf(listeners, listener),-1);
+			Assert.Greater(listeners.Select(l => l.GetType() == typeof(MockListener)).Count(), -1);
 		}
 	
 		[Test]
-		public void Listener_is_called()
+		public void ListenerIsCalled()
 		{
-			var contributor = new NHEventListeners();
-			var listener = new MockListener();
-			contributor.Add(listener);
-
-			var source = GetConfigSource();
-			source.GetConfiguration(string.Empty).AddContributor(contributor);
-			ActiveRecord.Initialize(source);
-			Recreate();
-
 			using (new SessionScope()) {
 				new Blog { Name = "Foo", Author = "Bar" }.Create();
 			}

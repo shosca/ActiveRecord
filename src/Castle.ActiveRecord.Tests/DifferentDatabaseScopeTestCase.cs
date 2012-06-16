@@ -32,15 +32,6 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class DifferentDatabaseScopeTestCase : AbstractActiveRecordTest
 	{
-		[SetUp]
-		public void Setup()
-		{
-			base.Init();
-
-			ActiveRecord.Initialize(GetConfigSource());
-			
-			Recreate();
-		}
 
 		[TearDown]
 		public override void Drop()

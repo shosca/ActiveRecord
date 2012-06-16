@@ -16,20 +16,20 @@ using Castle.ActiveRecord.Testing;
 
 namespace Castle.ActiveRecord.Tests
 {
-    using NUnit.Framework;
+	using NUnit.Framework;
 
-    public abstract class NUnitInMemoryTest : InMemoryTest
-    {
-        [SetUp]
-        public override void SetUp()
-        {
-            base.SetUp();
-        }
+	public abstract class NUnitInMemoryTest : InMemoryTest
+	{
+		[SetUp]
+		public override void SetUp()
+		{
+			base.SetUp();
+		}
 
-        [TearDown]
-        public override void TearDown()
-        {
-            base.TearDown();
-        }	
-    }
+		[TearDown]
+		public override void TearDown()
+		{
+			base.TearDown();
+		}	
+	}
 }

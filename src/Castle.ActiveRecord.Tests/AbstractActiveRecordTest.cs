@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+using Castle.ActiveRecord.Scopes;
+
 namespace Castle.ActiveRecord.Tests
 {
 	using System;
@@ -20,29 +22,29 @@ namespace Castle.ActiveRecord.Tests
 	using NUnit.Framework;
 	using Castle.ActiveRecord.Config;
 
-
-
 	public abstract class AbstractActiveRecordTest
 	{
-		protected static IActiveRecordConfiguration GetConfigSource()
+		protected virtual IActiveRecordConfiguration GetConfigSource()
 		{
 			return System.Configuration.ConfigurationManager.GetSection("activerecord") as IActiveRecordConfiguration;
 		}
 
-		protected static void Recreate()
-		{
-			ActiveRecord.CreateSchema();
-		}
-		
 		[SetUp]
 		public virtual void Init()
 		{
 			ActiveRecord.ResetInitialization();
+
+			ActiveRecord.Initialize(GetConfigSource());
+
+			ActiveRecord.CreateSchema();
 		}
 
 		[TearDown]
 		public virtual void Drop()
 		{
+			if (SessionScope.Current != null)
+				SessionScope.Current.Dispose();
+
 			try
 			{
 				ActiveRecord.DropSchema();

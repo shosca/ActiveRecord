@@ -30,17 +30,11 @@ namespace Castle.ActiveRecord.Tests
 	using NUnit.Framework;
 
 	using Configuration = NHibernate.Cfg.Configuration;
+	using Environment = NHibernate.Cfg.Environment;
 
 	[TestFixture]
 	public class DefaultConfigurationsTestCase
 	{
-		string cache_use_second_level_cache = "cache.use_second_level_cache";
-		string connection_driver_class = "connection.driver_class";
-		string connection_provider = "connection.provider";
-		string dialect = "dialect";
-		string proxyfactory_factory_class = "proxyfactory.factory_class";
-		string connection_connection_string_name = "connection.connection_string_name";
-
 		[SetUp]
 		public void SetUp()
 		{
@@ -51,31 +45,31 @@ namespace Castle.ActiveRecord.Tests
 		public void SqlServer2005Defaults()
 		{
 			var configuration = BuildConfiguration("MsSqlServer2005", "mycs");
-			AssertPropertyEquals(configuration, dialect, typeof(MsSql2005Dialect).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, connection_provider, typeof(DriverConnectionProvider).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, connection_driver_class, typeof(SqlClientDriver).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, proxyfactory_factory_class, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, cache_use_second_level_cache, false.ToString());
-			AssertPropertyEquals(configuration, connection_connection_string_name, "mycs");
+			AssertPropertyEquals(configuration, Environment.Dialect, typeof(MsSql2005Dialect).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.ConnectionProvider, typeof(DriverConnectionProvider).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.ConnectionDriver, typeof(SqlClientDriver).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.UseSecondLevelCache, false.ToString());
+			AssertPropertyEquals(configuration, Environment.ConnectionStringName, "mycs");
 		}
 
 		[Test]
 		public void SQLiteDefaults()
 		{
 			var configuration = BuildConfiguration("SQLite", "sqlite");
-			AssertPropertyEquals(configuration, dialect, typeof(SQLiteDialect).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, connection_provider, typeof(DriverConnectionProvider).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, connection_driver_class, typeof(SQLite20Driver).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, proxyfactory_factory_class, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, cache_use_second_level_cache, false.ToString());
-			AssertPropertyEquals(configuration, connection_connection_string_name, "sqlite");
+			AssertPropertyEquals(configuration, Environment.Dialect, typeof(SQLiteDialect).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.ConnectionProvider, typeof(DriverConnectionProvider).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.ConnectionDriver, typeof(SQLite20Driver).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.UseSecondLevelCache, false.ToString());
+			AssertPropertyEquals(configuration, Environment.ConnectionStringName, "sqlite");
 			AssertPropertyEquals(configuration, "query.substitutions", "true=1;false=0");
 		}
 
 		[Test]
-		public void Throws_when_connectionStringName_not_specified()
+		public void ThrowsWhenConnectionStringNameNotSpecified()
 		{
-			var value = @"<activerecord>
+			const string value = @"<activerecord>
 	<config database=""MsSqlServer2005"" />
 </activerecord>";
 			TestDelegate action = () => 
@@ -88,9 +82,9 @@ namespace Castle.ActiveRecord.Tests
 				ex.Message);
 		}
 		[Test]
-		public void Throws_when_database_not_specified()
+		public void ThrowsWhenDatabaseNotSpecified()
 		{
-			var value = @"<activerecord>
+			const string value = @"<activerecord>
 	<config connectionStringName=""foobar"" />
 </activerecord>";
 			TestDelegate action = () =>
@@ -104,9 +98,9 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Throws_when_invalid_database_specified()
+		public void ThrowsWhenInvalidDatabaseSpecified()
 		{
-			var value = @"<activerecord>
+			const string value = @"<activerecord>
 	<config database=""IDontExist!"" connectionStringName=""foobar"" />
 </activerecord>";
 			TestDelegate action = () =>
@@ -121,7 +115,7 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Can_use_shorthand_attribute_form()
+		public void CanUseShorthandAttributeForm()
 		{
 			var value = @"<activerecord>
 	<config csn=""foobar"" db=""MsSqlServer2005"">
@@ -129,12 +123,12 @@ namespace Castle.ActiveRecord.Tests
     </config>
 </activerecord>";
 			var configuration = BuildConfiguration(ReadConfiguration(value));
-			AssertPropertyEquals(configuration, dialect, typeof(MsSql2005Dialect).AssemblyQualifiedName);
-			AssertPropertyEquals(configuration, connection_connection_string_name, "foobar");
+			AssertPropertyEquals(configuration, Environment.Dialect, typeof(MsSql2005Dialect).AssemblyQualifiedName);
+			AssertPropertyEquals(configuration, Environment.ConnectionStringName, "foobar");
 		}
 
 		[Test]
-		public void Can_override_defaults()
+		public void CanOverrideDefaults()
 		{
 			var value = @"<activerecord>
 	<config csn=""foobar"" db=""MsSqlServer2005"">
@@ -143,7 +137,7 @@ namespace Castle.ActiveRecord.Tests
 	</config>
 </activerecord>";
 			var configuration = BuildConfiguration(ReadConfiguration(value));
-			AssertPropertyEquals(configuration, cache_use_second_level_cache, "True");
+			AssertPropertyEquals(configuration, Environment.UseSecondLevelCache, "True");
 		}
 
 		private Configuration BuildConfiguration(string dbName, string csn)
@@ -152,19 +146,19 @@ namespace Castle.ActiveRecord.Tests
 			return BuildConfiguration(source);
 		}
 
-		private Configuration BuildConfiguration(IActiveRecordConfiguration source)
+		private static Configuration BuildConfiguration(IActiveRecordConfiguration source)
 		{
 			ActiveRecord.Initialize(source);
 
 			return ActiveRecord.Holder.GetAllConfigurations().First();
 		}
 
-		private void AssertPropertyEquals(Configuration configuration, string name, string value)
+		private static void AssertPropertyEquals(Configuration configuration, string name, string value)
 		{
 			Assert.AreEqual(value, configuration.Properties[name]);
 		}
 
-		private IActiveRecordConfiguration ReadValidConfiguration(string dbName, string csn)
+		private static IActiveRecordConfiguration ReadValidConfiguration(string dbName, string csn)
 		{
 			var configTemplate = @"<activerecord>
 	<config db=""{0}"" csn=""{1}"">
@@ -174,7 +168,7 @@ namespace Castle.ActiveRecord.Tests
 			return ReadConfiguration(string.Format(configTemplate, dbName, csn));
 		}
 
-		private IActiveRecordConfiguration ReadConfiguration(string value)
+		private static IActiveRecordConfiguration ReadConfiguration(string value)
 		{
 			using (var reader = new StringReader(value))
 			{

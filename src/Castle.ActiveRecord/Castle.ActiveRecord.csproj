@@ -38,7 +38,7 @@
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
     <AssemblyName>Castle.ActiveRecord</AssemblyName>
-	<AssemblyOriginatorKeyFile>..\..\CastleKey.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\CastleKey.snk</AssemblyOriginatorKeyFile>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
@@ -146,11 +146,6 @@
     <Compile Include="Config\DefaultDatabaseConfigurationExtensions.cs" />
     <Compile Include="Config\DatabaseType.cs" />
     <Compile Include="Config\DefaultFlushType.cs" />
-    <Compile Include="Scopes\ConversationalScope.cs" />
-    <Compile Include="Scopes\ConversationCanceledEventArgs.cs" />
-    <Compile Include="Scopes\IConversation.cs" />
-    <Compile Include="Scopes\IScopeConversation.cs" />
-    <Compile Include="Scopes\ScopedConversation.cs" />
     <Compile Include="StatelessSessionWrapper.cs" />
     <Compile Include="InterceptorFactory.cs" />
     <Compile Include="Inflector.cs" />

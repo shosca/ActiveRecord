@@ -1,4 +1,4 @@
-﻿// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
+// Copyright 2004-2011 Castle Project - http://www.castleproject.org/
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,31 +25,13 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class MultipleDBMediatorTest : AbstractActiveRecordTest
 	{
-		[SetUp]
-		public void Setup()
-		{
-			Init();
-
-			ActiveRecord.Initialize(GetConfigSource());
-
-			Recreate();
-		}
-
-		[TearDown]
-		public override void Drop()
-		{
-			if (SessionScope.Current != null)
-				SessionScope.Current.Dispose();
-			base.Drop();
-		}
-
 		[Test]
 		public void SessionsAreDifferent()
 		{
 			using (new SessionScope())
 			{
-				Blog blog = new Blog();
-				Author author = new Author();
+				var blog = new Blog();
+				var author = new Author();
 
 				ActiveRecord<Blog>.FindAll();
 				ActiveRecord<Author>.FindAll();
@@ -63,7 +45,7 @@ namespace Castle.ActiveRecord.Tests
 
 		[Test]
 		public void OperateOne() {
-			Blog[] blogs = ActiveRecord<Blog>.FindAll().ToArray();
+			var blogs = ActiveRecord<Blog>.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 
@@ -75,14 +57,13 @@ namespace Castle.ActiveRecord.Tests
 
 		private static void CreateBlog()
 		{
-			Blog blog = new Blog();
-			blog.Name = "Senseless";
+			var blog = new Blog {Name = "Senseless"};
 			ActiveRecord<Blog>.Save(blog);
 		}
 
 		[Test]
 		public void OperateTheOtherOne() {
-			Author[] authors = ActiveRecord<Author>.FindAll().ToArray();
+			var authors = ActiveRecord<Author>.FindAll().ToArray();
 
 			Assert.AreEqual(0, authors.Length);
 
@@ -94,15 +75,14 @@ namespace Castle.ActiveRecord.Tests
 
 		private static void CreateAuthor()
 		{
-			Author author = new Author();
-			author.Name = "Dr. Who";
+			var author = new Author {Name = "Dr. Who"};
 			ActiveRecord<Author>.Save(author);
 		}
 
 		[Test]
 		public void OperateBoth() {
-			Blog[] blogs = ActiveRecord<Blog>.FindAll().ToArray();
-			Author[] authors = ActiveRecord<Author>.FindAll().ToArray();
+			var blogs = ActiveRecord<Blog>.FindAll().ToArray();
+			var authors = ActiveRecord<Author>.FindAll().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 			Assert.AreEqual(0, authors.Length);

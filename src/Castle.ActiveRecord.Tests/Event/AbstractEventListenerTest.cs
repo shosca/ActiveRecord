@@ -20,7 +20,7 @@ namespace Castle.ActiveRecord.Tests.Event
 	using NHibernate.Event;
 	using NUnit.Framework;
 
-	public abstract class AbstractEventListenerTest:AbstractActiveRecordTest
+	public abstract class AbstractEventListenerTest : AbstractActiveRecordTest
 	{
 		protected static void AssertListenerWasRegistered<TEventListener, TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
 		{
@@ -40,7 +40,7 @@ namespace Castle.ActiveRecord.Tests.Event
 
 		private static bool ListenerWasRegistered<TEventListener, TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
 		{
-			object[] registeredListeners = GetRegisteredListeners<TBaseClass>(listenerTypeSelector);
+			var registeredListeners = GetRegisteredListeners<TBaseClass>(listenerTypeSelector);
 			var found = false;
 			foreach (var listener in registeredListeners)
 			{
@@ -58,18 +58,6 @@ namespace Castle.ActiveRecord.Tests.Event
 		protected static object[] GetRegisteredListeners<TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
 		{
 			return listenerTypeSelector(ActiveRecord.Holder.GetConfiguration(typeof(TBaseClass)).EventListeners);
-		}
-
-		public override void Init()
-		{
-			base.Init();
-			//ActiveRecord.ClearContributors();
-		}
-
-		public override void Drop()
-		{
-			//ActiveRecord.ClearContributors();
-			base.Drop();
 		}
 	}
 }

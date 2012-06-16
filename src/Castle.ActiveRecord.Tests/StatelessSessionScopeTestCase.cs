@@ -34,7 +34,6 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SessionIsStateless()
 		{
-			Initialize();
 			using (new StatelessSessionScope())
 			{
 				Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), ActiveRecord.Holder.CreateSession(typeof(Blog)));
@@ -42,9 +41,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Unsupported_actions_should_have_squattery_exceptions()
+		public void UnsupportedActionsShouldHaveSquatteryExceptions()
 		{
-			Initialize();
 			using (new StatelessSessionScope())
 			{
 				Assert.Throws<NotWrappedException>(() =>
@@ -54,9 +52,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void A_simple_object_can_be_created()
+		public void ASimpleObjectCanBeCreated()
 		{
-			Initialize();
 			using (new StatelessSessionScope())
 				CreateBlog();
 
@@ -66,11 +63,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void A_simple_object_can_be_read()
+		public void ASimpleObjectCanBeRead()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			var ship = new Ship() {Name = "Andrea Doria"};
 
 			using (new SessionScope())
@@ -84,11 +78,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Get_with_lazy_classes_does_work()
+		public void GetWithLazyClassesDoesWork()
 		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-
 			using (new SessionScope())
 				new Blog { Author = "Mort", Name = "Hourglass" }.Create();
 
@@ -101,10 +92,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Updating_stateless_fetched_entities_works()
+		public void UpdatingStatelessFetchedEntitiesWorks()
 		{
-			InitializeLazy();
-
 			using (new SessionScope())
 				CreateLazyBlog();
 
@@ -120,9 +109,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Updating_detached_entities_works()
+		public void UpdatingDetachedEntitiesWorks()
 		{
-			Initialize();
 			Blog blog;
 
 			using (new SessionScope())
@@ -142,9 +130,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Inversively_adding_to_a_detached_entitys_collections_works()
+		public void InversivelyAddingToADetachedEntitysCollectionsWorks()
 		{
-			Initialize();
 			Blog blog;
 
 			using (new SessionScope())
@@ -167,9 +154,8 @@ namespace Castle.ActiveRecord.Tests
 
 
 		[Test]
-		public void Updating_detached_entities_collections_does_not_work()
+		public void UpdatingDetachedEntitiesCollectionsDoesNotWork()
 		{
-			Initialize();
 			Blog blog;
 
 			using (new SessionScope())
@@ -196,10 +182,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Transactions_are_supported()
+		public void TransactionsAreSupported()
 		{
-			Initialize();
-
 			using (new StatelessSessionScope())
 			using (new TransactionScope())
 			{
@@ -210,9 +194,8 @@ namespace Castle.ActiveRecord.Tests
 		}
 
 		[Test]
-		public void Querying_works_with_Detached_Criteria()
+		public void QueryingWorksWithDetachedCriteria()
 		{
-			InitializeLazy();
 			using (new SessionScope())
 				CreateLazyBlog();
 
@@ -220,19 +203,6 @@ namespace Castle.ActiveRecord.Tests
 			using (new StatelessSessionScope())
 				Assert.AreEqual(1, ActiveRecord<Blog>.FindAll(crit).Count());
 
-		}
-
-
-		private void Initialize()
-		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-		}
-
-		private void InitializeLazy()
-		{
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
 		}
 
 		private void CreateBlog()

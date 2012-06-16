@@ -28,21 +28,6 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class SessionScopeAutoflushTestCase : AbstractActiveRecordTest
 	{
-		[SetUp]
-		public override void Init() {
-			base.Init();
-			ActiveRecord.Initialize(GetConfigSource());
-			Recreate();
-		}
-
-		[TearDown]
-		public override void Drop()
-		{
-			if (SessionScope.Current != null)
-				SessionScope.Current.Dispose();
-			base.Drop();
-		}
-
 		[Test]
 		public void ActiveRecordUsingSessionScope()
 		{
