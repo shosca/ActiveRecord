@@ -126,22 +126,26 @@ namespace Castle.ActiveRecord.Config
 					throw new ConfigurationErrorsException(message);
 				}
 
-				SessionFactoryConfig sfconfig = null;
-
 				string sfconfigname = string.Empty;
-				if (node.Attributes != null && node.Attributes.Count != 0) {
-
+				if (node.Attributes != null && node.Attributes.Count != 0)
+				{
 					XmlAttribute typeNameAtt = node.Attributes["type"];
 					if (typeNameAtt != null) {
 						if (!string.IsNullOrEmpty(typeNameAtt.Value))
 							sfconfigname = typeNameAtt.Value;
 					}
+					
+				}
+				var sfconfig = CreateConfiguration(sfconfigname);
+
+				if (node.Attributes != null && node.Attributes.Count != 0) {
+
 
 					var databaseName = node.Attributes["database"] ?? node.Attributes["db"];
 					var connectionStringName = node.Attributes["connectionStringName"] ?? node.Attributes["csn"];
 					if (databaseName != null && connectionStringName != null)
 					{
-						sfconfig = SetDefaults(databaseName.Value, connectionStringName.Value);
+						SetDefaults(sfconfig, databaseName.Value, connectionStringName.Value);
 					}
 					else if (databaseName != null || connectionStringName != null)
 					{
@@ -151,23 +155,19 @@ namespace Castle.ActiveRecord.Config
 						throw new ConfigurationErrorsException(message);
 					}
 				}
-				if (sfconfig == null)
-					sfconfig = new SessionFactoryConfig(this);
 
-				sfconfig.Name = sfconfigname; 
 				BuildProperties(sfconfig, node);
-
-				Add(sfconfig);
 			}
 		}
 
 		/// <summary>
 		/// Sets the default configuration for database specifiend by <paramref name="name"/>.
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="name">Name of the database type.</param>
 		/// <param name="connectionStringName">name of the connection string specified in connectionStrings configuration section</param>
 		/// <returns></returns>
-		protected SessionFactoryConfig SetDefaults(string name, string connectionStringName)
+		protected void SetDefaults(SessionFactoryConfig config, string name, string connectionStringName)
 		{
 			var names = Enum.GetNames(typeof(DatabaseType));
 			if (!Array.Exists(names, n => n.Equals(name, StringComparison.OrdinalIgnoreCase)))
@@ -184,9 +184,8 @@ namespace Castle.ActiveRecord.Config
 			}
 
 			var type = (DatabaseType)Enum.Parse(typeof(DatabaseType), name, true);
-			var defaults = this.CreateConfiguration(type)
-							.Set(NHibernate.Cfg.Environment.ConnectionStringName, connectionStringName);
-			return defaults;
+			config.Set(NHibernate.Cfg.Environment.ConnectionStringName, connectionStringName)
+				.SetDatabaseType(type);
 		}
 
 		/// <summary>

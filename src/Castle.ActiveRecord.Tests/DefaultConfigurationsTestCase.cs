@@ -35,12 +35,6 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class DefaultConfigurationsTestCase
 	{
-		[SetUp]
-		public void SetUp()
-		{
-			ActiveRecord.ResetInitialization();
-		}
-
 		[Test]
 		public void SqlServer2005Defaults()
 		{
@@ -148,9 +142,7 @@ namespace Castle.ActiveRecord.Tests
 
 		private static Configuration BuildConfiguration(IActiveRecordConfiguration source)
 		{
-			ActiveRecord.Initialize(source);
-
-			return ActiveRecord.Holder.GetAllConfigurations().First();
+			return source.GetConfiguration(string.Empty).BuildConfiguration();
 		}
 
 		private static void AssertPropertyEquals(Configuration configuration, string name, string value)

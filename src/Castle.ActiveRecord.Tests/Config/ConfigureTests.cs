@@ -40,11 +40,7 @@ namespace Castle.ActiveRecord.Tests.Config
 		{
 			var source = new DefaultActiveRecordConfiguration();
 
-			var sf = source.CreateConfiguration(DatabaseType.MsSqlServer2005,
-			                                    "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
-
-
-			source.Add(sf);
+			source.CreateConfiguration(DatabaseType.MsSqlServer2005, "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
 
 			ActiveRecord.ResetInitialization();
 

@@ -37,16 +37,13 @@ namespace Castle.ActiveRecord.Testing
 		public virtual void SetUp()
 		{
 			ActiveRecord.ResetInitialization();
-			var source = ActiveRecord.Configure();
-
-			var conf = source.CreateConfiguration(DatabaseType.SQLite, "Data Source=:memory:;Version=3;New=True")
+			var source = ActiveRecord.Configure()
+				.CreateConfiguration(DatabaseType.SQLite, "Data Source=:memory:;Version=3;New=True")
 					.AddAssemblies(GetAssemblies())
 					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof (InMemoryConnectionProvider).AssemblyQualifiedName)
-					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName)
-					.Set(GetProperties());
-
-			source.Add(conf);
-
+					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof (ARProxyFactoryFactory).AssemblyQualifiedName)
+					.Set(GetProperties())
+				.End();
 
 			Configure(source);
 

@@ -15,9 +15,13 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Castle.ActiveRecord.ByteCode;
 using Castle.Core.Configuration;
+using NHibernate.Connection;
+using Environment = NHibernate.Cfg.Environment;
 
 namespace Castle.ActiveRecord.Config
 {
@@ -26,7 +30,7 @@ namespace Castle.ActiveRecord.Config
 	/// </summary>
 	public class DefaultActiveRecordConfiguration : IActiveRecordConfiguration
 	{
-		readonly IDictionary<string, SessionFactoryConfig> _type2Config = new Dictionary<string, SessionFactoryConfig>();
+		readonly IDictionary<string, SessionFactoryConfig> _configs = new Dictionary<string, SessionFactoryConfig>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DefaultActiveRecordConfiguration"/> class.
@@ -58,12 +62,12 @@ namespace Castle.ActiveRecord.Config
 		{
 			key = string.IsNullOrEmpty(key) ? string.Empty : key;
 			SessionFactoryConfig configuration;
-			_type2Config.TryGetValue(key, out configuration);
+			_configs.TryGetValue(key, out configuration);
 			return configuration;
 		}
 
 		public IEnumerable<string> GetAllConfigurationKeys() {
-			return _type2Config.Keys;
+			return _configs.Keys;
 		}
 
 		/// <summary>
@@ -145,7 +149,7 @@ namespace Castle.ActiveRecord.Config
 		public void Add(SessionFactoryConfig config)
 		{
 			var key = string.IsNullOrEmpty(config.Name) ? string.Empty : config.Name;
-			_type2Config.Add(key, config);
+			_configs.Add(key, config);
 		}
 
 		/// <summary>
@@ -153,7 +157,7 @@ namespace Castle.ActiveRecord.Config
 		/// </summary>
 		/// <param name="isWeb">If we are running in a web context.</param>
 		/// <param name="customType">The type of the custom implementation.</param>
-		protected void SetUpThreadInfoType(bool isWeb, String customType)
+		protected void SetUpThreadInfoType(bool isWeb, string customType)
 		{
 			Type threadInfoType = null;
 
@@ -265,18 +269,6 @@ namespace Castle.ActiveRecord.Config
 			}
 		}
 
-		private static IConfiguration ConvertToConfiguration(IDictionary<string,string> properties)
-		{
-			MutableConfiguration conf = new MutableConfiguration("Config");
-
-			foreach(KeyValuePair<string,string> entry in properties)
-			{
-				conf.Children.Add(new MutableConfiguration(entry.Key, entry.Value));
-			}
-
-			return conf;
-		}
-
 		/// <summary>
 		/// Sets the flush behaviour for <cref>ISessionScope</cref> when no
 		/// other behaviour is specified in the scope itself. The default for
@@ -316,8 +308,12 @@ namespace Castle.ActiveRecord.Config
 			return this;
 		}
 
-		public SessionFactoryConfig CreateConfiguration() {
-			return new SessionFactoryConfig(this);
+		public SessionFactoryConfig CreateConfiguration(string name) {
+			Add(new SessionFactoryConfig(this) {Name = name});
+			return GetConfiguration(name)
+				.Set(Environment.ConnectionProvider, typeof(DriverConnectionProvider).AssemblyQualifiedName)
+				.Set(Environment.UseSecondLevelCache, false.ToString(CultureInfo.InvariantCulture))
+				.Set(Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
 		}
 	}
 }

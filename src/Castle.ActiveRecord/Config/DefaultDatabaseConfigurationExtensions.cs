@@ -29,15 +29,27 @@ namespace Castle.ActiveRecord.Config
 	/// </summary>
 	public static class DefaultDatabaseConfigurationExtensions
 	{
-		private const string connection_driver_class = "connection.driver_class";
-		private const string connection_isolation = "connection.isolation";
-		private const string connection_provider = "connection.provider";
-		private const string dialect = "dialect";
-		private const string proxyfactory_factory_class = "proxyfactory.factory_class";
-		private const string query_substitutions = "query.substitutions";
-
+		/// <summary>
+		/// Returns dictionary of common properties pre populated with default values for given <paramref name="databaseType"/>.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="databaseType">Database type for which we want default properties.</param>
+		/// <param name="connectionstring"></param>
+		/// <returns></returns>
 		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, DatabaseType databaseType, string connectionstring) {
-			var config = source.CreateConfiguration(databaseType);
+			return source.CreateConfiguration(string.Empty, databaseType, connectionstring);
+		}
+
+		/// <summary>
+		/// Returns dictionary of common properties pre populated with default values for given <paramref name="databaseType"/>.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="name"></param>
+		/// <param name="databaseType">Database type for which we want default properties.</param>
+		/// <param name="connectionstring"></param>
+		/// <returns></returns>
+		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, string name, DatabaseType databaseType, string connectionstring) {
+			var config = source.CreateConfiguration(name, databaseType);
 			config.Properties[Environment.ConnectionString] = connectionstring;
 			return config;
 		}
@@ -48,67 +60,90 @@ namespace Castle.ActiveRecord.Config
 		/// <param name="source"></param>
 		/// <param name="databaseType">Database type for which we want default properties.</param>
 		/// <returns></returns>
-		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, DatabaseType databaseType)
+		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, DatabaseType databaseType) {
+			return source.CreateConfiguration(string.Empty, databaseType);
+		}
+
+		/// <summary>
+		/// Returns dictionary of common properties pre populated with default values for given <paramref name="databaseType"/>.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="name"></param>
+		/// <param name="databaseType">Database type for which we want default properties.</param>
+		/// <returns></returns>
+		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, string name, DatabaseType databaseType)
 		{
-			switch (databaseType)
+			return source.CreateConfiguration(name)
+				.SetDatabaseType(databaseType);
+		}
+
+		public static SessionFactoryConfig SetDatabaseType(this SessionFactoryConfig config, DatabaseType type) {
+			switch (type)
 			{
 				case DatabaseType.MsSqlServer2000:
-					return source.CreateConfiguration<SqlClientDriver, MsSql2000Dialect>();
+					config.Set(Environment.ConnectionDriver, LongName<SqlClientDriver>())
+						.Set(Environment.Dialect, LongName<MsSql2000Dialect>());
+					break;
 				case DatabaseType.MsSqlServer2005:
-					return source.CreateConfiguration<SqlClientDriver, MsSql2005Dialect>();
+					config.Set(Environment.ConnectionDriver, LongName<SqlClientDriver>())
+						.Set(Environment.Dialect, LongName<MsSql2005Dialect>());
+					break;
 				case DatabaseType.MsSqlServer2008:
-					return source.CreateConfiguration<SqlClientDriver, MsSql2008Dialect>();
+					config.Set(Environment.ConnectionDriver, LongName<SqlClientDriver>())
+						.Set(Environment.Dialect, LongName<MsSql2008Dialect>());
+					break;
 				case DatabaseType.SQLite:
-					return source.CreateConfiguration<SQLite20Driver, SQLiteDialect>(SQLite());
+					config.Set(Environment.ConnectionDriver, LongName<SQLite20Driver>())
+						.Set(Environment.Dialect, LongName<SQLiteDialect>())
+						.Set(SQLite());
+					break;
 				case DatabaseType.MySql:
-					return source.CreateConfiguration<MySqlDataDriver, MySQLDialect>();
+					config.Set(Environment.ConnectionDriver, LongName<MySqlDataDriver>())
+						.Set(Environment.Dialect, LongName<MySQLDialect>());
+					break;
 				case DatabaseType.MySql5:
-					return source.CreateConfiguration<MySqlDataDriver, MySQL5Dialect>();
+					config.Set(Environment.ConnectionDriver, LongName<MySqlDataDriver>())
+						.Set(Environment.Dialect, LongName<MySQL5Dialect>());
+					break;
 				case DatabaseType.Firebird:
-					return source.CreateConfiguration<FirebirdDriver, FirebirdDialect>(Firebird());
+					config.Set(Environment.ConnectionDriver, LongName<FirebirdDriver>())
+						.Set(Environment.Dialect, LongName<FirebirdDialect>())
+						.Set(Firebird());
+					break;
 				case DatabaseType.PostgreSQL:
-					return source.CreateConfiguration<NpgsqlDriver, PostgreSQLDialect>();
+					config.Set(Environment.ConnectionDriver, LongName<NpgsqlDriver>())
+						.Set(Environment.Dialect, LongName<PostgreSQLDialect>());
+					break;
 				case DatabaseType.PostgreSQL81:
-					return source.CreateConfiguration<NpgsqlDriver, PostgreSQL81Dialect>();
+					config.Set(Environment.ConnectionDriver, LongName<NpgsqlDriver>())
+						.Set(Environment.Dialect, LongName<PostgreSQL81Dialect>());
+					break;
 				case DatabaseType.PostgreSQL82:
-					return source.CreateConfiguration<NpgsqlDriver, PostgreSQL82Dialect>();
+					config.Set(Environment.Dialect, LongName<NpgsqlDriver>())
+						.Set(Environment.ConnectionDriver, LongName<PostgreSQL82Dialect>());
+					break;
 				case DatabaseType.MsSqlCe:
-					return source.CreateConfiguration<SqlServerCeDriver, MsSqlCeDialect>(MsSqlCe());
+					config.Set(Environment.ConnectionDriver, LongName<SqlServerCeDriver>())
+						.Set(Environment.Dialect, LongName<MsSqlCeDialect>())
+						.Set(MsSqlCe());
+					break;
 				// using oracle's own data driver since Microsoft
 				// discontinued theirs, and that's what everyone
 				// seems to be using anyway.
 				case DatabaseType.Oracle8i:
-					return source.CreateConfiguration<OracleDataClientDriver, Oracle8iDialect>();
+					config.Set(Environment.ConnectionDriver, LongName<OracleDataClientDriver>())
+						.Set(Environment.Dialect, LongName<Oracle8iDialect>());
+					break;
 				case DatabaseType.Oracle9i:
-					return source.CreateConfiguration<OracleDataClientDriver, Oracle9iDialect>();
+					config.Set(Environment.ConnectionDriver, LongName<OracleDataClientDriver>())
+						.Set(Environment.Dialect, LongName<Oracle9iDialect>());
+					break;
 				case DatabaseType.Oracle10g:
-					return source.CreateConfiguration<OracleDataClientDriver, Oracle10gDialect>();
+					config.Set(Environment.ConnectionDriver, LongName<OracleDataClientDriver>())
+						.Set(Environment.Dialect, LongName<Oracle10gDialect>());
+					break;
 			}
-
-			throw new ArgumentOutOfRangeException("databaseType", databaseType, "Unsupported database type");
-		}
-
-		static SessionFactoryConfig CreateConfiguration<TDriver, TDialect>(this IActiveRecordConfiguration source)
-			where TDriver : IDriver
-			where TDialect : Dialect
-		{
-			return source.CreateConfiguration<TDriver, TDialect>(new Dictionary<string, string>());
-		}
-
-		static SessionFactoryConfig CreateConfiguration<TDriver, TDialect>(this IActiveRecordConfiguration source, Dictionary<string, string> configuration)
-			where TDriver : IDriver
-			where TDialect : Dialect {
-			var sfconfig = source.CreateConfiguration();
-			sfconfig.Properties[connection_provider] = LongName<DriverConnectionProvider>();
-			sfconfig.Properties[Environment.UseSecondLevelCache] = false.ToString(CultureInfo.InvariantCulture);
-			sfconfig.Properties[proxyfactory_factory_class] = LongName<ARProxyFactoryFactory>();
-			sfconfig.Properties[dialect] = LongName<TDialect>();
-			sfconfig.Properties[connection_driver_class] = LongName<TDriver>();
-			foreach (var d in configuration) {
-				sfconfig.Properties[d.Key] = d.Value;
-
-			}
-			return sfconfig;
+			return config;
 		}
 
 		static string LongName<TType>()
@@ -121,7 +156,7 @@ namespace Castle.ActiveRecord.Config
 			// based on https://www.hibernate.org/361.html#A9
 			return new Dictionary<string, string>
 			{
-				{ query_substitutions, "true=1;false=0" }
+				{ Environment.QuerySubstitutions, "true=1;false=0" }
 			};
 		}
 
@@ -141,9 +176,9 @@ namespace Castle.ActiveRecord.Config
 			// based on https://www.hibernate.org/361.html#A5
 			return new Dictionary<string, string>
 			{
-				{ query_substitutions, "true 1, false 0, yes 1, no 0" },
-				{ connection_isolation, IsolationLevel.ReadCommitted.ToString() },
-				{ "command_timeout", 444.ToString() },
+				{ Environment.QuerySubstitutions, "true 1, false 0, yes 1, no 0" },
+				{ Environment.Isolation, IsolationLevel.ReadCommitted.ToString() },
+				{ Environment.CommandTimeout, 444.ToString() },
 				{ "use_outer_join", true.ToString() },
 			};
 		}
