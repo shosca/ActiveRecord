@@ -27,7 +27,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 
 
 	[TestFixture]
-	public class TypeInitializationTest : NUnitInMemoryTest
+	public class TypeInitializationTesting : NUnitInMemoryTesting
 	{
 		public override Assembly[] GetAssemblies()
 		{
@@ -43,7 +43,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 	}
 
 	[TestFixture]
-	public class AdditionalPropertiesInitializationTest : NUnitInMemoryTest
+	public class AdditionalPropertiesInitializationTesting : NUnitInMemoryTesting
 	{
 		public override Assembly[] GetAssemblies() {
 			return new Assembly[] {typeof (Blog).Assembly};

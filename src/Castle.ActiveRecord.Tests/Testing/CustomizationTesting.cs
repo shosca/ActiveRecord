@@ -13,33 +13,40 @@
 // limitations under the License.
 
 
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Testing;
+using System.Reflection;
 
-namespace Castle.ActiveRecord.Tests
+namespace Castle.ActiveRecord.Tests.Testing
 {
 	using System;
-
 	using NUnit.Framework;
+	using NHibernate;
+
 	using Castle.ActiveRecord.Config;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Tests.Models;
 
-	public abstract class AbstractActiveRecordTest : AbstractTesting
+
+	[TestFixture]
+	public class CustomizationTesting : NUnitInMemoryTesting
 	{
-		public override IActiveRecordConfiguration GetConfigSource()
+		public override System.Reflection.Assembly[] GetAssemblies()
 		{
-			return System.Configuration.ConfigurationManager.GetSection("activerecord") as IActiveRecordConfiguration;
+			return new Assembly[] { typeof(Blog).Assembly };
 		}
 
-		[SetUp]
-		public override void SetUp()
+		public override void Configure(IActiveRecordConfiguration config)
 		{
-			base.SetUp();
+			config.Flush(DefaultFlushType.Leave);
 		}
 
-		[TearDown]
-		public override void TearDown()
+		[Test]
+		public void ConfigurationIsCustomizable()
 		{
-			base.TearDown();
+			using (new SessionScope())
+			{
+				Blog.FindAll();
+				Assert.AreEqual(FlushMode.Commit, ActiveRecord.Holder.CreateSession(typeof(Blog)).FlushMode);
+			}
 		}
 	}
 }

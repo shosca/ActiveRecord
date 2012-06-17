@@ -14,12 +14,8 @@
 
 namespace Castle.ActiveRecord.Testing
 {
-	using System;
 	using System.Data;
-	using System.Reflection;
-	using System.Collections.Generic;
 
-	using Castle.ActiveRecord;
 	using NHibernate.Connection;
 
 	/// <summary>

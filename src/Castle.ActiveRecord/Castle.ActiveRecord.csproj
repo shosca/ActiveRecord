@@ -135,6 +135,7 @@
     <Compile Include="Scopes\ThreadScopeInfo.cs" />
     <Compile Include="Scopes\TransactionScope.cs" />
     <Compile Include="SessionFactoryHolder.cs" />
+    <Compile Include="Testing\AbstractTesting.cs" />
     <Compile Include="TransactionException.cs" />
     <Compile Include="..\..\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
@@ -155,7 +156,7 @@
     <Compile Include="Scopes\FlushAction.cs" />
     <Compile Include="PrivateAssemblyInfo.cs" />
     <Compile Include="Testing\InMemoryConnectionProvider.cs" />
-    <Compile Include="Testing\InMemoryTest.cs" />
+    <Compile Include="Testing\InMemoryTesting.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -28,14 +28,14 @@ namespace Castle.ActiveRecord.Tests.Event
 	[TestFixture]
 	public class EventListenerContributionTest : AbstractActiveRecordTest
 	{
-		NHEventListeners contributor = new NHEventListeners();
-		MockListener listener = new MockListener();
+		public override void Configure(Castle.ActiveRecord.Config.IActiveRecordConfiguration config)
+		{
+			var contributor = new NHEventListeners();
+			var listener = new MockListener();
 
-		protected override Castle.ActiveRecord.Config.IActiveRecordConfiguration GetConfigSource() {
+			base.Configure(config);
 			contributor.Add(listener);
-			var source = base.GetConfigSource();
-			source.GetConfiguration(string.Empty).AddContributor(contributor);
-			return source;
+			config.GetConfiguration(string.Empty).AddContributor(contributor);
 		}
 
 		[Test]
@@ -48,6 +48,7 @@ namespace Castle.ActiveRecord.Tests.Event
 		[Test]
 		public void ListenerIsCalled()
 		{
+			IsCalled = false;
 			using (new SessionScope()) {
 				new Blog { Name = "Foo", Author = "Bar" }.Create();
 			}

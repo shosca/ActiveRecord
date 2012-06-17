@@ -28,9 +28,9 @@ namespace Castle.ActiveRecord.Tests
 	public class ActiveRecordTestCase : AbstractActiveRecordTest
 	{
 		[SetUp]
-		public override void Init()
+		public override void SetUp()
 		{
-			base.Init();
+			base.SetUp();
 
 			using (new SessionScope()) 
 			for (var i = 1; i <= 10; i++)

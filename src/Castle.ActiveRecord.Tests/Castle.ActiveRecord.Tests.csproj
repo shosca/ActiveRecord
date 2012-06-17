@@ -139,11 +139,11 @@
     <Compile Include="TransactionScopeTestCase.cs" />
     <Compile Include="Config\ConfigureTests.cs" />
     <Compile Include="DefaultConfigurationsTestCase.cs" />
-    <Compile Include="NUnitInMemoryTest.cs" />
+    <Compile Include="NUnitInMemoryTesting.cs" />
     <Compile Include="StatelessSessionScopeTestCase.cs" />
     <Compile Include="MultipleDBMediatorTest.cs" />
     <Compile Include="SessionScopeAutoflushTestCase.cs" />
-    <Compile Include="Testing\CustomizationTest.cs" />
+    <Compile Include="Testing\CustomizationTesting.cs" />
     <Compile Include="Testing\InitializationTest.cs" />
   </ItemGroup>
   <ItemGroup>

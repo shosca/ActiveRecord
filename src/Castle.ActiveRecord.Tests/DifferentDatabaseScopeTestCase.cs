@@ -32,14 +32,6 @@ namespace Castle.ActiveRecord.Tests
 	[TestFixture]
 	public class DifferentDatabaseScopeTestCase : AbstractActiveRecordTest
 	{
-
-		[TearDown]
-		public override void Drop()
-		{
-			SessionScope.Current.Dispose();
-			base.Drop();
-		}
-
 		[Test, Category("mssql")]
 		public void SimpleCase()
 		{

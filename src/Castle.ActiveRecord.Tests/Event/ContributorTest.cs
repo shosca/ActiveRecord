@@ -24,11 +24,11 @@ namespace Castle.ActiveRecord.Tests.Event
 	[TestFixture]
 	public class ContributorTest : AbstractActiveRecordTest
 	{
-		protected override Castle.ActiveRecord.Config.IActiveRecordConfiguration GetConfigSource() {
-			var source = base.GetConfigSource();
+		public override void Configure(Castle.ActiveRecord.Config.IActiveRecordConfiguration config)
+		{
+			base.Configure(config);
 			var contributor = new MockContributor();
-			source.GetConfiguration(string.Empty).AddContributor(contributor);
-			return source;
+			config.GetConfiguration(string.Empty).AddContributor(contributor);
 		}
 
 		[Test]

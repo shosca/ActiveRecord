@@ -18,7 +18,7 @@ namespace Castle.ActiveRecord.Tests
 {
 	using NUnit.Framework;
 
-	public abstract class NUnitInMemoryTest : InMemoryTest
+	public abstract class NUnitInMemoryTesting : InMemoryTesting
 	{
 		[SetUp]
 		public override void SetUp()
