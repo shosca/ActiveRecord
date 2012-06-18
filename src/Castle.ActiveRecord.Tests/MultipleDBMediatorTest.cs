@@ -33,8 +33,8 @@ namespace Castle.ActiveRecord.Tests
 				var blog = new Blog();
 				var author = new Author();
 
-				ActiveRecord<Blog>.FindAll();
-				ActiveRecord<Author>.FindAll();
+				ActiveRecord.FindAll<Blog>();
+				ActiveRecord.FindAll<Author>();
 
 				Assert.AreNotSame(blog.CurrentSession, author.GetCurrentSession());
 				Assert.AreNotEqual(
@@ -45,44 +45,44 @@ namespace Castle.ActiveRecord.Tests
 
 		[Test]
 		public void OperateOne() {
-			var blogs = ActiveRecord<Blog>.FindAll().ToArray();
+			var blogs = ActiveRecord.FindAll<Blog>().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 
 			CreateBlog();
 
-			blogs = ActiveRecord<Blog>.FindAll().ToArray();
+			blogs = ActiveRecord.FindAll<Blog>().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 		}
 
 		private static void CreateBlog()
 		{
 			var blog = new Blog {Name = "Senseless"};
-			ActiveRecord<Blog>.Save(blog);
+			ActiveRecord.Save(blog);
 		}
 
 		[Test]
 		public void OperateTheOtherOne() {
-			var authors = ActiveRecord<Author>.FindAll().ToArray();
+			var authors = ActiveRecord.FindAll<Author>().ToArray();
 
 			Assert.AreEqual(0, authors.Length);
 
 			CreateAuthor();
 
-			authors = ActiveRecord<Author>.FindAll().ToArray();
+			authors = ActiveRecord.FindAll<Author>().ToArray();
 			Assert.AreEqual(1, authors.Length);
 		}
 
 		private static void CreateAuthor()
 		{
 			var author = new Author {Name = "Dr. Who"};
-			ActiveRecord<Author>.Save(author);
+			ActiveRecord.Save(author);
 		}
 
 		[Test]
 		public void OperateBoth() {
-			var blogs = ActiveRecord<Blog>.FindAll().ToArray();
-			var authors = ActiveRecord<Author>.FindAll().ToArray();
+			var blogs = ActiveRecord.FindAll<Blog>().ToArray();
+			var authors = ActiveRecord.FindAll<Author>().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 			Assert.AreEqual(0, authors.Length);
@@ -90,8 +90,8 @@ namespace Castle.ActiveRecord.Tests
 			CreateBlog();
 			CreateAuthor();
 
-			blogs = ActiveRecord<Blog>.FindAll().ToArray();
-			authors = ActiveRecord<Author>.FindAll().ToArray();
+			blogs = ActiveRecord.FindAll<Blog>().ToArray();
+			authors = ActiveRecord.FindAll<Author>().ToArray();
 
 			Assert.AreEqual(1, blogs.Length);
 			Assert.AreEqual(1, authors.Length);

@@ -136,7 +136,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void NHibernateVerification()
 		{
-			ActiveRecord<SSAFEntity>.Execute(session => {
+			ActiveRecord.Execute<SSAFEntity>(session => {
 				using (session.BeginTransaction())
 				{
 					session.Save(new SSAFEntity("example"));
@@ -148,7 +148,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test]
 		public void SessionTxVerification()
 		{
-			ActiveRecord<SSAFEntity>.Execute(session => {
+			ActiveRecord.Execute<SSAFEntity>(session => {
 				using (ITransaction tx = session.BeginTransaction())
 				{
 					Assert.AreSame(tx, session.BeginTransaction());

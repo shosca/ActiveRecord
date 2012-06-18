@@ -31,7 +31,7 @@ namespace Castle.ActiveRecord
 	/// Allow programmers to use the 
 	/// ActiveRecord functionality without extending ActiveRecordBase/>
 	/// </summary>
-	public static class ActiveRecord<T> where T : class {
+	public static partial class ActiveRecord {
 
 		#region Execute/ExecuteStateless
 
@@ -42,12 +42,12 @@ namespace Castle.ActiveRecord
 		/// <param name="func">The delegate instance</param>
 		/// <param name="instance">The ActiveRecord instance</param>
 		/// <returns>Whatever is returned by the delegate invocation</returns>
-		public static TK Execute<TK>(Func<ISession, T, TK> func, T instance) {
+		public static TK Execute<T, TK>(Func<ISession, T, TK> func, T instance) where T : class {
 			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
 
 			EnsureInitialized(typeof(T));
 
-			var session = ActiveRecord.Holder.CreateSession(typeof (T));
+			var session = Holder.CreateSession(typeof (T));
 
 			try {
 				return func(session, instance);
@@ -57,11 +57,11 @@ namespace Castle.ActiveRecord
 				throw new NotFoundException(message, ex);
 
 			} catch (Exception ex) {
-				ActiveRecord.Holder.FailSession(session);
+				Holder.FailSession(session);
 				throw new ActiveRecordException("Error performing Execute for " + typeof (T).Name, ex);
 
 			} finally {
-				ActiveRecord.Holder.ReleaseSession(session);
+				Holder.ReleaseSession(session);
 			}
 		}
 
@@ -70,8 +70,8 @@ namespace Castle.ActiveRecord
 		/// NHibernate session. Used for custom NHibernate queries.
 		/// </summary>
 		/// <param name="action">The delegate instance</param>
-		public static void Execute(Action<ISession> action) {
-			Execute(session => {
+		public static void Execute<T>(Action<ISession> action) where T : class {
+			Execute<T, string>(session => {
 				action(session);
 				return string.Empty;
 			});
@@ -83,8 +83,8 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="func">The delegate instance</param>
 		/// <returns>Whatever is returned by the delegate invocation</returns>
-		public static TK Execute<TK>(Func<ISession, TK> func) {
-			return Execute((session, arg2) => func(session), null);
+		public static TK Execute<T, TK>(Func<ISession, TK> func) where T : class {
+			return Execute<T, TK>((session, arg2) => func(session), null);
 		}
 
 		/// <summary>
@@ -94,12 +94,12 @@ namespace Castle.ActiveRecord
 		/// <param name="func">The delegate instance</param>
 		/// <param name="instance">The ActiveRecord instance</param>
 		/// <returns>Whatever is returned by the delegate invocation</returns>
-		public static TK ExecuteStateless<TK>(Func<IStatelessSession, T, TK> func, T instance) {
+		public static TK ExecuteStateless<T, TK>(Func<IStatelessSession, T, TK> func, T instance) where T : class {
 			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
 
 			EnsureInitialized(typeof(T));
 
-			var session = ActiveRecord.Holder.GetSessionFactory(typeof (T)).OpenStatelessSession();
+			var session = Holder.GetSessionFactory(typeof (T)).OpenStatelessSession();
 			var tx = session.BeginTransaction();
 			try {
 				var result = func(session, instance);
@@ -121,8 +121,8 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="func">The delegate instance</param>
 		/// <returns>Whatever is returned by the delegate invocation</returns>
-		public static TK ExecuteStateless<TK>(Func<IStatelessSession, TK> func) {
-			return ExecuteStateless((session, arg2) => func(session), null);
+		public static TK ExecuteStateless<T, TK>(Func<IStatelessSession, TK> func) where T : class {
+			return ExecuteStateless<T, TK>((session, arg2) => func(session), null);
 		}
 
 		/// <summary>
@@ -130,8 +130,8 @@ namespace Castle.ActiveRecord
 		/// NHibernate stateless session. Used for custom NHibernate queries.
 		/// </summary>
 		/// <param name="action">The delegate instance</param>
-		public static void ExecuteStateless(Action<IStatelessSession> action) {
-			ExecuteStateless(session => {
+		public static void ExecuteStateless<T>(Action<IStatelessSession> action) where T : class {
+			ExecuteStateless<T, object>(session => {
 				action(session);
 				return string.Empty;
 			});
@@ -145,8 +145,8 @@ namespace Castle.ActiveRecord
 		/// Finds an object instance by its primary key.
 		/// </summary>
 		/// <param name="id">ID value</param>
-		public static T Find(object id) {
-			return Execute(session => session.Get<T>(id));
+		public static T Find<T>(object id) where T : class {
+			return Execute<T, T>(session => session.Get<T>(id));
 		}
 
 		/// <summary>
@@ -154,9 +154,9 @@ namespace Castle.ActiveRecord
 		/// returns null if not found
 		/// </summary>
 		/// <param name="id">ID value</param>
-		public static T Peek(object id)
+		public static T Peek<T>(object id) where T : class
 		{
-			return Execute(session => session.Load<T>(id));
+			return Execute<T, T>(session => session.Load<T>(id));
 		}
 
 		#endregion
@@ -168,9 +168,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="id">The id to check on</param>
 		/// <returns><c>true</c> if the ID exists; otherwise <c>false</c>.</returns>
-		public static bool Exists(object id)
+		public static bool Exists<T>(object id) where T : class
 		{
-			return Execute(session => session.Get<T>(id) != null);
+			return Execute<T, bool>(session => session.Get<T>(id) != null);
 		}
 
 		/// <summary>
@@ -178,18 +178,18 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="detachedQuery">The query expression</param>
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(IDetachedQuery detachedQuery)
+		public static bool Exists<T>(IDetachedQuery detachedQuery) where T : class
 		{
-			return SlicedFindAll(0, 1, detachedQuery).Any();
+			return SlicedFindAll<T>(0, 1, detachedQuery).Any();
 		}
 
 		/// <summary>
 		/// Check if any instance matches the criteria.
 		/// </summary>
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(params ICriterion[] criterias)
+		public static bool Exists<T>(params ICriterion[] criterias) where T : class
 		{
-			return Count(criterias) > 0;
+			return Count<T>(criterias) > 0;
 		}
 
 		/// <summary>
@@ -197,9 +197,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="expression">The queryover expression</param>
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(Expression<Func<T, bool>> expression)
+		public static bool Exists<T>(Expression<Func<T, bool>> expression) where T : class
 		{
-			return Count(expression) > 0;
+			return Count<T>(expression) > 0;
 		}
 
 		/// <summary>
@@ -207,9 +207,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="queryover">The queryover expression</param>
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(QueryOver<T, T> queryover)
+		public static bool Exists<T>(QueryOver<T, T> queryover) where T : class
 		{
-			return Count(queryover) > 0;
+			return Count<T>(queryover) > 0;
 		}
 
 		/// <summary>
@@ -217,9 +217,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="detachedCriteria">The criteria expression</param>
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
-		public static bool Exists(DetachedCriteria detachedCriteria)
+		public static bool Exists<T>(DetachedCriteria detachedCriteria) where T : class
 		{
-			return Count(detachedCriteria) > 0;
+			return Count<T>(detachedCriteria) > 0;
 		}
 
 		/// <summary>
@@ -228,12 +228,12 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The count result</returns>
-		public static int Count(params ICriterion[] criteria)
+		public static int Count<T>(params ICriterion[] criteria) where T : class
 		{
 			var dc = DetachedCriteria.For<T>()
 				.AddCriterias(criteria);
 
-			return Count(dc);
+			return Count<T>(dc);
 		}
 
 		/// <summary>
@@ -242,10 +242,10 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="expression">The criteria expression</param>
 		/// <returns>The count result</returns>
-		public static int Count(Expression<Func<T, bool>> expression)
+		public static int Count<T>(Expression<Func<T, bool>> expression) where T : class
 		{
 			var queryover = NHibernate.Criterion.QueryOver.Of<T>().Where(expression);
-			return Count(queryover);
+			return Count<T>(queryover);
 		}
 
 		/// <summary>
@@ -254,7 +254,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="queryover">The criteria expression</param>
 		/// <returns>The count result</returns>
-		public static int Count(QueryOver<T, T> queryover)
+		public static int Count<T>(QueryOver<T, T> queryover) where T : class
 		{
 			return queryover.Select(Projections.RowCount()).UniqueResult<T, int>();
 		}
@@ -265,7 +265,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="detachedCriteria">The criteria expression</param>
 		/// <returns>The count result</returns>
-		public static int Count(DetachedCriteria detachedCriteria)
+		public static int Count<T>(DetachedCriteria detachedCriteria) where T : class
 		{
 			return detachedCriteria.SetProjection(Projections.RowCount()).UniqueResult<T, int>();
 		}
@@ -280,9 +280,9 @@ namespace Castle.ActiveRecord
 		/// <param name="order">The sort order - used to determine which record is the first one</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
-		public static T FindFirst(Order order, params ICriterion[] criteria)
+		public static T FindFirst<T>(Order order, params ICriterion[] criteria) where T : class
 		{
-			return FindFirst(new[] {order}, criteria);
+			return FindFirst<T>(new[] {order}, criteria);
 		}
 
 		/// <summary>
@@ -291,9 +291,9 @@ namespace Castle.ActiveRecord
 		/// <param name="orders">The sort order - used to determine which record is the first one</param>
 		/// <param name="criterias">The criteria expression</param>
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
-		public static T FindFirst(Order[] orders, params ICriterion[] criterias)
+		public static T FindFirst<T>(Order[] orders, params ICriterion[] criterias) where T : class
 		{
-			return SlicedFindAll(0, 1, orders, criterias).FirstOrDefault();
+			return SlicedFindAll<T>(0, 1, orders, criterias).FirstOrDefault();
 		}
 
 		/// <summary>
@@ -301,9 +301,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="criterias">The criteria expression</param>
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
-		public static T FindFirst(params ICriterion[] criterias)
+		public static T FindFirst<T>(params ICriterion[] criterias) where T : class
 		{
-			return SlicedFindAll(0, 1, criterias).FirstOrDefault();
+			return SlicedFindAll<T>(0, 1, criterias).FirstOrDefault();
 		}
 
 		/// <summary>
@@ -312,9 +312,9 @@ namespace Castle.ActiveRecord
 		/// <param name="detachedCriteria">The criteria.</param>
 		/// <param name="orders">The sort order - used to determine which record is the first one.</param>
 		/// <returns>A <c>targetType</c> instance or <c>null.</c></returns>
-		public static T FindFirst(DetachedCriteria detachedCriteria, params Order[] orders)
+		public static T FindFirst<T>(DetachedCriteria detachedCriteria, params Order[] orders) where T : class
 		{
-			return SlicedFindAll(0, 1, detachedCriteria, orders).FirstOrDefault();
+			return SlicedFindAll<T>(0, 1, detachedCriteria, orders).FirstOrDefault();
 		}
 
 		/// <summary>
@@ -322,9 +322,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="detachedQuery">The expression query.</param>
 		/// <returns>A <c>targetType</c> instance or <c>null.</c></returns>
-		public static T FindFirst(IDetachedQuery detachedQuery)
+		public static T FindFirst<T>(IDetachedQuery detachedQuery) where T : class
 		{
-			return SlicedFindAll(0, 1, detachedQuery).FirstOrDefault();
+			return SlicedFindAll<T>(0, 1, detachedQuery).FirstOrDefault();
 		}
 
 		#endregion
@@ -336,9 +336,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="criterias">The criterias.</param>
 		/// <returns>A instance the targetType or <c>null</c></returns>
-		public static T FindOne(params ICriterion[] criterias)
+		public static T FindOne<T>(params ICriterion[] criterias) where T : class
 		{
-			var result = SlicedFindAll(0, 2, criterias).ToList();
+			var result = SlicedFindAll<T>(0, 2, criterias).ToList();
 
 			if (result.Count > 1)
 			{
@@ -355,9 +355,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="queryover">The QueryOver</param>
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
-		public static T FindOne(QueryOver<T,T> queryover)
+		public static T FindOne<T>(QueryOver<T,T> queryover) where T : class
 		{
-			var result = SlicedFindAll(0, 2, queryover).ToList();
+			var result = SlicedFindAll<T>(0, 2, queryover).ToList();
 
 			if (result.Count > 1)
 			{
@@ -375,9 +375,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="criteria">The criteria</param>
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
-		public static T FindOne(DetachedCriteria criteria)
+		public static T FindOne<T>(DetachedCriteria criteria) where T : class
 		{
-			var result = SlicedFindAll(0, 2, criteria).ToList();
+			var result = SlicedFindAll<T>(0, 2, criteria).ToList();
 
 			if (result.Count > 1)
 			{
@@ -394,9 +394,9 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="detachedQuery">The query expression</param>
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
-		public static T FindOne(IDetachedQuery detachedQuery)
+		public static T FindOne<T>(IDetachedQuery detachedQuery) where T : class
 		{
-			var result = SlicedFindAll(0, 2, detachedQuery).ToList();
+			var result = SlicedFindAll<T>(0, 2, detachedQuery).ToList();
 
 			if (result.Count > 1)
 			{
@@ -416,10 +416,10 @@ namespace Castle.ActiveRecord
 		/// <param name="property">A property name (not a column name)</param>
 		/// <param name="value">The value to be equals to</param>
 		/// <returns></returns>
-		public static IEnumerable<T> FindAllByProperty(string property, object value)
+		public static IEnumerable<T> FindAllByProperty<T>(string property, object value) where T : class
 		{
 			ICriterion criteria = (value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value);
-			return FindAll(criteria);
+			return FindAll<T>(criteria);
 		}
 
 		/// <summary>
@@ -429,10 +429,13 @@ namespace Castle.ActiveRecord
 		/// <param name="property">A property name (not a column name)</param>
 		/// <param name="value">The value to be equals to</param>
 		/// <returns></returns>
-		public static IEnumerable<T> FindAllByProperty(string orderByColumn, string property, object value)
+		public static IEnumerable<T> FindAllByProperty<T>(string orderByColumn, string property, object value) where T : class
 		{
-			ICriterion criteria = (value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value);
-			return FindAll(new[] {Order.Asc(orderByColumn)}, criteria);
+			return DetachedCriteria.For<T>()
+				.Add(
+					(value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value)
+				).AddOrder(Order.Asc(orderByColumn))
+				.List<T>();
 		}
 
 		#endregion
@@ -446,9 +449,9 @@ namespace Castle.ActiveRecord
 		/// <param name="order">An <see cref="Order"/> object.</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The <see cref="Array"/> of results.</returns>
-		public static IEnumerable<T> FindAll(Order order, params ICriterion[] criteria)
+		public static IEnumerable<T> FindAll<T>(Order order, params ICriterion[] criteria) where T : class
 		{
-			return FindAll(new[] {order}, criteria);
+			return FindAll<T>(new[] {order}, criteria);
 		}
 
 		/// <summary>
@@ -458,7 +461,7 @@ namespace Castle.ActiveRecord
 		/// <param name="orders"></param>
 		/// <param name="criterias"></param>
 		/// <returns></returns>
-		public static IEnumerable<T> FindAll(Order[] orders, params ICriterion[] criterias)
+		public static IEnumerable<T> FindAll<T>(Order[] orders, params ICriterion[] criterias) where T : class 
 		{
 			return DetachedCriteria.For<T>()
 				.SetResultTransformer(Transformers.DistinctRootEntity)
@@ -473,15 +476,18 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="criterias"></param>
 		/// <returns></returns>
-		public static IEnumerable<T> FindAll(params ICriterion[] criterias)
+		public static IEnumerable<T> FindAll<T>(params ICriterion[] criterias) where T : class
 		{
-			return FindAll(DetachedCriteria.For<T>().SetResultTransformer(Transformers.DistinctRootEntity).AddCriterias(criterias));
+			return DetachedCriteria.For<T>()
+				.SetResultTransformer(Transformers.DistinctRootEntity)
+				.AddCriterias(criterias)
+				.List<T>();
 		}
 
 		/// <summary>
 		/// Returns all instances found for the specified type according to the criteria
 		/// </summary>
-		public static IEnumerable<T> FindAll(QueryOver<T, T> queryover)
+		public static IEnumerable<T> FindAll<T>(QueryOver<T, T> queryover) where T : class
 		{
 			return queryover.List();
 		}
@@ -489,7 +495,7 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Returns all instances found for the specified type according to the criteria
 		/// </summary>
-		public static IEnumerable<T> FindAll(DetachedCriteria detachedCriteria, params Order[] orders)
+		public static IEnumerable<T> FindAll<T>(DetachedCriteria detachedCriteria, params Order[] orders) where T : class
 		{
 			return detachedCriteria.AddOrders(orders).List<T>();
 		}
@@ -499,7 +505,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="detachedQuery">The query expression</param>
 		/// <returns>The <see cref="Array"/> of results.</returns>
-		public static IEnumerable<T> FindAll(IDetachedQuery detachedQuery)
+		public static IEnumerable<T> FindAll<T>(IDetachedQuery detachedQuery) where T : class
 		{
 			return detachedQuery.List<T>();
 		}
@@ -516,9 +522,9 @@ namespace Castle.ActiveRecord
 		/// <param name="order">order</param>
 		/// <param name="criteria">criteria</param>
 		/// <returns>The sliced query results.</returns>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order order, params ICriterion[] criteria)
+		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, Order order, params ICriterion[] criteria) where T : class
 		{
-			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), order);
+			return SlicedFindAll<T>(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), order);
 		}
 
 		/// <summary>
@@ -529,9 +535,9 @@ namespace Castle.ActiveRecord
 		/// <param name="orders">An <see cref="Array"/> of <see cref="Order"/> objects.</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The sliced query results.</returns>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria)
+		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria) where T : class
 		{
-			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), orders);
+			return SlicedFindAll<T>(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), orders);
 		}
 
 		/// <summary>
@@ -541,9 +547,9 @@ namespace Castle.ActiveRecord
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The sliced query results.</returns>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, params ICriterion[] criteria)
+		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, params ICriterion[] criteria) where T : class
 		{
-			return SlicedFindAll(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria));
+			return SlicedFindAll<T>(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria));
 		}
 
 		/// <summary>
@@ -554,13 +560,11 @@ namespace Castle.ActiveRecord
 		/// <param name="orders">An <see cref="Array"/> of <see cref="Order"/> objects.</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The sliced query results.</returns>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders)
+		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders) where T : class
 		{
 			return criteria
 				.AddOrders(orders)
-				.SetFirstResult(firstResult)
-				.SetMaxResults(maxResults)
-				.List<T>();
+				.SlicedFindAll<T>(firstResult, maxResults);
 		}
 
 		/// <summary>
@@ -570,12 +574,9 @@ namespace Castle.ActiveRecord
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
 		/// <param name="detachedQuery">The query expression</param>
 		/// <returns>The sliced query results.</returns>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, IDetachedQuery detachedQuery)
+		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, IDetachedQuery detachedQuery) where T : class
 		{
-			return detachedQuery
-					.SetFirstResult(firstResult)
-					.SetMaxResults(maxResults)
-					.List<T>();
+			return detachedQuery.SlicedFindAll<T>(firstResult, maxResults);
 		}
 
 		/// <summary>
@@ -585,12 +586,9 @@ namespace Castle.ActiveRecord
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
 		/// <param name="queryover">Queryover</param>
 		/// <returns>The sliced query results.</returns>
-		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, QueryOver<T, T> queryover)
+		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, QueryOver<T, T> queryover) where T : class
 		{
-			return queryover
-					.Skip(firstResult)
-					.Take(maxResults)
-					.List();
+			return queryover.SlicedFindAll<T>(firstResult, maxResults);
 		}
 
 		#endregion
@@ -601,21 +599,22 @@ namespace Castle.ActiveRecord
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied criteria
 		/// </summary>
-		public static void DeleteAll(DetachedCriteria criteria)
+		public static void DeleteAll<T>(DetachedCriteria criteria) where T : class
 		{
 			var pks = criteria.SetProjection(Projections.Id()).List<T, object>();
-			DeleteAll(pks);
+			DeleteAll<T>(pks);
 		}
 
 		/// <summary>
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied criteria
 		/// </summary>
-		public static void DeleteAll(params ICriterion[] criteria) {
+		public static void DeleteAll<T>(params ICriterion[] criteria) where T : class
+		{
 			if (criteria != null && criteria.Length > 0)
-				DeleteAll(DetachedCriteria.For<T>().AddCriterias(criteria));
+				DeleteAll<T>(DetachedCriteria.For<T>().AddCriterias(criteria));
 			else
-				Execute(session => {
+				Execute<T>(session => {
 					session.CreateQuery("delete from " + typeof(T).FullName)
 						.ExecuteUpdate();
 					session.Flush();
@@ -627,18 +626,20 @@ namespace Castle.ActiveRecord
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied expression criteria
 		/// </summary>
-		public static void DeleteAll(Expression<Func<T, bool>> expression) {
+		public static void DeleteAll<T>(Expression<Func<T, bool>> expression) where T : class
+		{
 			var pks = NHibernate.Criterion.QueryOver.Of<T>().Where(expression).Select(Projections.Id()).List<T, object>();
-			DeleteAll(pks);
+			DeleteAll<T>(pks);
 		}
 
 		/// <summary>
 		/// Deletes all rows for the specified ActiveRecord type that matches
 		/// the supplied queryover
 		/// </summary>
-		public static void DeleteAll(QueryOver<T, T> queryover) {
+		public static void DeleteAll<T>(QueryOver<T, T> queryover) where T : class
+		{
 			var pks = queryover.Select(Projections.Id()).List<T, object>();
-			DeleteAll(pks);
+			DeleteAll<T>(pks);
 		}
 
 		/// <summary>
@@ -646,9 +647,9 @@ namespace Castle.ActiveRecord
 		/// the supplied HQL condition
 		/// </summary>
 		/// <param name="where">HQL condition to select the rows to be deleted</param>
-		public static void DeleteAll(string where)
+		public static void DeleteAll<T>(string where) where T : class
 		{
-			Execute(session => {
+			Execute<T>(session => {
 				session.Delete(string.Format("from {0} where {1}", typeof(T).FullName, where));
 				session.Flush();
 			});
@@ -658,33 +659,33 @@ namespace Castle.ActiveRecord
 		/// Deletes all rows for the supplied primary keys 
 		/// </summary>
 		/// <param name="pkvalues">A list of primary keys</param>
-		public static void DeleteAll(IEnumerable<object> pkvalues) {
-			var cm = ActiveRecord.Holder.GetSessionFactory(typeof (T)).GetClassMetadata(typeof (T));
+		public static void DeleteAll<T>(IEnumerable<object> pkvalues) where T : class
+		{
+			var cm = Holder.GetSessionFactory(typeof (T)).GetClassMetadata(typeof (T));
 			var pkname = cm.IdentifierPropertyName;
 			var pktype = cm.IdentifierType.ReturnedClass;
 
 			if (pktype == typeof(int) || pktype == typeof(long))
 			{
 				const string hql = "delete from {0} _this where _this.{1} in ({2})";
-				Execute(session => {
+				Execute<T>(session =>
 					session.CreateQuery(string.Format(hql, typeof(T).FullName, pkname, string.Join(",", pkvalues)))
-						.ExecuteUpdate();
-				});
-
+						.ExecuteUpdate()
+				);
 			}
 			else if (pktype == typeof(Guid) || pktype == typeof(string))
 			{
 				const string hql = "delete from {0} _this where _this.{1} in ('{2}')";
-				Execute(session => {
+				Execute<T>(session =>
 					session.CreateQuery(string.Format(hql, typeof(T).FullName, pkname, string.Join("','", pkvalues)))
-						.ExecuteUpdate();
-				});
+						.ExecuteUpdate()
+				);
 				
 			}
 			else
 			{
-				Execute(session => {
-					foreach (var obj in pkvalues.Select(Peek).Where(o => o != null)) {
+				Execute<T>(session => {
+					foreach (var obj in pkvalues.Select(id => Peek<T>(id)).Where(o => o != null)) {
 						Delete(obj);
 					}
 				});
@@ -699,12 +700,12 @@ namespace Castle.ActiveRecord
 		/// Saves the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
-		/// or <see cref="Update"/> instead.
+		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
+		/// or <see cref="Update{T}"/> instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
-		public static void Save(object instance)
+		public static void Save<T>(T instance) where T : class
 		{
 			InternalSave(instance, false);
 		}
@@ -713,12 +714,12 @@ namespace Castle.ActiveRecord
 		/// Saves the instance to the database and flushes the session. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
-		/// or <see cref="Update"/> instead.
+		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
+		/// or <see cref="Update{T}"/> instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
-		public static void SaveAndFlush(object instance)
+		public static void SaveAndFlush<T>(T instance) where T : class
 		{
 			InternalSave(instance, true);
 		}
@@ -727,16 +728,16 @@ namespace Castle.ActiveRecord
 		/// Saves the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
-		/// or <see cref="Update"/> instead.
+		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
+		/// or <see cref="Update{T}"/> instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
 		/// <param name="flush">if set to <c>true</c>, the operation will be followed by a session flush.</param>
-		private static void InternalSave(object instance, bool flush)
+		private static void InternalSave<T>(T instance, bool flush) where T : class
 		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			Execute(session => {
+			Execute<T>(session => {
 				session.SaveOrUpdate(instance);
 				if (flush) session.Flush();
 			});
@@ -750,13 +751,13 @@ namespace Castle.ActiveRecord
 		/// Saves a copy of the instance to the database. If the primary key is uninitialized
 		/// it creates the instance in the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
-		/// or <see cref="Update"/> instead.
+		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
+		/// or <see cref="Update{T}"/> instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <returns>The saved ActiveRecord instance</returns>
-		public static T SaveCopy(object instance)
+		public static T SaveCopy<T>(T instance) where T : class
 		{
 			return InternalSaveCopy(instance, false);
 		}
@@ -765,13 +766,13 @@ namespace Castle.ActiveRecord
 		/// Saves a copy of the instance to the database and flushes the session. If the primary key is uninitialized
 		/// it creates the instance in the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
-		/// or <see cref="Update"/> instead.
+		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
+		/// or <see cref="Update{T}"/> instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <returns>The saved ActiveRecord instance</returns>
-		public static T SaveCopyAndFlush(object instance)
+		public static T SaveCopyAndFlush<T>(T instance) where T : class
 		{
 			return InternalSaveCopy(instance, true);
 		}
@@ -780,18 +781,18 @@ namespace Castle.ActiveRecord
 		/// Saves a copy of the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create"/>
-		/// or <see cref="Update"/> instead.
+		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
+		/// or <see cref="Update{T}"/> instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <param name="flush">if set to <c>true</c>, the operation will be followed by a session flush.</param>
 		/// <returns>The saved ActiveRecord instance.</returns>
-		private static T InternalSaveCopy(object instance, bool flush)
+		private static T InternalSaveCopy<T>(T instance, bool flush) where T : class
 		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			return Execute(session => {
-				var persistent = (T)session.Merge(instance);
+			return Execute<T, T>(session => {
+				var persistent = session.Merge(instance);
 				if (flush) session.Flush();
 				return persistent;
 			});
@@ -805,7 +806,7 @@ namespace Castle.ActiveRecord
 		/// Creates (Saves) a new instance to the database.
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void Create(object instance)
+		public static void Create<T>(T instance) where T : class
 		{
 			InternalCreate(instance, false);
 		}
@@ -814,7 +815,7 @@ namespace Castle.ActiveRecord
 		/// Creates (Saves) a new instance to the database.
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void CreateAndFlush(object instance)
+		public static void CreateAndFlush<T>(T instance) where T : class
 		{
 			InternalCreate(instance, false);
 		}
@@ -824,10 +825,10 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be updated on the database</param>
 		/// <param name="flush">if set to <c>true</c>, the operation will be followed by a session flush.</param>
-		private static void InternalCreate(object instance, bool flush)
+		private static void InternalCreate<T>(T instance, bool flush) where T : class
 		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			Execute(session => {
+			Execute<T>(session => {
 				session.Save(instance);
 				if (flush) session.Flush();
 			});
@@ -842,7 +843,7 @@ namespace Castle.ActiveRecord
 		/// state to the database.
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void Update(object instance)
+		public static void Update<T>(T instance) where T : class
 		{
 			InternalUpdate(instance, false);
 		}
@@ -852,7 +853,7 @@ namespace Castle.ActiveRecord
 		/// state to the database and flushes the session.
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be updated on the database</param>
-		public static void UpdateAndFlush(object instance)
+		public static void UpdateAndFlush<T>(T instance) where T : class
 		{
 			InternalUpdate(instance, true);
 		}
@@ -863,10 +864,10 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be updated on the database</param>
 		/// <param name="flush">if set to <c>true</c>, the operation will be followed by a session flush.</param>
-		private static void InternalUpdate(object instance, bool flush)
+		private static void InternalUpdate<T>(T instance, bool flush) where T : class
 		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			Execute(session => {
+			Execute<T>(session => {
 				session.Update(instance);
 
 				if (flush) session.Flush();
@@ -881,7 +882,7 @@ namespace Castle.ActiveRecord
 		/// Deletes the instance from the database.
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be deleted</param>
-		public static void Delete(object instance)
+		public static void Delete<T>(T instance) where T : class 
 		{
 			InternalDelete(instance, false);
 		}
@@ -890,7 +891,7 @@ namespace Castle.ActiveRecord
 		/// Deletes the instance from the database and flushes the session.
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be deleted</param>
-		public static void DeleteAndFlush(object instance)
+		public static void DeleteAndFlush<T>(T instance) where T : class
 		{
 			InternalDelete(instance, true);
 		}
@@ -900,10 +901,10 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be deleted</param>
 		/// <param name="flush">if set to <c>true</c>, the operation will be followed by a session flush.</param>
-		private static void InternalDelete(object instance, bool flush)
+		private static void InternalDelete<T>(T instance, bool flush) where T : class
 		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			Execute(session => {
+			Execute<T>(session => {
 				session.Delete(instance);
 				if (flush) session.Flush();
 			});
@@ -917,28 +918,30 @@ namespace Castle.ActiveRecord
 		/// Refresh the instance from the database.
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be reloaded</param>
-		public static void Refresh(object instance)
+		public static void Refresh<T>(T instance) where T : class
 		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			Execute(session => session.Refresh(instance));
+			Execute<T>(session => session.Refresh(instance));
 		}
 
 		/// <summary>
 		/// Merge the instance to scope session
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void Merge(object instance) {
+		public static void Merge<T>(T instance) where T : class
+		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			Execute(session => session.Merge(instance));
+			Execute<T>(session => session.Merge(instance));
 		}
 
 		/// <summary>
 		/// Evict the instance from scope session
 		/// </summary>
 		/// <param name="instance"></param>
-		public static void Evict(object instance) {
+		public static void Evict<T>(object instance) where T : class
+		{
 			if (instance == null) throw new ArgumentNullException("instance");
-			Execute(session => session.Evict(instance));
+			Execute<T>(session => session.Evict(instance));
 		}
 
 		/// <summary>
@@ -948,10 +951,10 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="instance">The instance.</param>
 		/// <param name="replicationMode">The replication mode.</param>
-		public static void Replicate(object instance, ReplicationMode replicationMode)
+		public static void Replicate<T>(object instance, ReplicationMode replicationMode) where T : class
 		{
 			if (instance == null) { throw new ArgumentNullException("instance"); }
-			Execute(session => session.Replicate(instance, replicationMode));
+			Execute<T>(session => session.Replicate(instance, replicationMode));
 		}
 
 		#endregion
@@ -962,13 +965,12 @@ namespace Castle.ActiveRecord
 		/// Provide an IQueryable.
 		/// Make sure we are in a scope
 		/// </summary>
-		public static IQueryable<T> All {
-			get {
-				if (!ActiveRecord.Holder.ThreadScopeInfo.HasInitializedScope)
-					throw new ActiveRecordException("You need to be in an ISessionScope to do linq queries.");
+		public static IQueryable<T> All<T>() where T : class
+		{
+			if (!Holder.ThreadScopeInfo.HasInitializedScope)
+				throw new ActiveRecordException("You need to be in an ISessionScope to do linq queries.");
 
-				return Execute(s => s.Query<T>());
-			}
+			return Execute<T, IQueryable<T>>(s => s.Query<T>());
 		}
 
 
@@ -977,7 +979,8 @@ namespace Castle.ActiveRecord
 		/// or as the in argument in a Linq expression. 
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
-		public static QueryOver<T,T> QueryOver() {
+		public static QueryOver<T,T> QueryOver<T>() where T : class
+		{
 			return NHibernate.Criterion.QueryOver.Of<T>();
 		}
 
@@ -986,7 +989,8 @@ namespace Castle.ActiveRecord
 		/// or as the in argument in a Linq expression. 
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
-		public static QueryOver<T,T> QueryOver(Expression<Func<T>> alias) {
+		public static QueryOver<T,T> QueryOver<T>(Expression<Func<T>> alias) where T : class
+		{
 			return NHibernate.Criterion.QueryOver.Of(alias);
 		}
 
@@ -995,7 +999,8 @@ namespace Castle.ActiveRecord
 		/// or as the in argument in a Linq expression. 
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
-		public static QueryOver<T,T> QueryOver(string entityname) {
+		public static QueryOver<T,T> QueryOver<T>(string entityname) where T : class
+		{
 			return NHibernate.Criterion.QueryOver.Of<T>(entityname);
 		}
 
@@ -1004,7 +1009,8 @@ namespace Castle.ActiveRecord
 		/// or as the in argument in a Linq expression. 
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
-		public static QueryOver<T,T> QueryOver(string entityname, Expression<Func<T>> alias) {
+		public static QueryOver<T,T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class
+		{
 			return NHibernate.Criterion.QueryOver.Of(entityname, alias);
 		}
 
@@ -1012,7 +1018,7 @@ namespace Castle.ActiveRecord
 
 		internal static void EnsureInitialized(Type type)
 		{
-			if (!ActiveRecord.IsInitialized)
+			if (!IsInitialized)
 			{
 				var message = string.Format("An ActiveRecord class ({0}) was used but the framework seems not " +
 											   "properly initialized. Did you forget about ActiveRecordStarter.Initialize() ?",
@@ -1020,16 +1026,12 @@ namespace Castle.ActiveRecord
 				throw new ActiveRecordException(message);
 			}
 
-			var sf = ActiveRecord.Holder.GetSessionFactory(type);
+			var sf = Holder.GetSessionFactory(type);
 
-			if (sf.GetClassMetadata(typeof(T)) == null)
+			if (sf.GetClassMetadata(type) == null)
 			{
-				var message = string.Format("You have accessed an ActiveRecord class that wasn't properly initialized. " +
-											   "There are two possible explanations: that the call to ActiveRecordStarter.Initialize() didn't include {0} class, or that {0} class is not decorated with the [ActiveRecord] attribute.",
-											   type.FullName);
-				throw new ActiveRecordException(message);
+				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
 		}
-
 	}
 }

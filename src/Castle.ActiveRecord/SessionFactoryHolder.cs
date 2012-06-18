@@ -71,14 +71,7 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		public ISessionFactory[] GetSessionFactories()
 		{
-			List<ISessionFactory> factories = new List<ISessionFactory>();
-
-			foreach(ISessionFactory factory in type2SessFactory.Values)
-			{
-				factories.Add(factory);
-			}
-
-			return factories.ToArray();
+			return type2SessFactory.Values.Select(sf => sf.SessionFactory).Distinct().ToArray();
 		}
 
 		/// <summary>
@@ -93,23 +86,14 @@ namespace Castle.ActiveRecord
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
 
-
-			ISessionFactory sessFactory = type2SessFactory[type].SessionFactory;
-
-			if (sessFactory != null)
-			{
-				return sessFactory;
-			}
-
-
-			sessFactory = type2SessFactory[type].SessionFactory;
+			var sessFactory = type2SessFactory[type].SessionFactory;
 
 			if (sessFactory != null)
 			{
 				return sessFactory;
 			}
 
-			Configuration cfg = GetConfiguration(type);
+			var cfg = GetConfiguration(type);
 
 			sessFactory = cfg.BuildSessionFactory();
 

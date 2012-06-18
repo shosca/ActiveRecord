@@ -42,7 +42,7 @@ namespace Castle.ActiveRecord.Tests.Models
 		public virtual Award Award { get; set; }
 	}
 
-	public class Award : ActiveRecordBase<Employee>
+	public class Award : ActiveRecordBase<Award>
 	{
 		public Award()
 		{

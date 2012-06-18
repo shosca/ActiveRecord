@@ -602,14 +602,14 @@ namespace Castle.ActiveRecord.Tests
 
 				using(new TransactionScope(OnDispose.Rollback))
 				{
-					var changedCompanies = ActiveRecord<Company>.FindAllByProperty("Name", "changed");
+					var changedCompanies = ActiveRecord.FindAllByProperty<Company>("Name", "changed");
 					Assert.AreEqual(1, changedCompanies.Count());
 					var e2a = changedCompanies.First();
 					e2a.Delete();
 
 					SessionScope.Current.Flush();
 
-					Assert.AreEqual(0, ActiveRecord<Company>.FindAllByProperty("Name", "changed").Count());
+					Assert.AreEqual(0, ActiveRecord.FindAllByProperty<Company>("Name", "changed").Count());
 				}
 			}
 		}

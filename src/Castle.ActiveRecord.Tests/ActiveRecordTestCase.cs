@@ -656,7 +656,7 @@ namespace Castle.ActiveRecord.Tests
 		[Test, ExpectedException(typeof(ActiveRecordException))]
 		public void LinqWithoutSessionScopeShouldFail()
 		{
-			var array = ActiveRecord<Blog>.All.ToArray();
+			var array = ActiveRecord.All<Blog>().ToArray();
 			if (array.Length > 0) return;
 		}
 
@@ -668,7 +668,7 @@ namespace Castle.ActiveRecord.Tests
 				var blog = new Blog {Name = "foo", Author = "bar"};
 				blog.Save();
 
-				var orderedQueryable = ActiveRecord<Blog>.All;
+				var orderedQueryable = ActiveRecord.All<Blog>();
 
 				var blogs = (from w in orderedQueryable
 				               where w.Name.StartsWith("f")

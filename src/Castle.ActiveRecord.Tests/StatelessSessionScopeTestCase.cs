@@ -68,12 +68,12 @@ namespace Castle.ActiveRecord.Tests
 			var ship = new Ship() {Name = "Andrea Doria"};
 
 			using (new SessionScope())
-				ActiveRecord<Ship>.Create(ship);
+				ActiveRecord.Create(ship);
 
 			using (new StatelessSessionScope())
 			{
-				Assert.IsTrue(ActiveRecord<Ship>.Exists(ship.Id));
-				Assert.AreEqual("Andrea Doria",ActiveRecord<Ship>.Find(ship.Id).Name);
+				Assert.IsTrue(ActiveRecord.Exists<Ship>(ship.Id));
+				Assert.AreEqual("Andrea Doria",ActiveRecord.Find<Ship>(ship.Id).Name);
 			}
 		}
 
@@ -201,7 +201,7 @@ namespace Castle.ActiveRecord.Tests
 
 			var crit = DetachedCriteria.For<Blog>().Add(Expression.Eq("Author", "Mort"));
 			using (new StatelessSessionScope())
-				Assert.AreEqual(1, ActiveRecord<Blog>.FindAll(crit).Count());
+				Assert.AreEqual(1, ActiveRecord.FindAll<Blog>(crit).Count());
 
 		}
 
