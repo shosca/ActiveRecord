@@ -19,7 +19,7 @@ release: $(eval CONFIG=release)
 
 
 build: asminfo $(shell find src -type f -iname '*.cs')
-	$(MSBUILD) $(SLN) ${SOLUTION} -p:Configuration=$(CONFIG) -p:OutputPath=$(OUTPUTPATH)/$(CONFIG)/$(FW) \
+	$(MSBUILD) $(SLN) $(SOLUTION) -p:Configuration=$(CONFIG) -p:OutputPath=$(OUTPUTPATH)/$(CONFIG)/$(FW) \
 		-p:TargetFrameworkVersion=$(FW)
 
 asminfo:
