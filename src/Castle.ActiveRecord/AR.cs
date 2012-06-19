@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+using NHibernate;
+
 namespace Castle.ActiveRecord {
 	using System;
 	using System.Collections.Generic;
@@ -518,5 +520,119 @@ namespace Castle.ActiveRecord {
 			if (OnConfigurationCreated != null)
 				OnConfigurationCreated(cfg, sessionFactoryConfig);
 		}
+
+
+		#region Non-Generic Execute/ExecuteStateless
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="func">The delegate instance</param>
+		/// <param name="instance">The ActiveRecord instance</param>
+		/// <returns>Whatever is returned by the delegate invocation</returns>
+		public static TK Execute<T, TK>(Type type, Func<ISession, T, TK> func, T instance) {
+			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
+
+			EnsureInitialized(type);
+
+			var session = Holder.CreateSession(type);
+
+			try {
+				return func(session, instance);
+
+			} catch (ObjectNotFoundException ex) {
+				var message = string.Format("Could not find {0} with id {1}", ex.EntityName, ex.Identifier);
+				throw new NotFoundException(message, ex);
+
+			} catch (Exception ex) {
+				Holder.FailSession(session);
+				throw new ActiveRecordException("Error performing Execute for " + type.Name, ex);
+
+			} finally {
+				Holder.ReleaseSession(session);
+			}
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="action">The delegate instance</param>
+		public static void Execute(Type type, Action<ISession> action) {
+			Execute(type, session => {
+				action(session);
+				return string.Empty;
+			});
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="func">The delegate instance</param>
+		/// <returns>Whatever is returned by the delegate invocation</returns>
+		public static TK Execute<TK>(Type type, Func<ISession, TK> func) {
+			return Execute<object, TK>(type, (session, arg2) => func(session), null);
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate stateless session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="func">The delegate instance</param>
+		/// <param name="instance">The ActiveRecord instance</param>
+		/// <returns>Whatever is returned by the delegate invocation</returns>
+		public static TK ExecuteStateless<TK>(Type type, Func<IStatelessSession, object, TK> func, object instance) {
+			if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
+			if (type == null) throw new ArgumentNullException("type", "Type must be passed");
+
+			EnsureInitialized(type);
+
+			var session = Holder.GetSessionFactory(type).OpenStatelessSession();
+			var tx = session.BeginTransaction();
+			try {
+				var result = func(session, instance);
+				tx.Commit();
+				return result;
+			} catch (Exception ex) {
+				tx.Rollback();
+				throw new ActiveRecordException("Error performing Execute for " + type.Name, ex);
+
+			} finally {
+				tx.Dispose();
+				session.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate stateless session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="func">The delegate instance</param>
+		/// <returns>Whatever is returned by the delegate invocation</returns>
+		public static TK ExecuteStateless<TK>(Type type, Func<IStatelessSession, TK> func) {
+			return ExecuteStateless<TK>(type, (session, arg2) => func(session), null);
+		}
+
+		/// <summary>
+		/// Invokes the specified delegate passing a valid 
+		/// NHibernate stateless session. Used for custom NHibernate queries.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="action">The delegate instance</param>
+		public static void ExecuteStateless(Type type, Action<IStatelessSession> action) {
+			ExecuteStateless<object>(type, session => {
+				action(session);
+				return string.Empty;
+			});
+		}
+
+		#endregion
 	}
 }
