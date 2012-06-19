@@ -52,7 +52,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 		public override IDictionary<string, string> GetProperties()
 		{
 			return new Dictionary<string, string> {
-				{"show_sql","true"}
+				{NHibernate.Cfg.Environment.ShowSql,"true"}
 			};
 		}
 
@@ -60,8 +60,8 @@ namespace Castle.ActiveRecord.Tests.Testing
 		public void PropertiesAreCarriesOver()
 		{
 			Blog.FindAll();
-			var cfg = ActiveRecord.Holder.GetConfiguration(typeof (Blog));
-			Assert.AreEqual("true", cfg.Properties["show_sql"]);
+			var cfg = AR.Holder.GetConfiguration(typeof (Blog));
+			Assert.AreEqual("true", cfg.Properties[NHibernate.Cfg.Environment.ShowSql]);
 		}
 
 	}

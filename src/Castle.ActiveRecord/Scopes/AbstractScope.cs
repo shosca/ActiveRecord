@@ -289,7 +289,7 @@ namespace Castle.ActiveRecord.Scopes
 			}
 			else if (FlushAction == FlushAction.Config)
 			{
-				DefaultFlushType behaviour = ActiveRecord.ConfigurationSource.DefaultFlushType;
+				DefaultFlushType behaviour = AR.ConfigurationSource.DefaultFlushType;
 				session.FlushMode = (behaviour == DefaultFlushType.Classic || behaviour == DefaultFlushType.Auto) ?
 					FlushMode.Auto :
                     (behaviour == DefaultFlushType.Leave) ?

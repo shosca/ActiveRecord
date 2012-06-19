@@ -45,7 +45,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 			using (new SessionScope())
 			{
 				Blog.FindAll();
-				Assert.AreEqual(FlushMode.Commit, ActiveRecord.Holder.CreateSession(typeof(Blog)).FlushMode);
+				Assert.AreEqual(FlushMode.Commit, AR.Holder.CreateSession(typeof(Blog)).FlushMode);
 			}
 		}
 	}

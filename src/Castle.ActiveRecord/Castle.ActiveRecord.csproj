@@ -103,13 +103,13 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActiveRecord.cs" />
+    <Compile Include="AR.cs" />
     <Compile Include="Attributes\EventListenerAttribute.cs" />
     <Compile Include="ByteCode\LazyInitializer.cs" />
     <Compile Include="ByteCode\ProxyFactory.cs" />
     <Compile Include="ByteCode\ARProxyFactoryFactory.cs" />
     <Compile Include="ActiveRecordException.cs" />
-    <Compile Include="ActiveRecord.Generic.cs" />
+    <Compile Include="AR.Generic.cs" />
     <Compile Include="Config\SessionFactoryConfig.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="Config\ActiveRecordSectionHandler.cs" />

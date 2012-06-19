@@ -31,7 +31,7 @@ namespace Castle.ActiveRecord
 	/// Allow programmers to use the 
 	/// ActiveRecord functionality without extending ActiveRecordBase/>
 	/// </summary>
-	public static partial class ActiveRecord {
+	public static partial class AR {
 
 		#region Execute/ExecuteStateless
 

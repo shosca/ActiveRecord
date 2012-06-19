@@ -41,7 +41,7 @@ namespace Castle.ActiveRecord
 		/// <returns>T</returns>
 		public static T Find(object id)
 		{
-			return ActiveRecord.Find<T>(id);
+			return AR.Find<T>(id);
 		}
 
 		/// <summary>
@@ -52,7 +52,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <typeparamref name="T"/></returns>
 		public static T Peek(object id)
 		{
-			return ActiveRecord.Peek<T>(id);
+			return AR.Peek<T>(id);
 		}
 
 		#endregion
@@ -66,7 +66,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if the ID exists; otherwise <c>false</c>.</returns>
 		public static bool Exists(object id)
 		{
-			return ActiveRecord.Exists<T>(id);
+			return AR.Exists<T>(id);
 		}
 
 		/// <summary>
@@ -76,7 +76,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(IDetachedQuery detachedQuery)
 		{
-			return ActiveRecord.Exists<T>(detachedQuery);
+			return AR.Exists<T>(detachedQuery);
 		}
 
 		/// <summary>
@@ -85,7 +85,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(params ICriterion[] criterias)
 		{
-			return ActiveRecord.Exists<T>(criterias);
+			return AR.Exists<T>(criterias);
 		}
 
 		/// <summary>
@@ -95,7 +95,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(Expression<Func<T, bool>> expression)
 		{
-			return ActiveRecord.Exists<T>(expression);
+			return AR.Exists<T>(expression);
 		}
 
 		/// <summary>
@@ -105,7 +105,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(QueryOver<T, T> queryover)
 		{
-			return ActiveRecord.Exists<T>(queryover);
+			return AR.Exists<T>(queryover);
 		}
 
 		/// <summary>
@@ -115,7 +115,7 @@ namespace Castle.ActiveRecord
 		/// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
 		public static bool Exists(DetachedCriteria detachedCriteria)
 		{
-			return ActiveRecord.Exists<T>(detachedCriteria);
+			return AR.Exists<T>(detachedCriteria);
 		}
 
 		/// <summary>
@@ -126,7 +126,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The count result</returns>
 		public static int Count(params ICriterion[] criteria)
 		{
-			return ActiveRecord.Count<T>(criteria);
+			return AR.Count<T>(criteria);
 		}
 
 		/// <summary>
@@ -137,7 +137,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The count result</returns>
 		public static int Count(Expression<Func<T, bool>> expression)
 		{
-			return ActiveRecord.Count<T>(expression);
+			return AR.Count<T>(expression);
 		}
 
 		/// <summary>
@@ -148,7 +148,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The count result</returns>
 		public static int Count(QueryOver<T, T> queryover)
 		{
-			return ActiveRecord.Count<T>(queryover);
+			return AR.Count<T>(queryover);
 		}
 
 		/// <summary>
@@ -159,7 +159,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The count result</returns>
 		public static int Count(DetachedCriteria detachedCriteria)
 		{
-			return ActiveRecord.Count<T>(detachedCriteria);
+			return AR.Count<T>(detachedCriteria);
 		}
 
 		#endregion
@@ -174,7 +174,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindFirst(Order order, params ICriterion[] criteria)
 		{
-			return ActiveRecord.FindFirst<T>(order, criteria);
+			return AR.FindFirst<T>(order, criteria);
 		}
 
 		/// <summary>
@@ -185,7 +185,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindFirst(Order[] orders, params ICriterion[] criteria)
 		{
-			return ActiveRecord.FindFirst<T>(orders, criteria);
+			return AR.FindFirst<T>(orders, criteria);
 		}
 
 		/// <summary>
@@ -195,7 +195,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindFirst(params ICriterion[] criteria)
 		{
-			return ActiveRecord.FindFirst<T>(criteria);
+			return AR.FindFirst<T>(criteria);
 		}
 
 
@@ -207,7 +207,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c>.</returns>
 		public static T FindFirst(DetachedCriteria criteria, params Order[] orders)
 		{
-			return ActiveRecord.FindFirst<T>(criteria, orders);
+			return AR.FindFirst<T>(criteria, orders);
 		}
 		/// <summary>
 		/// Searches and returns the first row. 
@@ -216,7 +216,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null.</c></returns>
 		public static T FindFirst(IDetachedQuery detachedQuery) 
 		{
-			return ActiveRecord.FindFirst<T>(detachedQuery);
+			return AR.FindFirst<T>(detachedQuery);
 		}
 
 		#endregion
@@ -231,7 +231,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(params ICriterion[] criteria)
 		{
-			return ActiveRecord.FindOne<T>(criteria);
+			return AR.FindOne<T>(criteria);
 		}
 		/// <summary>
 		/// Searches and returns a row. If more than one is found, 
@@ -240,7 +240,7 @@ namespace Castle.ActiveRecord
 		/// <param name="queryover">The QueryOver</param>
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(QueryOver<T,T> queryover) {
-			return ActiveRecord.FindOne<T>(queryover);
+			return AR.FindOne<T>(queryover);
 		}
 
 		/// <summary>
@@ -251,7 +251,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(DetachedCriteria criteria)
 		{
-			return ActiveRecord.FindOne<T>(criteria);
+			return AR.FindOne<T>(criteria);
 		}
 
 		/// <summary>
@@ -262,7 +262,7 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne(IDetachedQuery detachedQuery) 
 		{
-			return ActiveRecord.FindOne<T>(detachedQuery);
+			return AR.FindOne<T>(detachedQuery);
 		}
 
 		#endregion
@@ -277,7 +277,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAllByProperty(string property, object value)
 		{
-			return ActiveRecord.FindAllByProperty<T>(property, value);
+			return AR.FindAllByProperty<T>(property, value);
 		}
 
 		/// <summary>
@@ -289,7 +289,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAllByProperty(string orderByColumn, string property, object value)
 		{
-			return ActiveRecord.FindAllByProperty<T>(orderByColumn, property, value);
+			return AR.FindAllByProperty<T>(orderByColumn, property, value);
 		}
 
 		#endregion
@@ -305,7 +305,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The <see cref="Array"/> of results.</returns>
 		public static IEnumerable<T> FindAll(Order order, params ICriterion[] criteria)
 		{
-			return ActiveRecord.FindAll<T>(order, criteria);
+			return AR.FindAll<T>(order, criteria);
 		}
 
 		/// <summary>
@@ -317,7 +317,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAll(Order[] orders, params ICriterion[] criteria)
 		{
-			return ActiveRecord.FindAll<T>(orders, criteria);
+			return AR.FindAll<T>(orders, criteria);
 		}
 
 		/// <summary>
@@ -328,7 +328,7 @@ namespace Castle.ActiveRecord
 		/// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
 		public static IEnumerable<T> FindAll(params ICriterion[] criteria)
 		{
-			return ActiveRecord.FindAll<T>(criteria);
+			return AR.FindAll<T>(criteria);
 		}
 
 		/// <summary>
@@ -338,7 +338,7 @@ namespace Castle.ActiveRecord
 		/// <returns>All entities that match the criteria</returns>
 		public static IEnumerable<T> FindAll(QueryOver<T, T> queryover)
 		{
-			return ActiveRecord.FindAll<T>(queryover);
+			return AR.FindAll<T>(queryover);
 		}
 
 
@@ -350,7 +350,7 @@ namespace Castle.ActiveRecord
 		/// <returns>All entities that match the criteria</returns>
 		public static IEnumerable<T> FindAll(DetachedCriteria criteria, params Order[] orders)
 		{
-			return ActiveRecord.FindAll<T>(criteria, orders);
+			return AR.FindAll<T>(criteria, orders);
 		}
 
 		/// <summary>
@@ -360,7 +360,7 @@ namespace Castle.ActiveRecord
 		/// <returns>All entities that match the query</returns>
 		public static IEnumerable<T> FindAll(IDetachedQuery detachedQuery)
 		{
-			return ActiveRecord.FindAll<T>(detachedQuery);
+			return AR.FindAll<T>(detachedQuery);
 		}
 
 
@@ -378,7 +378,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order order, params ICriterion[] criteria)
 		{
-			return ActiveRecord.SlicedFindAll<T>(firstResult, maxResults, order, criteria);
+			return AR.SlicedFindAll<T>(firstResult, maxResults, order, criteria);
 		}
 
 
@@ -392,7 +392,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria)
 		{
-			return ActiveRecord.SlicedFindAll<T>(firstResult, maxResults, orders, criteria);
+			return AR.SlicedFindAll<T>(firstResult, maxResults, orders, criteria);
 		}
 
 		/// <summary>
@@ -404,7 +404,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, params ICriterion[] criteria)
 		{
-			return ActiveRecord.SlicedFindAll<T>(firstResult, maxResults, criteria);
+			return AR.SlicedFindAll<T>(firstResult, maxResults, criteria);
 		}
 
 		/// <summary>
@@ -417,7 +417,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders)
 		{
-			return ActiveRecord.SlicedFindAll<T>(firstResult, maxResults, criteria, orders);
+			return AR.SlicedFindAll<T>(firstResult, maxResults, criteria, orders);
 		}
 
 		/// <summary>
@@ -429,7 +429,7 @@ namespace Castle.ActiveRecord
 		/// <param name="detachedQuery">The query expression</param>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, IDetachedQuery detachedQuery)
 		{
-			return ActiveRecord.SlicedFindAll<T>(firstResult, maxResults, detachedQuery);
+			return AR.SlicedFindAll<T>(firstResult, maxResults, detachedQuery);
 		}
 
 		/// <summary>
@@ -441,7 +441,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, QueryOver<T, T> queryover)
 		{
-			return ActiveRecord.SlicedFindAll<T>(firstResult, maxResults, queryover);
+			return AR.SlicedFindAll<T>(firstResult, maxResults, queryover);
 		}
 
 		#endregion
@@ -454,7 +454,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public static void DeleteAll(DetachedCriteria criteria)
 		{
-			ActiveRecord.DeleteAll<T>(criteria);
+			AR.DeleteAll<T>(criteria);
 		}
 
 		/// <summary>
@@ -462,7 +462,7 @@ namespace Castle.ActiveRecord
 		/// the supplied criteria
 		/// </summary>
 		public static void DeleteAll(params ICriterion[] criteria) {
-			ActiveRecord.DeleteAll<T>(criteria);
+			AR.DeleteAll<T>(criteria);
 		}
 
 		/// <summary>
@@ -470,7 +470,7 @@ namespace Castle.ActiveRecord
 		/// the supplied expression criteria
 		/// </summary>
 		public static void DeleteAll(Expression<Func<T, bool>> expression) {
-			ActiveRecord.DeleteAll<T>(expression);
+			AR.DeleteAll<T>(expression);
 		}
 
 		/// <summary>
@@ -479,7 +479,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public static void DeleteAll(QueryOver<T, T> queryover)
 		{
-			ActiveRecord.DeleteAll<T>(queryover);
+			AR.DeleteAll<T>(queryover);
 		}
 
 		/// <summary>
@@ -489,7 +489,7 @@ namespace Castle.ActiveRecord
 		/// <param name="where">HQL condition to select the rows to be deleted</param>
 		public static void DeleteAll(string where)
 		{
-			ActiveRecord.DeleteAll<T>(where);
+			AR.DeleteAll<T>(where);
 		}
 
 		/// <summary>
@@ -499,7 +499,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The number of objects deleted</returns>
 		public static void DeleteAll(IEnumerable<object> pkValues)
 		{
-			ActiveRecord.DeleteAll<T>(pkValues);
+			AR.DeleteAll<T>(pkValues);
 		}
 
 		#endregion
@@ -515,7 +515,7 @@ namespace Castle.ActiveRecord
 		/// </para>
 		/// </summary>
 		public virtual void Save() {
-			ActiveRecord.Save(this as T);
+			AR.Save(this as T);
 		}
 
 		/// <summary>
@@ -527,7 +527,7 @@ namespace Castle.ActiveRecord
 		/// </para>
 		/// </summary>
 		public virtual void SaveAndFlush() {
-			ActiveRecord.SaveAndFlush(this as T);
+			AR.SaveAndFlush(this as T);
 		}
 
 		/// <summary>
@@ -541,7 +541,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The saved ActiveRecord instance</returns>
 		public virtual T SaveCopy()
 		{
-			return ActiveRecord.SaveCopy<T>(this as T);
+			return AR.SaveCopy<T>(this as T);
 		}
 
 		/// <summary>
@@ -555,21 +555,21 @@ namespace Castle.ActiveRecord
 		/// <returns>The saved ActiveRecord instance</returns>
 		public virtual T SaveCopyAndFlush()
 		{
-			return ActiveRecord.SaveCopyAndFlush<T>(this as T);
+			return AR.SaveCopyAndFlush<T>(this as T);
 		}
 
 		/// <summary>
 		/// Creates (Saves) a new instance to the database.
 		/// </summary>
 		public virtual void Create() {
-			ActiveRecord.Create<T>(this as T);
+			AR.Create<T>(this as T);
 		}
 
 		/// <summary>
 		/// Creates (Saves) a new instance to the database.
 		/// </summary>
 		public virtual void CreateAndFlush() {
-			ActiveRecord.CreateAndFlush<T>(this as T);
+			AR.CreateAndFlush<T>(this as T);
 		}
 
 		/// <summary>
@@ -577,7 +577,7 @@ namespace Castle.ActiveRecord
 		/// state to the database.
 		/// </summary>
 		public virtual void Update() {
-			ActiveRecord.Update<T>(this as T);
+			AR.Update<T>(this as T);
 		}
 
 		/// <summary>
@@ -585,7 +585,7 @@ namespace Castle.ActiveRecord
 		/// state to the database and flushes the session.
 		/// </summary>
 		public virtual void UpdateAndFlush() {
-			ActiveRecord.UpdateAndFlush<T>(this as T);
+			AR.UpdateAndFlush<T>(this as T);
 		}
 
 
@@ -593,35 +593,35 @@ namespace Castle.ActiveRecord
 		/// Deletes the instance from the database.
 		/// </summary>
 		public virtual void Delete() {
-			ActiveRecord.Delete<T>(this as T);
+			AR.Delete<T>(this as T);
 		}
 
 		/// <summary>
 		/// Deletes the instance from the database and flushes the session.
 		/// </summary>
 		public virtual void DeleteAndFlush() {
-			ActiveRecord.DeleteAndFlush<T>(this as T);
+			AR.DeleteAndFlush<T>(this as T);
 		}
 
 		/// <summary>
 		/// Refresh the instance from the database.
 		/// </summary>
 		public virtual void Refresh() {
-			ActiveRecord.Refresh<T>(this as T);
+			AR.Refresh<T>(this as T);
 		}
 
 		/// <summary>
 		/// Merge the instance to scope session
 		/// </summary>
 		public virtual void Merge() {
-			ActiveRecord.Merge<T>(this as T);
+			AR.Merge<T>(this as T);
 		}
 
 		/// <summary>
 		/// Evict the instance from scope session
 		/// </summary>
 		public virtual void Evict() {
-			ActiveRecord.Evict<T>(this as T);
+			AR.Evict<T>(this as T);
 		}
 
 		/// <summary>
@@ -632,7 +632,7 @@ namespace Castle.ActiveRecord
 		/// <param name="replicationMode">The replication mode.</param>
 		public virtual void Replicate(ReplicationMode replicationMode)
 		{
-			ActiveRecord.Replicate<T>(this as T, replicationMode);
+			AR.Replicate<T>(this as T, replicationMode);
 		}
 
 		#endregion
@@ -644,7 +644,7 @@ namespace Castle.ActiveRecord
 		/// Make sure we are in a scope
 		/// </summary>
 		public static IQueryable<T> All {
-			get { return ActiveRecord.All<T>(); }
+			get { return AR.All<T>(); }
 		}
 
 		/// <summary>
@@ -653,7 +653,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
 		public static QueryOver<T,T> QueryOver() {
-			return ActiveRecord.QueryOver<T>();
+			return AR.QueryOver<T>();
 		}
 
 		/// <summary>
@@ -662,7 +662,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
 		public static QueryOver<T,T> QueryOver(Expression<Func<T>> alias) {
-			return ActiveRecord.QueryOver<T>(alias);
+			return AR.QueryOver<T>(alias);
 		}
 
 		/// <summary>
@@ -671,7 +671,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
 		public static QueryOver<T,T> QueryOver(string entityname) {
-			return ActiveRecord.QueryOver<T>(entityname);
+			return AR.QueryOver<T>(entityname);
 		}
 
 		/// <summary>
@@ -680,7 +680,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <remarks>You must have an open Session Scope.</remarks>
 		public static QueryOver<T,T> QueryOver(string entityname, Expression<Func<T>> alias) {
-			return ActiveRecord.QueryOver<T>(entityname, alias);
+			return AR.QueryOver<T>(entityname, alias);
 		}
 
 		#endregion

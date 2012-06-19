@@ -38,10 +38,10 @@ namespace Castle.ActiveRecord.Tests
 			Post.DeleteAll();
 			Blog.DeleteAll();
 
-			DefaultFlushType originalDefaultFlushType = ActiveRecord.ConfigurationSource.DefaultFlushType;
+			DefaultFlushType originalDefaultFlushType = AR.ConfigurationSource.DefaultFlushType;
 			try
 			{
-				ActiveRecord.ConfigurationSource.Flush(flushType);
+				AR.ConfigurationSource.Flush(flushType);
 
 				Blog blog = new Blog(); // just for CurrentSession
 
@@ -64,7 +64,7 @@ namespace Castle.ActiveRecord.Tests
 			finally
 			{
 				// Restore Default Flush type we corrupted before.
-				ActiveRecord.ConfigurationSource.Flush(originalDefaultFlushType);
+				AR.ConfigurationSource.Flush(originalDefaultFlushType);
 			}
 		}
 	}

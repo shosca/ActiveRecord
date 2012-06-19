@@ -30,10 +30,10 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using(new TransactionScope())
 			{
-				var session1 = ActiveRecord.Holder.CreateSession(typeof(Blog));
-				var session2 = ActiveRecord.Holder.CreateSession(typeof(Post));
-				var session3 = ActiveRecord.Holder.CreateSession(typeof(Blog));
-				var session4 = ActiveRecord.Holder.CreateSession(typeof(Post));
+				var session1 = AR.Holder.CreateSession(typeof(Blog));
+				var session2 = AR.Holder.CreateSession(typeof(Post));
+				var session3 = AR.Holder.CreateSession(typeof(Blog));
+				var session4 = AR.Holder.CreateSession(typeof(Post));
 
 				Assert.IsNotNull(session1);
 				Assert.IsNotNull(session2);
@@ -602,14 +602,14 @@ namespace Castle.ActiveRecord.Tests
 
 				using(new TransactionScope(OnDispose.Rollback))
 				{
-					var changedCompanies = ActiveRecord.FindAllByProperty<Company>("Name", "changed");
+					var changedCompanies = AR.FindAllByProperty<Company>("Name", "changed");
 					Assert.AreEqual(1, changedCompanies.Count());
 					var e2a = changedCompanies.First();
 					e2a.Delete();
 
 					SessionScope.Current.Flush();
 
-					Assert.AreEqual(0, ActiveRecord.FindAllByProperty<Company>("Name", "changed").Count());
+					Assert.AreEqual(0, AR.FindAllByProperty<Company>("Name", "changed").Count());
 				}
 			}
 		}

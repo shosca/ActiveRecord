@@ -24,22 +24,22 @@ namespace Castle.ActiveRecord {
 	public static class QueryExtensions {
 		public static IEnumerable<T> List<T>(this QueryOver<T> query) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<T>>(session => query.GetExecutableQueryOver(session).List<T>());
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQueryOver(session).List<T>());
 		}
 
 		public static IEnumerable<TR> List<T, TR>(this QueryOver<T> query) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQueryOver(session).List<TR>());
+			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQueryOver(session).List<TR>());
 		}
 
 		public static TR UniqueResult<T, TR>(this QueryOver<T> query) where T : class
 		{
-			return ActiveRecord.Execute<T, TR>(session => query.GetExecutableQueryOver(session).List<TR>().FirstOrDefault());
+			return AR.Execute<T, TR>(session => query.GetExecutableQueryOver(session).List<TR>().FirstOrDefault());
 		}
 
 		public static IEnumerable<T> SlicedFindAll<T>(this QueryOver<T> query, int firstResult, int maxResults) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<T>>(session => query.GetExecutableQueryOver(session)
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQueryOver(session)
 				.Skip(firstResult)
 				.Take(maxResults)
 				.List<T>());
@@ -48,27 +48,27 @@ namespace Castle.ActiveRecord {
 
 		public static void DeleteAll<T>(this QueryOver<T, T> query) where T : class
 		{
-			ActiveRecord.DeleteAll<T>(query);
+			AR.DeleteAll<T>(query);
 		}
 
 		public static IEnumerable<T> List<T>(this DetachedCriteria query) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<T>>(session => query.GetExecutableCriteria(session).List<T>());
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableCriteria(session).List<T>());
 		}
 
 		public static IEnumerable<TR> List<T, TR>(this DetachedCriteria query) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<TR>>(session => query.GetExecutableCriteria(session).List<TR>());
+			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableCriteria(session).List<TR>());
 		}
 
 		public static TR UniqueResult<T, TR>(this DetachedCriteria query) where T : class
 		{
-			return ActiveRecord.Execute<T, TR>(session => query.GetExecutableCriteria(session).List<TR>().FirstOrDefault());
+			return AR.Execute<T, TR>(session => query.GetExecutableCriteria(session).List<TR>().FirstOrDefault());
 		}
 
 		public static IEnumerable<T> SlicedFindAll<T>(this DetachedCriteria query, int firstResult, int maxResults) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<T>>(session => query.GetExecutableCriteria(session)
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableCriteria(session)
 				.SetFirstResult(firstResult)
 				.SetMaxResults(maxResults)
 				.List<T>());
@@ -76,17 +76,17 @@ namespace Castle.ActiveRecord {
 
 		public static void DeleteAll<T>(this DetachedCriteria query) where T : class
 		{
-			ActiveRecord.DeleteAll<T>(query);
+			AR.DeleteAll<T>(query);
 		}
 
 		public static IEnumerable<T> List<T>(this IDetachedQuery query) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<T>>(session => query.GetExecutableQuery(session).List<T>());
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQuery(session).List<T>());
 		}
 
 		public static IEnumerable<T> SlicedFindAll<T>(this IDetachedQuery query, int firstResult, int maxResults) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<T>>(session => query.GetExecutableQuery(session)
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQuery(session)
 					.SetFirstResult(firstResult)
 					.SetMaxResults(maxResults)
 					.List<T>());
@@ -94,7 +94,7 @@ namespace Castle.ActiveRecord {
 
 		public static IEnumerable<TR> List<T, TR>(this IDetachedQuery query) where T : class
 		{
-			return ActiveRecord.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQuery(session).List<TR>());
+			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQuery(session).List<TR>());
 		}
 
 		public static DetachedCriteria AddOrders(this DetachedCriteria criteria, params Order[] orders) {

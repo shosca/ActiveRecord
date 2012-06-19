@@ -61,12 +61,12 @@ namespace Castle.ActiveRecord.Testing
 		/// </summary>
 		public virtual void SetUp()
 		{
-			ActiveRecord.ResetInitialization();
+			AR.ResetInitialization();
 
 			var source = GetConfigSource();
 			Configure(source);
-			ActiveRecord.Initialize(source);
-			ActiveRecord.CreateSchema();
+			AR.Initialize(source);
+			AR.CreateSchema();
 		}
 
 		/// <summary>
@@ -80,8 +80,8 @@ namespace Castle.ActiveRecord.Testing
 				if (SessionScope.Current != null)
 					SessionScope.Current.Dispose();
 
-				ActiveRecord.DropSchema();
-				ActiveRecord.ResetInitialization();
+				AR.DropSchema();
+				AR.ResetInitialization();
 			}
 			catch {
 				

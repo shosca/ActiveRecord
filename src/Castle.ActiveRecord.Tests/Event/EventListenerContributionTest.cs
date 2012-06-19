@@ -41,7 +41,7 @@ namespace Castle.ActiveRecord.Tests.Event
 		[Test]
 		public void ListenerIsAddedToConfig() 
 		{
-			var listeners = ActiveRecord.Holder.GetConfiguration(typeof(Blog)).EventListeners.PostInsertEventListeners;
+			var listeners = AR.Holder.GetConfiguration(typeof(Blog)).EventListeners.PostInsertEventListeners;
 			Assert.Greater(listeners.Select(l => l.GetType() == typeof(MockListener)).Count(), -1);
 		}
 	

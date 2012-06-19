@@ -41,7 +41,7 @@ namespace Castle.ActiveRecord.Tests.Model
 		public virtual string Name { get; set; }
 
 		public virtual ISession GetCurrentSession() {
-			return ActiveRecord.Execute<Author, ISession>((session, blog) => { return session; }, null);
+			return AR.Execute<Author, ISession>((session, blog) => { return session; }, null);
 		}
 	}
 }

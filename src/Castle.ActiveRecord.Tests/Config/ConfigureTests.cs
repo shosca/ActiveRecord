@@ -25,7 +25,7 @@ namespace Castle.ActiveRecord.Tests.Config
 	{
 		[Test]
 		public void BasicConfigurationApi() {
-			IActiveRecordConfiguration configuration = ActiveRecord.Configure() 
+			IActiveRecordConfiguration configuration = AR.Configure() 
 				.Flush(DefaultFlushType.Leave)
 				.UseThreadScopeInfo<SampleThreadScopeInfo>()
 				.UseSessionFactoryHolder<SampleSessionFactoryHolder>();
@@ -42,9 +42,9 @@ namespace Castle.ActiveRecord.Tests.Config
 
 			source.CreateConfiguration(DatabaseType.MsSqlServer2005, "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
 
-			ActiveRecord.ResetInitialization();
+			AR.ResetInitialization();
 
-			ActiveRecord.Initialize(source);
+			AR.Initialize(source);
 		}
 	}
 

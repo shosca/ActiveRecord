@@ -27,7 +27,7 @@ namespace Castle.ActiveRecord.Testing
 	public abstract class InMemoryTesting : AbstractTesting
 	{
 		public override IActiveRecordConfiguration GetConfigSource() {
-			var source = ActiveRecord.Configure()
+			var source = AR.Configure()
 				.CreateConfiguration(DatabaseType.SQLite, "Data Source=:memory:;Version=3;New=True")
 					.AddAssemblies(GetAssemblies())
 					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof (InMemoryConnectionProvider).AssemblyQualifiedName)

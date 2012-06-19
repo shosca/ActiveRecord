@@ -316,7 +316,7 @@ namespace Castle.ActiveRecord.Scopes
 		{
 			if (!transactions.ContainsKey(session))
 			{
-				DefaultFlushType mode = ActiveRecord.ConfigurationSource.DefaultFlushType;
+				DefaultFlushType mode = AR.ConfigurationSource.DefaultFlushType;
 				session.FlushMode = (mode == DefaultFlushType.Auto || mode == DefaultFlushType.Transaction) ?
 					FlushMode.Auto :
 					FlushMode.Commit;

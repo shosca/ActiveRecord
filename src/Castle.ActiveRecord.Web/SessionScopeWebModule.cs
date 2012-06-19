@@ -52,7 +52,7 @@ namespace Castle.ActiveRecord
 		/// <param name="app">The app.</param>
 		public void Init(HttpApplication app)
 		{
-			if (!ActiveRecord.IsInitialized)
+			if (!AR.IsInitialized)
 			{
 				// Not properly initialized, most probably due to a container initialization failure
 				// We cannot throw an exception as it will hide the original error, so we just
@@ -64,7 +64,7 @@ namespace Castle.ActiveRecord
 			app.BeginRequest += OnBeginRequest;
 			app.EndRequest += OnEndRequest;
 			
-			isWebConfigured = (ActiveRecord.Holder.ThreadScopeInfo is IWebThreadScopeInfo);
+			isWebConfigured = (AR.Holder.ThreadScopeInfo is IWebThreadScopeInfo);
 		}
 
 		/// <summary>

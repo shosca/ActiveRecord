@@ -86,11 +86,11 @@ namespace Castle.ActiveRecord.Config {
 
 			var mapper = new ConventionModelMapper();
 
-			ActiveRecord.RaiseOnMapperCreated(mapper, this);
+			AR.RaiseOnMapperCreated(mapper, this);
 
 			mapper.AddMappings(mappingtypes);
 
-			ActiveRecord.RaiseAfterMappingsAdded(mapper, this);
+			AR.RaiseAfterMappingsAdded(mapper, this);
 
 			var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 
@@ -101,7 +101,7 @@ namespace Castle.ActiveRecord.Config {
 				cfg.Properties[key] = Properties[key];
 			}
 
-			ActiveRecord.RaiseOnConfigurationCreated(cfg, this);
+			AR.RaiseOnConfigurationCreated(cfg, this);
 
 			CollectAllContributorsAndRegister(cfg);
 

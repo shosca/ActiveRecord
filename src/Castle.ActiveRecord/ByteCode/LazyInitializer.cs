@@ -37,12 +37,12 @@ namespace Castle.ActiveRecord.ByteCode {
 			try {
 				//If the session has been disconnected, reconnect before continuing with the initialization.
 				if (Session == null || !Session.IsOpen || !Session.IsConnected) {
-					newSession = ActiveRecord.Holder.CreateSession(PersistentClass);
+					newSession = AR.Holder.CreateSession(PersistentClass);
 					Session = newSession.GetSessionImplementation();
 				}
 				base.Initialize();
 			} finally {
-				if (newSession != null) ActiveRecord.Holder.ReleaseSession(newSession);
+				if (newSession != null) AR.Holder.ReleaseSession(newSession);
 			}
 		}
 	}

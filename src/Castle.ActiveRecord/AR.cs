@@ -31,7 +31,7 @@ namespace Castle.ActiveRecord {
 	/// <remarks>
 	/// This class is not thread safe.
 	/// </remarks>
-	public static partial class ActiveRecord
+	public static partial class AR
 	{
 		private static readonly ISet<Assembly> _registeredassemblies = new HashSet<Assembly>();
 		private static readonly Object lockConfig = new object();

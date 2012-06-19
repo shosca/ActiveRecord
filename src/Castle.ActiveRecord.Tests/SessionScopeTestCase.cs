@@ -51,24 +51,24 @@ namespace Castle.ActiveRecord.Tests
 			// No scope here
 			// So no optimization, thus different sessions
 
-			var session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
-			var session2 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+			var session1 = AR.Holder.CreateSession( typeof(Blog) );
+			var session2 = AR.Holder.CreateSession( typeof(Blog) );
 
 			Assert.IsNotNull( session1 );
 			Assert.IsNotNull( session2 );
 			Assert.IsTrue( session1 != session2 );
 
-			ActiveRecord.Holder.ReleaseSession(session1);
-			ActiveRecord.Holder.ReleaseSession(session2);
+			AR.Holder.ReleaseSession(session1);
+			AR.Holder.ReleaseSession(session2);
 
 			// With scope
 
 			using(new SessionScope())
 			{
-				session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
-				session2 = ActiveRecord.Holder.CreateSession( typeof(Post) );
-				var session3 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
-				var session4 = ActiveRecord.Holder.CreateSession( typeof(Post) );
+				session1 = AR.Holder.CreateSession( typeof(Blog) );
+				session2 = AR.Holder.CreateSession( typeof(Post) );
+				var session3 = AR.Holder.CreateSession( typeof(Blog) );
+				var session4 = AR.Holder.CreateSession( typeof(Post) );
 
 				Assert.IsNotNull( session1 );
 				Assert.IsNotNull( session2 );
@@ -79,15 +79,15 @@ namespace Castle.ActiveRecord.Tests
 				Assert.IsTrue( session3 == session1 );
 				Assert.IsTrue( session4 == session1 );
 
-				ActiveRecord.Holder.ReleaseSession(session1);
-				ActiveRecord.Holder.ReleaseSession(session2);
-				ActiveRecord.Holder.ReleaseSession(session3);
-				ActiveRecord.Holder.ReleaseSession(session4);
+				AR.Holder.ReleaseSession(session1);
+				AR.Holder.ReleaseSession(session2);
+				AR.Holder.ReleaseSession(session3);
+				AR.Holder.ReleaseSession(session4);
 
-				session1 = ActiveRecord.Holder.CreateSession( typeof(Post) );
-				session2 = ActiveRecord.Holder.CreateSession( typeof(Post) );
-				session3 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
-				session4 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+				session1 = AR.Holder.CreateSession( typeof(Post) );
+				session2 = AR.Holder.CreateSession( typeof(Post) );
+				session3 = AR.Holder.CreateSession( typeof(Blog) );
+				session4 = AR.Holder.CreateSession( typeof(Blog) );
 
 				Assert.IsNotNull( session1 );
 				Assert.IsNotNull( session2 );
@@ -101,15 +101,15 @@ namespace Castle.ActiveRecord.Tests
 
 			// Back to the old behavior
 
-			session1 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
-			session2 = ActiveRecord.Holder.CreateSession( typeof(Blog) );
+			session1 = AR.Holder.CreateSession( typeof(Blog) );
+			session2 = AR.Holder.CreateSession( typeof(Blog) );
 
 			Assert.IsNotNull( session1 );
 			Assert.IsNotNull( session2 );
 			Assert.IsTrue( session1 != session2 );
 
-			ActiveRecord.Holder.ReleaseSession(session1);
-			ActiveRecord.Holder.ReleaseSession(session2);
+			AR.Holder.ReleaseSession(session1);
+			AR.Holder.ReleaseSession(session2);
 		}
 
 		[Test]
@@ -317,7 +317,7 @@ namespace Castle.ActiveRecord.Tests
 
 				//Assert.AreEqual(FlushMode.Auto, blog.CurrentSession.FlushMode);
 				//Assert.IsTrue(blog.CurrentSession.Transaction.IsActive);
-				Assert.AreEqual(DefaultFlushType.Classic, ActiveRecord.ConfigurationSource.DefaultFlushType);
+				Assert.AreEqual(DefaultFlushType.Classic, AR.ConfigurationSource.DefaultFlushType);
 
 				// Flushes automatically
 				Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBarBaz").Count());

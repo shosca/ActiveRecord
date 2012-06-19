@@ -52,12 +52,12 @@ namespace Castle.ActiveRecord.Tests.Event
 
 		protected static object[] GetRegisteredListeners(Func<EventListeners, object[]> listenerTypeSelector)
 		{
-			return listenerTypeSelector(ActiveRecord.Holder.GetConfiguration(typeof(Blog)).EventListeners);
+			return listenerTypeSelector(AR.Holder.GetConfiguration(typeof(Blog)).EventListeners);
 		}
 
 		protected static object[] GetRegisteredListeners<TBaseClass>(Func<EventListeners, object[]> listenerTypeSelector)
 		{
-			return listenerTypeSelector(ActiveRecord.Holder.GetConfiguration(typeof(TBaseClass)).EventListeners);
+			return listenerTypeSelector(AR.Holder.GetConfiguration(typeof(TBaseClass)).EventListeners);
 		}
 	}
 }

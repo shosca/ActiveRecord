@@ -36,7 +36,7 @@ namespace Castle.ActiveRecord.Tests
 		{
 			using (new StatelessSessionScope())
 			{
-				Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), ActiveRecord.Holder.CreateSession(typeof(Blog)));
+				Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), AR.Holder.CreateSession(typeof(Blog)));
 			}
 		}
 
@@ -46,7 +46,7 @@ namespace Castle.ActiveRecord.Tests
 			using (new StatelessSessionScope())
 			{
 				Assert.Throws<NotWrappedException>(() =>
-					ActiveRecord.Holder.CreateSession(typeof (Blog)).Merge(null)
+					AR.Holder.CreateSession(typeof (Blog)).Merge(null)
 				);
 			}
 		}
@@ -68,12 +68,12 @@ namespace Castle.ActiveRecord.Tests
 			var ship = new Ship() {Name = "Andrea Doria"};
 
 			using (new SessionScope())
-				ActiveRecord.Create(ship);
+				AR.Create(ship);
 
 			using (new StatelessSessionScope())
 			{
-				Assert.IsTrue(ActiveRecord.Exists<Ship>(ship.Id));
-				Assert.AreEqual("Andrea Doria",ActiveRecord.Find<Ship>(ship.Id).Name);
+				Assert.IsTrue(AR.Exists<Ship>(ship.Id));
+				Assert.AreEqual("Andrea Doria",AR.Find<Ship>(ship.Id).Name);
 			}
 		}
 
@@ -201,7 +201,7 @@ namespace Castle.ActiveRecord.Tests
 
 			var crit = DetachedCriteria.For<Blog>().Add(Expression.Eq("Author", "Mort"));
 			using (new StatelessSessionScope())
-				Assert.AreEqual(1, ActiveRecord.FindAll<Blog>(crit).Count());
+				Assert.AreEqual(1, AR.FindAll<Blog>(crit).Count());
 
 		}
 

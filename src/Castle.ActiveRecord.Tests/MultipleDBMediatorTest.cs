@@ -33,8 +33,8 @@ namespace Castle.ActiveRecord.Tests
 				var blog = new Blog();
 				var author = new Author();
 
-				ActiveRecord.FindAll<Blog>();
-				ActiveRecord.FindAll<Author>();
+				AR.FindAll<Blog>();
+				AR.FindAll<Author>();
 
 				Assert.AreNotSame(blog.CurrentSession, author.GetCurrentSession());
 				Assert.AreNotEqual(
@@ -45,44 +45,44 @@ namespace Castle.ActiveRecord.Tests
 
 		[Test]
 		public void OperateOne() {
-			var blogs = ActiveRecord.FindAll<Blog>().ToArray();
+			var blogs = AR.FindAll<Blog>().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 
 			CreateBlog();
 
-			blogs = ActiveRecord.FindAll<Blog>().ToArray();
+			blogs = AR.FindAll<Blog>().ToArray();
 			Assert.AreEqual(1, blogs.Length);
 		}
 
 		private static void CreateBlog()
 		{
 			var blog = new Blog {Name = "Senseless"};
-			ActiveRecord.Save(blog);
+			AR.Save(blog);
 		}
 
 		[Test]
 		public void OperateTheOtherOne() {
-			var authors = ActiveRecord.FindAll<Author>().ToArray();
+			var authors = AR.FindAll<Author>().ToArray();
 
 			Assert.AreEqual(0, authors.Length);
 
 			CreateAuthor();
 
-			authors = ActiveRecord.FindAll<Author>().ToArray();
+			authors = AR.FindAll<Author>().ToArray();
 			Assert.AreEqual(1, authors.Length);
 		}
 
 		private static void CreateAuthor()
 		{
 			var author = new Author {Name = "Dr. Who"};
-			ActiveRecord.Save(author);
+			AR.Save(author);
 		}
 
 		[Test]
 		public void OperateBoth() {
-			var blogs = ActiveRecord.FindAll<Blog>().ToArray();
-			var authors = ActiveRecord.FindAll<Author>().ToArray();
+			var blogs = AR.FindAll<Blog>().ToArray();
+			var authors = AR.FindAll<Author>().ToArray();
 
 			Assert.AreEqual(0, blogs.Length);
 			Assert.AreEqual(0, authors.Length);
@@ -90,8 +90,8 @@ namespace Castle.ActiveRecord.Tests
 			CreateBlog();
 			CreateAuthor();
 
-			blogs = ActiveRecord.FindAll<Blog>().ToArray();
-			authors = ActiveRecord.FindAll<Author>().ToArray();
+			blogs = AR.FindAll<Blog>().ToArray();
+			authors = AR.FindAll<Author>().ToArray();
 
 			Assert.AreEqual(1, blogs.Length);
 			Assert.AreEqual(1, authors.Length);
