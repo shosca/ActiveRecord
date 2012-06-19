@@ -35,6 +35,8 @@ namespace Castle.ActiveRecord {
 	/// </remarks>
 	public static partial class AR
 	{
+		#region Configuration/Registeration
+
 		private static readonly ISet<Assembly> _registeredassemblies = new HashSet<Assembly>();
 		private static readonly Object lockConfig = new object();
 
@@ -521,8 +523,9 @@ namespace Castle.ActiveRecord {
 				OnConfigurationCreated(cfg, sessionFactoryConfig);
 		}
 
+		#endregion
 
-		#region Non-Generic Execute/ExecuteStateless
+		#region Execute/ExecuteStateless
 
 		/// <summary>
 		/// Invokes the specified delegate passing a valid 
@@ -634,5 +637,31 @@ namespace Castle.ActiveRecord {
 		}
 
 		#endregion
+
+		#region Find/Peek
+
+		/// <summary>
+		/// Finds an object instance by its primary key.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="id">ID value</param>
+		public static object Find(Type type, object id)
+		{
+			return Execute<object, object>(session => session.Get(type, id));
+		}
+
+		/// <summary>
+		/// Peeks for an object instance by its primary key,
+		/// returns null if not found
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="id">ID value</param>
+		public static object Peek(Type type, object id)
+		{
+			return Execute<object, object>(session => session.Load(type, id));
+		}
+
+		#endregion
+	
 	}
 }
