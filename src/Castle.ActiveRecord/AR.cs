@@ -14,6 +14,7 @@
 
 
 using NHibernate;
+using NHibernate.Cfg.MappingSchema;
 
 namespace Castle.ActiveRecord {
 	using System;
@@ -74,6 +75,11 @@ namespace Castle.ActiveRecord {
 		/// if necessary.
 		/// </summary>
 		public static event MapperDelegate AfterMappingsAdded;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public static event HbmMappingDelegate OnHbmMappingCreated;
 
 		/// <summary>
 		/// 
@@ -523,6 +529,11 @@ namespace Castle.ActiveRecord {
 				OnConfigurationCreated(cfg, sessionFactoryConfig);
 		}
 
+		public static void RaiseOnHbmMappingCreated(HbmMapping mapping, SessionFactoryConfig sessionFactoryConfig) {
+			if (OnHbmMappingCreated != null)
+				OnHbmMappingCreated(mapping, sessionFactoryConfig);
+		}
+
 		#endregion
 
 		#region Execute/ExecuteStateless
@@ -662,6 +673,5 @@ namespace Castle.ActiveRecord {
 		}
 
 		#endregion
-	
 	}
 }

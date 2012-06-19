@@ -244,8 +244,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The count result</returns>
 		public static int Count<T>(Expression<Func<T, bool>> expression) where T : class
 		{
-			var queryover = NHibernate.Criterion.QueryOver.Of<T>().Where(expression);
-			return Count<T>(queryover);
+			return NHibernate.Criterion.QueryOver.Of<T>().Where(expression).Count();
 		}
 
 		/// <summary>
@@ -256,7 +255,7 @@ namespace Castle.ActiveRecord
 		/// <returns>The count result</returns>
 		public static int Count<T>(QueryOver<T, T> queryover) where T : class
 		{
-			return queryover.Select(Projections.RowCount()).UniqueResult<T, int>();
+			return queryover.Count();
 		}
 
 		/// <summary>
@@ -357,17 +356,8 @@ namespace Castle.ActiveRecord
 		/// <returns>A <c>targetType</c> instance or <c>null</c></returns>
 		public static T FindOne<T>(QueryOver<T,T> queryover) where T : class
 		{
-			var result = SlicedFindAll<T>(0, 2, queryover).ToList();
-
-			if (result.Count > 1)
-			{
-				throw new ActiveRecordException("ActiveRecord.FindOne returned " + result.Count() +
-												" rows. Expecting one or none");
-			}
-
-			return result.FirstOrDefault();
+			return queryover.FindOne();
 		}
-
 
 		/// <summary>
 		/// Searches and returns a row. If more than one is found, 

@@ -94,6 +94,8 @@ namespace Castle.ActiveRecord.Config {
 
 			var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 
+			AR.RaiseOnHbmMappingCreated(mapping, this);
+
 			var cfg = new Configuration();
 
 			foreach(var key in Properties.AllKeys)

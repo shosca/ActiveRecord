@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Castle.ActiveRecord.Config;
+using NHibernate.Cfg.MappingSchema;
 using NHibernate.Mapping.ByCode;
 
 namespace Castle.ActiveRecord
@@ -28,6 +29,8 @@ namespace Castle.ActiveRecord
 	/// and <see cref="AR.AfterMappingsAdded"/>
 	/// </summary>
 	public delegate void MapperDelegate(ModelMapper mapper, SessionFactoryConfig config);
+
+	public delegate void HbmMappingDelegate(HbmMapping mapping, SessionFactoryConfig config);
 
 	/// <summary>
 	/// Delegate for use in <see cref="AR.OnConfigurationCreated"/>

@@ -45,10 +45,32 @@ namespace Castle.ActiveRecord {
 				.List<T>());
 		}
 
+		public static bool Exists<T>(this QueryOver<T, T> queryover) where T : class
+		{
+			return queryover.Count<T>() > 0;
+		}
+
+		public static int Count<T>(this QueryOver<T, T> queryover) where T : class
+		{
+			return queryover.Select(Projections.RowCount()).UniqueResult<T, int>();
+		}
 
 		public static void DeleteAll<T>(this QueryOver<T, T> query) where T : class
 		{
 			AR.DeleteAll<T>(query);
+		}
+
+		public static T FindOne<T>(this QueryOver<T,T> queryover) where T : class
+		{
+			var result = queryover.SlicedFindAll<T>(0, 2).ToList();
+
+			if (result.Count > 1)
+			{
+				throw new ActiveRecordException("ActiveRecord.FindOne returned " + result.Count() +
+												" rows. Expecting one or none");
+			}
+
+			return result.FirstOrDefault();
 		}
 
 		public static IEnumerable<T> List<T>(this DetachedCriteria query) where T : class
