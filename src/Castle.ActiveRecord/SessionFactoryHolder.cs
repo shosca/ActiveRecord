@@ -66,6 +66,14 @@ namespace Castle.ActiveRecord
 		}
 
 		/// <summary>
+		/// Requests the registered types
+		/// </summary>
+		public Type[] GetRegisteredTypes()
+		{
+			return type2SessFactory.Keys.ToArray();
+		}
+
+		/// <summary>
 		/// Gets the all the session factories.
 		/// </summary>
 		/// <returns></returns>

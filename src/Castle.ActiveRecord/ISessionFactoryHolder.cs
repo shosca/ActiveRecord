@@ -31,6 +31,11 @@ namespace Castle.ActiveRecord
 		Configuration[] GetAllConfigurations();
 
 		/// <summary>
+		/// Requests the registered types
+		/// </summary>
+		Type[] GetRegisteredTypes();
+
+		/// <summary>
 		/// Requests the Configuration associated to the type.
 		/// </summary>
 		/// <param name="type"></param>
