@@ -22,37 +22,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class BlogMapping : ClassMapping<Blog> {
-		public BlogMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-			Set(x => x.Posts, m => {
-				m.Inverse(true);
-				m.Lazy(CollectionLazy.Lazy);
-			});
-			Set(x => x.PublishedPosts, m => {
-				m.Inverse(true);
-				m.Lazy(CollectionLazy.Lazy);
-				m.Where("published = 1");
-			});
-			Set(x => x.UnPublishedPosts, m => {
-				m.Inverse(true);
-				m.Lazy(CollectionLazy.Lazy);
-				m.Where("published = 0");
-			});
-			Set(x => x.RecentPosts, m => {
-				m.Inverse(true);
-				m.Lazy(CollectionLazy.Lazy);
-				m.OrderBy(p => p.Created);
-			});
-		}	
-	}
-
-	public class PostMapping : ClassMapping<Post> {
-		public PostMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-		}	
-	}
-
 	public class Blog : ActiveRecordBase<Blog>
 	{
 		private bool onSaveCalled, onUpdateCalled, onDeleteCalled, onLoadCalled;

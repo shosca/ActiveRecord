@@ -18,12 +18,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	public class HandMapping : ClassMapping<Hand> {
-		public HandMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Identity));
-		}
-	}
-
 	public class Hand : Test2ARBase<Hand> {
 		public virtual int Id { get; set; }
 		public virtual string Side { get; set; }

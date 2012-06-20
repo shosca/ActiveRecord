@@ -34,18 +34,6 @@ namespace Castle.ActiveRecord.Tests.Config
 			Assert.That(configuration.SessionFactoryHolderImplementation, Is.EqualTo(typeof (SampleSessionFactoryHolder)));
 			Assert.That(configuration.DefaultFlushType, Is.EqualTo(DefaultFlushType.Leave));
 		}
-
-		[Test, ExpectedException(typeof(ActiveRecordException))]
-		public void ThrowExceptionWhenMissingAssemblyFromConfiguration()
-		{
-			var source = new DefaultActiveRecordConfiguration();
-
-			source.CreateConfiguration(DatabaseType.MsSqlServer2005, "Data Source=.;Initial Catalog=test;Integrated Security=SSPI");
-
-			AR.ResetInitialization();
-
-			AR.Initialize(source);
-		}
 	}
 
 	public class SampleThreadScopeInfo : HybridWebThreadScopeInfo

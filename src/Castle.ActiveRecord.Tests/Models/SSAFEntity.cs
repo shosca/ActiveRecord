@@ -18,12 +18,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class SSAFEntityMapping : ClassMapping<SSAFEntity> {
-		public SSAFEntityMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.GuidComb));
-		}
-	}
-
 	public class SSAFEntity : ActiveRecordBase<SSAFEntity>
 	{
 		public virtual Guid Id { get; set; }

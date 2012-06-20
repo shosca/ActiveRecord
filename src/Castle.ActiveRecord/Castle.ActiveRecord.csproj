@@ -111,6 +111,7 @@
     <Compile Include="ActiveRecordException.cs" />
     <Compile Include="AR.Generic.cs" />
     <Compile Include="Config\SessionFactoryConfig.cs" />
+    <Compile Include="Conventions.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="Config\ActiveRecordSectionHandler.cs" />
     <Compile Include="Config\IActiveRecordConfiguration.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="EventListenerConfig.cs" />
     <Compile Include="EventListenerContributor.cs" />
     <Compile Include="HookDispatcher.cs" />
+    <Compile Include="IMappingContributor.cs" />
     <Compile Include="INHContributor.cs" />
     <Compile Include="ISessionFactoryHolder.cs" />
     <Compile Include="IThreadScopeInfo.cs" />

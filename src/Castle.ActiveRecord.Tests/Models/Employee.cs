@@ -17,20 +17,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class EmployeeMapping : ClassMapping<Employee> {
-		public EmployeeMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-			OneToOne(x => x.Award, m => m.Constrained(false));
-		}
-	}
-
-	public class AwardMapping : ClassMapping<Award> {
-		public AwardMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-			OneToOne(x => x.Employee, m => m.Constrained(true));
-		}
-	}
-
 	public class Employee : ActiveRecordBase<Employee>
 	{
 		public virtual int Id { get; set; }
@@ -40,23 +26,5 @@ namespace Castle.ActiveRecord.Tests.Models
 		public virtual string LastName { get; set; }
 
 		public virtual Award Award { get; set; }
-	}
-
-	public class Award : ActiveRecordBase<Award>
-	{
-		public Award()
-		{
-		}
-
-		public Award(Employee employee)
-		{
-			this.Employee = employee;
-		}
-
-		public virtual int Id { get; set; }
-
-		public virtual Employee Employee { get; set; }
-
-		public virtual string Description { get; set; }
 	}
 }

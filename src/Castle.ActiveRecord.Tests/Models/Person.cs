@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections;
 using Iesi.Collections.Generic;
 using NHibernate.Mapping.ByCode;
@@ -20,19 +19,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class PersonMapping : ClassMapping<Person> {
-		public PersonMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-			Bag(x => x.Companies, m => {
-				m.Table("CompanyPerson");
-				m.Key(k => k.Column("PersonId"));
-			}, m => m.ManyToMany(p => {
-				p.Class(typeof(Company));
-				p.Column("CompanyId");
-			}));
-		}
-	}
-
 	public class Person : ActiveRecordBase<Person>
 	{
 
@@ -54,14 +40,5 @@ namespace Castle.ActiveRecord.Tests.Models
 			get { return _companies; }
 			set { _companies = value; }
 		}
-	}
-
-	public class FullName
-	{
-		public virtual string First { get; set; }
-
-		public virtual string Middle { get; set; }
-
-		public virtual String Last { get; set; }
 	}
 }

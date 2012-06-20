@@ -19,12 +19,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	public class AuthorMapping : ClassMapping<Author> {
-		public AuthorMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-		}
-	}
-
 	public class Author
 	{
 		public Author()

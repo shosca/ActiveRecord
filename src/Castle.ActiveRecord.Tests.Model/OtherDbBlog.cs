@@ -20,13 +20,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	public class OtherDbBlogMapping : ClassMapping<OtherDbBlog> {
-		public OtherDbBlogMapping() {
-			Table("Blog");
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-		}
-	}
-
 	public class OtherDbBlog : Test2ARBase<OtherDbBlog>
 	{
 		public virtual int Id { get; set; }

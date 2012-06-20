@@ -13,19 +13,11 @@
 // limitations under the License.
 
 using Iesi.Collections.Generic;
-using System;
 using NHibernate.Mapping.ByCode;
 using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class ProductMapping : ClassMapping<Product> {
-		public ProductMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-			Set(x => x.Categories, m => m.Cascade(Cascade.All | Cascade.DeleteOrphans));
-		}
-	}
-
 	public class Product : ActiveRecordBase<Product>
 	{
 		public Product() {
@@ -35,23 +27,5 @@ namespace Castle.ActiveRecord.Tests.Models
 		public virtual int Id { get; set; }
 
 		public virtual ISet<Category> Categories { get; set; }
-	}
-
-	public class CategotyMapping : ClassMapping<Category> {
-		public CategotyMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-		}
-	}
-
-	public class Category: ActiveRecordBase<Category> {
-		public Category() { }
-
-		public Category(String name) { this.Name = name; }
-
-		public virtual int Id { get; set; }
-
-		public virtual string Name { get; set; }
-
-		public virtual Product Product { get; set; }
 	}
 }

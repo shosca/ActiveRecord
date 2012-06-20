@@ -19,6 +19,7 @@ using System.Collections.Specialized;
 using System.Reflection;
 using Castle.ActiveRecord.Attributes;
 using Castle.ActiveRecord.ByteCode;
+using Castle.Core.Internal;
 using NHibernate.Cfg;
 using NHibernate.Mapping.ByCode;
 using Environment = NHibernate.Cfg.Environment;
@@ -78,17 +79,11 @@ namespace Castle.ActiveRecord.Config {
 		}
 
 		public Configuration BuildConfiguration() {
-			var mappingtypes = Assemblies.SelectMany(a => a.GetTypes()).Where(IsClassMapperType).ToArray();
-
-			if (Assemblies.Count < 1 || mappingtypes.Length < 1) {
-				throw new ActiveRecordException("No assembly defined in configuration that contains mappings.");
-			}
-
 			var mapper = new ConventionModelMapper();
 
 			AR.RaiseOnMapperCreated(mapper, this);
 
-			mapper.AddMappings(mappingtypes);
+			CollectMappingContributorsAndApply(mapper);
 
 			AR.RaiseAfterMappingsAdded(mapper, this);
 
@@ -103,16 +98,20 @@ namespace Castle.ActiveRecord.Config {
 				cfg.Properties[key] = Properties[key];
 			}
 
-			AR.RaiseOnConfigurationCreated(cfg, this);
-
 			CollectAllContributorsAndRegister(cfg);
 
 			cfg.AddMapping(mapping);
+
+			AR.RaiseOnConfigurationCreated(cfg, this);
+
 			return cfg;
 		}
 
-		static bool IsClassMapperType(Type t) {
-			return t.Name.ToLower().EndsWith("mapping");
+		void CollectMappingContributorsAndApply(ModelMapper mapper) {
+			Assemblies.SelectMany(a => a.GetExportedTypes())
+				.Where(t => !t.IsInterface && !t.IsAbstract && typeof (IMappingContributor).IsAssignableFrom(t))
+				.Select(t => (IMappingContributor) Activator.CreateInstance(t))
+				.ForEach(m => m.Contribute(mapper));
 		}
 
 		void CollectAllContributorsAndRegister(Configuration cfg) {
@@ -130,7 +129,7 @@ namespace Castle.ActiveRecord.Config {
 			}
 		}
 
-		INHContributor GetEventListenerContributor(IEnumerable<Type> exportedtypes)
+		static INHContributor GetEventListenerContributor(IEnumerable<Type> exportedtypes)
 		{
 			var contributor = new EventListenerContributor();
 			foreach (var type in exportedtypes)

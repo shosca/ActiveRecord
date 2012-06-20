@@ -17,12 +17,6 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class ShipMapping : ClassMapping<Ship> {
-		public ShipMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-		}
-	}
-
     public class Ship
     {
     	public virtual int Id { get; set; }

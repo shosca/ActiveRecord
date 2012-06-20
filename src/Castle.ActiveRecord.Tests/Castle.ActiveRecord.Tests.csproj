@@ -121,16 +121,20 @@
     <Compile Include="Event\SamplePostInsertListener.cs" />
     <Compile Include="Event\SamplePostUpdateListener.cs" />
     <Compile Include="Event\SamplePreInsertListener.cs" />
+    <Compile Include="Models\Award.cs" />
     <Compile Include="Models\Blog.cs" />
+    <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\Employee.cs" />
+    <Compile Include="Models\FullName.cs" />
+    <Compile Include="Models\Mapping.cs" />
     <Compile Include="Models\Person.cs" />
     <Compile Include="Models\Post.cs" />
+    <Compile Include="Models\PostalAddress.cs" />
     <Compile Include="Models\Product.cs" />
     <Compile Include="Models\Ship.cs" />
     <Compile Include="DifferentDatabaseScopeTestCase.cs" />
     <Compile Include="Models\SSAFEntity.cs" />
-    <Compile Include="Models\UserDB.cs" />
     <Compile Include="MultipleDatabasesTestCase.cs" />
     <Compile Include="ScopeDefaultFlushingBehaviourTestCase.cs">
       <SubType>Code</SubType>

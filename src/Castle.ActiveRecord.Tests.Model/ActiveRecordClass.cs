@@ -21,11 +21,4 @@ namespace Castle.ActiveRecord.Tests.Model
 	{
 		public virtual int Id { get; set; }
 	}
-
-	public class ActiveRecordClassMapping : ClassMapping<ActiveRecordClass> {
-		public ActiveRecordClassMapping() {
-			Id(x => x.Id, m => m.Generator(Generators.Native));
-		}
-		
-	}
 }
