@@ -45,10 +45,11 @@ namespace Castle.ActiveRecord.Config
 		SessionFactoryConfig GetConfiguration(string key);
 
 		/// <summary>
-		/// Creates a new session factory config
+		/// Add a config instance
 		/// </summary>
+		/// <param name="config"></param>
 		/// <returns></returns>
-		SessionFactoryConfig CreateConfiguration(string name);
+		void Add(SessionFactoryConfig config);
 
 		/// <summary>
 		/// Returns all registered configuration keys

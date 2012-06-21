@@ -29,52 +29,29 @@ namespace Castle.ActiveRecord.Config
 	/// </summary>
 	public static class DefaultDatabaseConfigurationExtensions
 	{
-		/// <summary>
-		/// Returns dictionary of common properties pre populated with default values for given <paramref name="databaseType"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="databaseType">Database type for which we want default properties.</param>
-		/// <param name="connectionstring"></param>
-		/// <returns></returns>
-		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, DatabaseType databaseType, string connectionstring) {
-			return source.CreateConfiguration(string.Empty, databaseType, connectionstring);
+
+		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, string name) {
+			source.Add(new SessionFactoryConfig(source) {Name = name});
+			return source.GetConfiguration(name)
+				.Set(Environment.ConnectionProvider, typeof(DriverConnectionProvider).AssemblyQualifiedName)
+				.Set(Environment.UseSecondLevelCache, false.ToString(CultureInfo.InvariantCulture))
+				.Set(Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
 		}
 
-		/// <summary>
-		/// Returns dictionary of common properties pre populated with default values for given <paramref name="databaseType"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="name"></param>
-		/// <param name="databaseType">Database type for which we want default properties.</param>
-		/// <param name="connectionstring"></param>
-		/// <returns></returns>
-		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, string name, DatabaseType databaseType, string connectionstring) {
-			var config = source.CreateConfiguration(name, databaseType);
-			config.Properties[Environment.ConnectionString] = connectionstring;
-			return config;
+		public static IActiveRecordConfiguration CreateConfiguration(this IActiveRecordConfiguration source, Action<SessionFactoryConfig> action) {
+			var cfg = source.CreateConfiguration(string.Empty);
+			action(cfg);
+			return source;
 		}
 
-		/// <summary>
-		/// Returns dictionary of common properties pre populated with default values for given <paramref name="databaseType"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="databaseType">Database type for which we want default properties.</param>
-		/// <returns></returns>
-		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, DatabaseType databaseType) {
-			return source.CreateConfiguration(string.Empty, databaseType);
+		public static IActiveRecordConfiguration CreateConfiguration(this IActiveRecordConfiguration source, string name, Action<SessionFactoryConfig> action) {
+			var cfg = source.CreateConfiguration(name);
+			action(cfg);
+			return source;
 		}
 
-		/// <summary>
-		/// Returns dictionary of common properties pre populated with default values for given <paramref name="databaseType"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="name"></param>
-		/// <param name="databaseType">Database type for which we want default properties.</param>
-		/// <returns></returns>
-		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, string name, DatabaseType databaseType)
-		{
-			return source.CreateConfiguration(name)
-				.SetDatabaseType(databaseType);
+		public static SessionFactoryConfig ConnectionString(this SessionFactoryConfig config, string connectionstring) {
+			return config.Set(Environment.ConnectionString, connectionstring);
 		}
 
 		public static SessionFactoryConfig SetDatabaseType(this SessionFactoryConfig config, DatabaseType type) {

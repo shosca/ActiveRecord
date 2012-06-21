@@ -82,56 +82,6 @@ namespace Castle.ActiveRecord.Config
 		public DefaultFlushType DefaultFlushType { get; set; }
 
 		/// <summary>
-		/// Builds a DefaultActiveRecordConfiguration set up to access a MS SQL server database using integrated security.
-		/// </summary>
-		/// <param name="server">The server.</param>
-		/// <param name="initialCatalog">The initial catalog.</param>
-		/// <returns></returns>
-		public static DefaultActiveRecordConfiguration BuildForMSSqlServer(string server, string initialCatalog)
-		{
-			if (string.IsNullOrEmpty(server)) throw new ArgumentNullException("server");
-			if (string.IsNullOrEmpty(initialCatalog)) throw new ArgumentNullException("initialCatalog");
-
-			return Build(DatabaseType.MsSqlServer2005, "Server=" + server + ";initial catalog=" + initialCatalog + ";Integrated Security=SSPI");
-		}
-
-		/// <summary>
-		/// Builds a DefaultActiveRecordConfiguration set up to access a MS SQL server database using the specified username and password.
-		/// </summary>
-		/// <param name="server">The server.</param>
-		/// <param name="initialCatalog">The initial catalog.</param>
-		/// <param name="username">The username.</param>
-		/// <param name="password">The password.</param>
-		/// <returns></returns>
-		public static DefaultActiveRecordConfiguration BuildForMSSqlServer(string server, string initialCatalog, string username, string password)
-		{
-			if (string.IsNullOrEmpty(server)) throw new ArgumentNullException("server");
-			if (string.IsNullOrEmpty(initialCatalog)) throw new ArgumentNullException("initialCatalog");
-			if (string.IsNullOrEmpty(username)) throw new ArgumentNullException("username");
-			if (string.IsNullOrEmpty(password)) throw new ArgumentNullException("password");
-
-			return Build(DatabaseType.MsSqlServer2005, "Server=" + server + ";initial catalog=" + initialCatalog + ";User id=" + username + ";password=" + password);
-		}
-
-		/// <summary>
-		/// Builds an <see cref="DefaultActiveRecordConfiguration"/> for the specified database.
-		/// </summary>
-		/// <param name="database">The database type.</param>
-		/// <param name="connectionString">The connection string.</param>
-		/// <returns></returns>
-		public static DefaultActiveRecordConfiguration Build(DatabaseType database, string connectionString)
-		{
-			if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException("connectionString");
-
-			var config = new DefaultActiveRecordConfiguration();
-
-			var sfconfig = config.CreateConfiguration(database, connectionString);
-			config.Add(sfconfig);
-
-			return config;
-		}
-
-		/// <summary>
 		/// Sets a value indicating whether this instance is running in web app.
 		/// </summary>
 		/// <value>
@@ -306,14 +256,6 @@ namespace Castle.ActiveRecord.Config
 		{
 			SessionFactoryHolderImplementation = typeof (T);
 			return this;
-		}
-
-		public SessionFactoryConfig CreateConfiguration(string name) {
-			Add(new SessionFactoryConfig(this) {Name = name});
-			return GetConfiguration(name)
-				.Set(Environment.ConnectionProvider, typeof(DriverConnectionProvider).AssemblyQualifiedName)
-				.Set(Environment.UseSecondLevelCache, false.ToString(CultureInfo.InvariantCulture))
-				.Set(Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
 		}
 	}
 }

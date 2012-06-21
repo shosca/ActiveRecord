@@ -28,12 +28,15 @@ namespace Castle.ActiveRecord.Testing
 	{
 		public override IActiveRecordConfiguration GetConfigSource() {
 			var source = AR.Configure()
-				.CreateConfiguration(DatabaseType.SQLite, "Data Source=:memory:;Version=3;New=True")
+				.CreateConfiguration(c => c
 					.AddAssemblies(GetAssemblies())
-					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof (InMemoryConnectionProvider).AssemblyQualifiedName)
-					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof (ARProxyFactoryFactory).AssemblyQualifiedName)
+					.SetDatabaseType(DatabaseType.SQLite)
+					.ConnectionString("Data Source=:memory:;Version=3;New=True")
+					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof(InMemoryConnectionProvider).AssemblyQualifiedName)
+					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName)
 					.Set(GetProperties())
-				.End();
+				);
+
 
 			return source;
 		}

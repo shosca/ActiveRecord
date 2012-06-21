@@ -136,7 +136,7 @@ namespace Castle.ActiveRecord.Config
 					}
 					
 				}
-				var sfconfig = CreateConfiguration(sfconfigname);
+				var sfconfig = this.CreateConfiguration(sfconfigname);
 
 				if (node.Attributes != null && node.Attributes.Count != 0) {
 
