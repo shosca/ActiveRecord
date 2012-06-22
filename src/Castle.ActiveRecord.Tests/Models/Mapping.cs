@@ -3,92 +3,100 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class Mapping : IMappingContributor
+	public class Mapping : DefaultMappingContributor
 	{
-		public void Contribute(ModelMapper mapper)
+		public class MapBlog : ClassMapping<Blog> {
+			public MapBlog() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+				Set(x => x.Posts, m =>
+				{
+					m.Inverse(true);
+					m.Lazy(CollectionLazy.Lazy);
+				});
+				Set(x => x.PublishedPosts, m =>
+				{
+					m.Inverse(true);
+					m.Lazy(CollectionLazy.Lazy);
+					m.Where("published = 1");
+				});
+				Set(x => x.UnPublishedPosts, m =>
+				{
+					m.Inverse(true);
+					m.Lazy(CollectionLazy.Lazy);
+					m.Where("published = 0");
+				});
+				Set(x => x.RecentPosts, m =>
+				{
+					m.Inverse(true);
+					m.Lazy(CollectionLazy.Lazy);
+					m.OrderBy(p => p.Created);
+				});
+			}
+		}
+
+		public class MapPost : ClassMapping<Post> {
+			public MapPost() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
+
+		public class MapCompany : ClassMapping<Company> {
+			public MapCompany() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
+
+		public class MapEmployee : ClassMapping<Employee> {
+			public MapEmployee() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+				OneToOne(x => x.Award, m => m.Constrained(false));
+			}
+		}
+
+		public class MapAward : ClassMapping<Award> {
+			public MapAward() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+				OneToOne(x => x.Employee, m => m.Constrained(true));
+			}
+		}
+		public class MapPerson : ClassMapping<Person> {
+			public MapPerson() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
+		public class MapProduct : ClassMapping<Product> {
+			public MapProduct() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+				Set(x => x.Categories, m => m.Cascade(Cascade.All | Cascade.DeleteOrphans));
+			}
+		}
+		public class MapCategory : ClassMapping<Category> {
+			public MapCategory() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
+
+		public class MapShip : ClassMapping<Ship> {
+			public MapShip() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
+
+		public class MapSSAFEntity : ClassMapping<SSAFEntity> {
+			public MapSSAFEntity() {
+				Id(x => x.Id, m => m.Generator(Generators.GuidComb));
+			}
+		}
+
+		public override void Contribute(ModelMapper mapper)
 		{
+			base.Contribute(mapper);
 			mapper
-				.ClassMap<Blog>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-					map.Set(x => x.Posts, m =>
-					{
-						m.Inverse(true);
-						m.Lazy(CollectionLazy.Lazy);
-					});
-					map.Set(x => x.PublishedPosts, m =>
-					{
-						m.Inverse(true);
-						m.Lazy(CollectionLazy.Lazy);
-						m.Where("published = 1");
-					});
-					map.Set(x => x.UnPublishedPosts, m =>
-					{
-						m.Inverse(true);
-						m.Lazy(CollectionLazy.Lazy);
-						m.Where("published = 0");
-					});
-					map.Set(x => x.RecentPosts, m =>
-					{
-						m.Inverse(true);
-						m.Lazy(CollectionLazy.Lazy);
-						m.OrderBy(p => p.Created);
-					});
-				})
-
-				.ClassMap<Post>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-
-				})
-
-				.ClassMap<Company>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-				}).ManyToMany<Company, Person>(x => x.People, x => x.Companies)
-
-				.ClassMap<Employee>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-					map.OneToOne(x => x.Award, m => m.Constrained(false));
-				})
-
-				.ClassMap<Award>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-					map.OneToOne(x => x.Employee, m => m.Constrained(true));
-				})
-
-				.ClassMap<Person>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-					map.Bag(x => x.Companies, m =>
-					{
-						m.Table("CompanyPerson");
-						m.Key(k => k.Column("PersonId"));
-					}, m => m.ManyToMany(p =>
-					{
-						p.Class(typeof(Company));
-						p.Column("CompanyId");
-					}));
-				})
-
-				.ClassMap<Product>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-					map.Set(x => x.Categories, m => m.Cascade(Cascade.All | Cascade.DeleteOrphans));
-				})
-
-				.ClassMap<Category>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-				})
-
-
-				.ClassMap<Ship>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-				})
-
-				.ClassMap<SSAFEntity>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.GuidComb));
-				})
-				;
-
+				.ManyToMany<Company, Person>(x => x.People, x => x.Companies);
 		}
 	}
 }

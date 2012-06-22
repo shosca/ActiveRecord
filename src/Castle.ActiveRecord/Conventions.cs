@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using NHibernate.Mapping.ByCode;
 
@@ -82,5 +83,25 @@ namespace Castle.ActiveRecord {
 			return mapper;
 		}
 
+
+		/// <summary>
+		/// Determines whether the <paramref name="genericType"/> is assignable from
+		/// <paramref name="givenType"/> taking into account generic definitions
+		/// </summary>
+		public static bool IsAssignableToGenericType(this Type givenType, Type genericType)
+		{
+			var interfaceTypes = givenType.GetInterfaces();
+
+			foreach (var it in interfaceTypes)
+				if (it.IsGenericType)
+					if (it.GetGenericTypeDefinition() == genericType) return true;
+
+			Type baseType = givenType.BaseType;
+			if (baseType == null) return false;
+
+			return baseType.IsGenericType &&
+				baseType.GetGenericTypeDefinition() == genericType ||
+				IsAssignableToGenericType(baseType, genericType);
+		}
 	}
 }

@@ -7,31 +7,38 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	public class Mapping : IMappingContributor
+	public class Mapping : DefaultMappingContributor
 	{
-		public void Contribute(ModelMapper mapper) {
-			mapper
-				.ClassMap<ActiveRecordClass>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-				})
+		public class MapARClass : ClassMapping<ActiveRecordClass> {
+			public MapARClass() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
 
-				.ClassMap<Author>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-				})
+		public class MapAuthor : ClassMapping<Author> {
+			public MapAuthor() {
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
 
-				.ClassMap<Hand>(map => {
-					map.Id(x => x.Id, m => m.Generator(Generators.Identity));
-				})
+		public class MapHand : ClassMapping<Hand> {
+			public MapHand() {
+				Id(x => x.Id, m => m.Generator(Generators.Identity));
+			}
+		}
 
-				.ClassMap<OtherDbBlog>(map => {
-					map.Table("Blog");
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-				})
+		public class MapOtherDbBlog : ClassMapping<OtherDbBlog> {
+			public MapOtherDbBlog() {
+				Table("Blog");
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
+		}
 
-				.ClassMap<OtherDbPost>(map => {
-					map.Table("Post");
-					map.Id(x => x.Id, m => m.Generator(Generators.Native));
-				});
+		public class MapOtherDbPost : ClassMapping<OtherDbPost> {
+			public MapOtherDbPost() {
+				Table("Post");
+				Id(x => x.Id, m => m.Generator(Generators.Native));
+			}
 		}
 	}
 }

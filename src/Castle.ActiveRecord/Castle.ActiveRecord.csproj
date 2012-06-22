@@ -112,6 +112,7 @@
     <Compile Include="AR.Generic.cs" />
     <Compile Include="Config\SessionFactoryConfig.cs" />
     <Compile Include="Conventions.cs" />
+    <Compile Include="DefaultMappingContributor.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="Config\ActiveRecordSectionHandler.cs" />
     <Compile Include="Config\IActiveRecordConfiguration.cs" />
