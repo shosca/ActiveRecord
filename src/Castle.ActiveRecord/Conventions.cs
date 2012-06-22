@@ -55,10 +55,10 @@ namespace Castle.ActiveRecord {
 			string columnformat, string tableformat
 		) where TControllingEntity : class where TInverseEntity : class
 		{
-			var controllingPropertyName = ((MemberExpression)controllingProperty.Body).Member.Name;
-			var controllingColumnName = string.Format(columnformat, controllingPropertyName);
-			var inverseColumnName = string.Format(columnformat, typeof(TControllingEntity).Name);
-			var tableName = string.Format(tableformat, typeof(TControllingEntity).Name, controllingPropertyName);
+			var controllingPropertyName = ((MemberExpression)controllingProperty.Body).Member.Name.ToLowerInvariant();
+			var controllingColumnName = string.Format(columnformat, controllingPropertyName).ToLowerInvariant();
+			var inverseColumnName = string.Format(columnformat, typeof(TControllingEntity).Name).ToLowerInvariant();
+			var tableName = string.Format(tableformat, typeof (TControllingEntity).Name, controllingPropertyName).ToLowerInvariant();
 
 			mapper.Class<TControllingEntity>(map => map.Set(controllingProperty,
 				cm =>
