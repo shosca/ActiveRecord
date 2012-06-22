@@ -81,11 +81,9 @@ namespace Castle.ActiveRecord.Config {
 		public Configuration BuildConfiguration() {
 			var mapper = new ConventionModelMapper();
 
-			AR.RaiseOnMapperCreated(mapper, this);
-
 			CollectMappingContributorsAndApply(mapper);
 
-			AR.RaiseAfterMappingsAdded(mapper, this);
+			AR.RaiseOnMapperCreated(mapper, this);
 
 			var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 

@@ -66,17 +66,6 @@ namespace Castle.ActiveRecord {
 		public static event MapperDelegate OnMapperCreated;
 
 		/// <summary>
-		/// Allows other frameworks to modify the ModelMapper
-		/// before the generation of the NHibernate configuration.
-		/// As an example, this may be used to rewrite table names to
-		/// conform to an application-specific standard.  Since the
-		/// configuration source is passed in, it is possible to
-		/// determine the underlying database type and make changes
-		/// if necessary.
-		/// </summary>
-		public static event MapperDelegate AfterMappingsAdded;
-
-		/// <summary>
 		/// 
 		/// </summary>
 		public static event HbmMappingDelegate OnHbmMappingCreated;
@@ -517,11 +506,6 @@ namespace Castle.ActiveRecord {
 		public static void RaiseOnMapperCreated(ConventionModelMapper mapper, SessionFactoryConfig sessionFactoryConfig) {
 			if (OnMapperCreated != null)
 				OnMapperCreated(mapper, sessionFactoryConfig);
-		}
-
-		public static void RaiseAfterMappingsAdded(ConventionModelMapper mapper, SessionFactoryConfig sessionFactoryConfig) {
-			if (AfterMappingsAdded != null)
-				AfterMappingsAdded(mapper, sessionFactoryConfig);
 		}
 
 		public static void RaiseOnConfigurationCreated(Configuration cfg, SessionFactoryConfig sessionFactoryConfig) {

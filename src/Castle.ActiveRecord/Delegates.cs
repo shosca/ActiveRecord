@@ -26,10 +26,12 @@ namespace Castle.ActiveRecord
 
 	/// <summary>
 	/// Delegate for use in <see cref="AR.OnMapperCreated"/>
-	/// and <see cref="AR.AfterMappingsAdded"/>
 	/// </summary>
 	public delegate void MapperDelegate(ModelMapper mapper, SessionFactoryConfig config);
 
+	/// <summary>
+	/// Delegate for use in <see cref="AR.OnHbmMappingCreated"/>
+	/// </summary>
 	public delegate void HbmMappingDelegate(HbmMapping mapping, SessionFactoryConfig config);
 
 	/// <summary>
