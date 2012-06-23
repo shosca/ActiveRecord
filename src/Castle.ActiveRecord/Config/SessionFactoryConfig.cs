@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
 using Castle.ActiveRecord.Attributes;
-using Castle.ActiveRecord.ByteCode;
 using Castle.Core.Internal;
 using NHibernate.Cfg;
 using NHibernate.Mapping.ByCode;
@@ -32,7 +31,6 @@ namespace Castle.ActiveRecord.Config {
 			Properties = new NameValueCollection();
 			Name = string.Empty;
 			this.Source = source;
-			Properties[Environment.ProxyFactoryFactoryClass] = typeof (ARProxyFactoryFactory).AssemblyQualifiedName;
 		}
 
 		public IActiveRecordConfiguration Source { get; private set; }

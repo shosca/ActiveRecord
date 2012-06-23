@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
-using Castle.ActiveRecord.ByteCode;
 using NHibernate.Connection;
 using NHibernate.Dialect;
 using NHibernate.Driver;
@@ -35,7 +34,7 @@ namespace Castle.ActiveRecord.Config
 			return source.GetConfiguration(name)
 				.Set(Environment.ConnectionProvider, typeof(DriverConnectionProvider).AssemblyQualifiedName)
 				.Set(Environment.UseSecondLevelCache, false.ToString(CultureInfo.InvariantCulture))
-				.Set(Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName);
+				;
 		}
 
 		public static IActiveRecordConfiguration CreateConfiguration(this IActiveRecordConfiguration source, Action<SessionFactoryConfig> action) {

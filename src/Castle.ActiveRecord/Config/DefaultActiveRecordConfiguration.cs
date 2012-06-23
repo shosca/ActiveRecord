@@ -18,7 +18,6 @@ using System.Configuration;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Castle.ActiveRecord.ByteCode;
 using Castle.Core.Configuration;
 using NHibernate.Connection;
 using Environment = NHibernate.Cfg.Environment;

@@ -60,25 +60,27 @@ namespace Castle.ActiveRecord {
 			var controllingColumnName = string.Format(columnformat, controllingPropertyName).ToLowerInvariant();
 			var inverseColumnName = string.Format(columnformat, typeof(TControllingEntity).Name).ToLowerInvariant();
 			var tableName = string.Format(tableformat, typeof (TControllingEntity).Name, controllingPropertyName).ToLowerInvariant();
-
-			mapper.Class<TControllingEntity>(map => map.Set(controllingProperty,
-				cm =>
-				{
-					cm.Cascade(Cascade.Persist | Cascade.Remove);
-					cm.Table(tableName);
-					cm.Key(km => km.Column(controllingColumnName));
-				},
-				em => em.ManyToMany(m => m.Column(inverseColumnName))));
-
-			if (inverseProperty != null)
-				mapper.Class<TInverseEntity>(map => map.Set(inverseProperty,
-					cm =>
-					{
+			mapper.Class<TControllingEntity>(
+				map => map.Bag(controllingProperty,
+					cm => {
+						cm.Cascade(Cascade.All | Cascade.DeleteOrphans);
 						cm.Table(tableName);
-						cm.Inverse(true);
 						cm.Key(km => km.Column(inverseColumnName));
 					},
-					em => em.ManyToMany(m => m.Column(controllingColumnName))));
+					em => em.ManyToMany(m => m.Column(controllingColumnName))
+				)
+			);
+			if (inverseProperty != null)
+				mapper.Class<TInverseEntity>(
+					map => map.Bag(inverseProperty,
+						cm => {
+							cm.Table(tableName);
+							cm.Inverse(true);
+							cm.Key(km => km.Column(controllingColumnName));
+						},
+						em => em.ManyToMany(m => m.Column(inverseColumnName))
+					)
+				);
 
 			return mapper;
 		}

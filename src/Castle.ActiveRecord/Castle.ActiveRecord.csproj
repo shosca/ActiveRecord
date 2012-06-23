@@ -105,9 +105,6 @@
   <ItemGroup>
     <Compile Include="AR.cs" />
     <Compile Include="Attributes\EventListenerAttribute.cs" />
-    <Compile Include="ByteCode\LazyInitializer.cs" />
-    <Compile Include="ByteCode\ProxyFactory.cs" />
-    <Compile Include="ByteCode\ARProxyFactoryFactory.cs" />
     <Compile Include="ActiveRecordException.cs" />
     <Compile Include="AR.Generic.cs" />
     <Compile Include="Config\SessionFactoryConfig.cs" />

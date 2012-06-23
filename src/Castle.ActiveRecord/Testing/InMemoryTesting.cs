@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Castle.ActiveRecord.ByteCode;
 using Castle.ActiveRecord.Config;
 using Castle.Core.Configuration;
 
@@ -33,7 +32,6 @@ namespace Castle.ActiveRecord.Testing
 					.SetDatabaseType(DatabaseType.SQLite)
 					.ConnectionString("Data Source=:memory:;Version=3;New=True")
 					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof(InMemoryConnectionProvider).AssemblyQualifiedName)
-					.Set(NHibernate.Cfg.Environment.ProxyFactoryFactoryClass, typeof(ARProxyFactoryFactory).AssemblyQualifiedName)
 					.Set(GetProperties())
 				);
 
