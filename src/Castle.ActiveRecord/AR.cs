@@ -642,7 +642,7 @@ namespace Castle.ActiveRecord {
 		/// <param name="id">ID value</param>
 		public static object Find(Type type, object id)
 		{
-			return Execute<object, object>(session => session.Get(type, id));
+			return Execute<object>(type, session => session.Get(type, id));
 		}
 
 		/// <summary>
@@ -653,7 +653,7 @@ namespace Castle.ActiveRecord {
 		/// <param name="id">ID value</param>
 		public static object Peek(Type type, object id)
 		{
-			return Execute<object, object>(session => session.Load(type, id));
+			return Execute<object>(type, session => session.Load(type, id));
 		}
 
 		#endregion
