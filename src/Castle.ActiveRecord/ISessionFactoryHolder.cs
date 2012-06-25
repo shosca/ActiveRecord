@@ -15,6 +15,7 @@
 using System;
 using NHibernate;
 using NHibernate.Cfg;
+using NHibernate.Metadata;
 
 namespace Castle.ActiveRecord
 {
@@ -48,6 +49,13 @@ namespace Castle.ActiveRecord
 		/// <param name="type"></param>
 		/// <returns></returns>
 		ISessionFactory GetSessionFactory(Type type);
+
+		/// <summary>
+		/// Obtains the IClassMetadata of the type.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		IClassMetadata GetClassMetadata(Type type);
 
 		/// <summary>
 		/// Gets the all the session factories.

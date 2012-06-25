@@ -24,6 +24,7 @@ using Castle.Core.Internal;
 using Iesi.Collections;
 using NHibernate;
 using NHibernate.Cfg;
+using NHibernate.Metadata;
 
 namespace Castle.ActiveRecord
 {
@@ -108,6 +109,19 @@ namespace Castle.ActiveRecord
 			type2SessFactory[type] = new SfHolder(cfg, sessFactory);
 
 			return sessFactory;
+		}
+
+		/// <summary>
+		/// Obtains the IClassMetadata of the type.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public IClassMetadata GetClassMetadata(Type type) {
+			if (type == null || !type2SessFactory.ContainsKey(type))
+			{
+				return null;
+			}
+			return type2SessFactory[type].SessionFactory.GetClassMetadata(type);
 		}
 
 		///<summary>
