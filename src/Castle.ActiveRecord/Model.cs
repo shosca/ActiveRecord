@@ -14,6 +14,7 @@ namespace Castle.ActiveRecord
 	/// </summary>
 	public class Model
 	{
+		public Type Type { get; private set; }
 		public IClassMetadata Metadata { get; private set; }
 		public KeyValuePair<string, IType> PrimaryKey { get; private set; }
 		public IDictionary<string, IType> Properties { get; private set; }
@@ -25,7 +26,11 @@ namespace Castle.ActiveRecord
 
 		public Model(ISessionFactory sessionfactory, Type type)
 		{
-			Metadata = sessionfactory.GetClassMetadata(type);
+			if (sessionfactory == null) throw new ArgumentNullException("sessionfactory");
+			if (type == null) throw new ArgumentNullException("type");
+
+			Type = type;
+			Metadata = sessionfactory.GetClassMetadata(Type);
 			var properties = new Dictionary<string, IType>();
 			var components = new Dictionary<string, ComponentType>();
 			var belongsTos = new Dictionary<string, EntityType>();
