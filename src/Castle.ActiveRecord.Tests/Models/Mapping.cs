@@ -96,7 +96,7 @@ namespace Castle.ActiveRecord.Tests.Models
 		{
 			base.Contribute(mapper);
 			mapper
-				.ManyToMany<Company, Person>(x => x.People, x => x.Companies);
+				.ManyToManySet<Company, Person>(x => x.People, x => x.Companies);
 		}
 	}
 }
