@@ -58,6 +58,14 @@ namespace Castle.ActiveRecord
 		IClassMetadata GetClassMetadata(Type type);
 
 		/// <summary>
+		/// Obtains the Model of the type.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		Model GetModel(Type type);
+
+
+		/// <summary>
 		/// Gets the all the session factories.
 		/// </summary>
 		/// <returns></returns>

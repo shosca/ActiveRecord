@@ -135,6 +135,7 @@
     <Compile Include="Models\Ship.cs" />
     <Compile Include="DifferentDatabaseScopeTestCase.cs" />
     <Compile Include="Models\SSAFEntity.cs" />
+    <Compile Include="ModelTestCase.cs" />
     <Compile Include="MultipleDatabasesTestCase.cs" />
     <Compile Include="ScopeDefaultFlushingBehaviourTestCase.cs">
       <SubType>Code</SubType>

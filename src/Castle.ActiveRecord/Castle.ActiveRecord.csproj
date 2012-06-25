@@ -123,9 +123,11 @@
     <Compile Include="INHContributor.cs" />
     <Compile Include="ISessionFactoryHolder.cs" />
     <Compile Include="IThreadScopeInfo.cs" />
+    <Compile Include="Model.cs" />
     <Compile Include="NHEventListeners.cs" />
     <Compile Include="NotFoundException.cs" />
     <Compile Include="QueryExtensions.cs" />
+    <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="Scopes\AbstractScope.cs" />
     <Compile Include="Scopes\AbstractThreadScopeInfo.cs" />
     <Compile Include="Scopes\ISessionScope.cs" />

@@ -47,6 +47,7 @@ namespace Castle.ActiveRecord
 			public ISessionFactory SessionFactory { get; private set; }
 		}
 
+		static readonly ConcurrentDictionary<Type, Model> Type2Model = new ConcurrentDictionary<Type, Model>();
 		readonly IDictionary<Type, SfHolder> type2SessFactory = new ConcurrentDictionary<Type, SfHolder>();
 		IThreadScopeInfo threadScopeInfo;
 
@@ -70,8 +71,24 @@ namespace Castle.ActiveRecord
 		/// Requests the registered types
 		/// </summary>
 		public Type[] GetRegisteredTypes()
+
 		{
 			return type2SessFactory.Keys.ToArray();
+		}
+
+		public Model GetModel(Type type)
+		{
+			return Type2Model.GetOrAdd(type, t => {
+				var sf = GetSessionFactory(t);
+				var model = new Model(sf, type);
+				return model;
+			});
+		}
+
+		public IClassMetadata GetClassMetadata(Type type) {
+			return type2SessFactory.ContainsKey(type) 
+				? type2SessFactory[type].SessionFactory.GetClassMetadata(type)
+				: null;
 		}
 
 		/// <summary>
@@ -109,19 +126,6 @@ namespace Castle.ActiveRecord
 			type2SessFactory[type] = new SfHolder(cfg, sessFactory);
 
 			return sessFactory;
-		}
-
-		/// <summary>
-		/// Obtains the IClassMetadata of the type.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public IClassMetadata GetClassMetadata(Type type) {
-			if (type == null || !type2SessFactory.ContainsKey(type))
-			{
-				return null;
-			}
-			return type2SessFactory[type].SessionFactory.GetClassMetadata(type);
 		}
 
 		///<summary>
