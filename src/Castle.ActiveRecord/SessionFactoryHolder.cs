@@ -80,14 +80,18 @@ namespace Castle.ActiveRecord
 		public Model GetModel(Type type)
 		{
 			type = GetNonProxyType(type);
-			return Type2Model.GetOrAdd(type, t => {
-				var sf = GetSessionFactory(t);
-				var model = new Model(sf, type);
-				return model;
-			});
+
+			return type2SessFactory.ContainsKey(type)
+				? Type2Model.GetOrAdd(type, t => {
+					var sf = GetSessionFactory(t);
+					var model = new Model(sf, type);
+					return model;
+				})
+				: null;
 		}
 
 		public IClassMetadata GetClassMetadata(Type type) {
+			type = GetNonProxyType(type);
 			return type2SessFactory.ContainsKey(type) 
 				? type2SessFactory[type].SessionFactory.GetClassMetadata(type)
 				: null;
