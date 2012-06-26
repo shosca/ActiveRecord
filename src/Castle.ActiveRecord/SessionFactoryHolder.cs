@@ -25,6 +25,7 @@ using Iesi.Collections;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Metadata;
+using NHibernate.Proxy;
 
 namespace Castle.ActiveRecord
 {
@@ -78,6 +79,7 @@ namespace Castle.ActiveRecord
 
 		public Model GetModel(Type type)
 		{
+			type = GetNonProxyType(type);
 			return Type2Model.GetOrAdd(type, t => {
 				var sf = GetSessionFactory(t);
 				var model = new Model(sf, type);
@@ -107,7 +109,10 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		public ISessionFactory GetSessionFactory(Type type)
 		{
-			if (type == null || !type2SessFactory.ContainsKey(type))
+			if (type == null) throw new ArgumentNullException("type");
+
+			type = GetNonProxyType(type);
+			if (!type2SessFactory.ContainsKey(type))
 			{
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
@@ -159,14 +164,6 @@ namespace Castle.ActiveRecord
 			new SessionScope();
 
 			return CreateSession(type);
-
-			/*
-			ISessionFactory sessionFactory = GetSessionFactory(type);
-
-			ISession session = OpenSession(sessionFactory);
-
-			return session;
-			 */
 		}
 
 		private static ISession OpenSession(ISessionFactory sessionFactory)
@@ -257,6 +254,12 @@ namespace Castle.ActiveRecord
 		public void Dispose() {
 			type2SessFactory.Values.ForEach(sf => sf.SessionFactory.Dispose());
 			type2SessFactory.Clear();
+		}
+
+		public Type GetNonProxyType(Type type) {
+			return typeof(INHibernateProxy).IsAssignableFrom(type)
+				? GetNonProxyType(type.BaseType)
+				: type;
 		}
 	}
 }
