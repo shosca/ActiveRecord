@@ -29,81 +29,96 @@ namespace Castle.ActiveRecord
 
 		public Type Type { get; private set; }
 		public IClassMetadata Metadata { get; private set; }
+		public ComponentType ComponentType { get; private set; }
 		public KeyValuePair<string, IType> PrimaryKey { get; private set; }
 		public IDictionary<string, IType> Properties { get; private set; }
-		public IDictionary<string, ComponentType> Components { get; private set; }
+		public IDictionary<string, Model> Components { get; private set; }
 		public IDictionary<string, ManyToOneType> BelongsTos { get; private set; }
 		public IDictionary<string, OneToOneType> OneToOnes { get; private set; }
 		public IDictionary<string, AnyType> Anys { get; private set; }
 		public IDictionary<string, Collection> HasManys { get; private set; }
 		public IDictionary<string, Collection> HasAndBelongsToManys { get; private set; }
+		public bool IsComponent { get; private set; }
+
+
+		public Model(ISessionFactory sessionfactory, ComponentType type) {
+			if (type == null) throw new ArgumentNullException("type");
+
+			IsComponent = true;
+			Type = type.ReturnedClass;
+			ComponentType = type;
+			Metadata = sessionfactory.GetClassMetadata(Type);
+			Properties = new Dictionary<string, IType>();
+			Components = new Dictionary<string, Model>();
+			BelongsTos = new Dictionary<string, ManyToOneType>();
+			OneToOnes = new Dictionary<string, OneToOneType>();
+			Anys = new Dictionary<string, AnyType>();
+			HasManys = new Dictionary<string, Collection>();
+			HasAndBelongsToManys = new Dictionary<string, Collection>();
+			foreach (var pc in type.PropertyNames) {
+				var index = type.GetPropertyIndex(pc);
+				var x = type.Subtypes[index];
+				CategorizeProperty(sessionfactory, x, pc);
+			}
+			
+		}
 
 		public Model(ISessionFactory sessionfactory, Type type)
 		{
 			if (sessionfactory == null) throw new ArgumentNullException("sessionfactory");
 			if (type == null) throw new ArgumentNullException("type");
 
+			IsComponent = false;
 			Type = type;
 			Metadata = sessionfactory.GetClassMetadata(Type);
-			var properties = new Dictionary<string, IType>();
-			var components = new Dictionary<string, ComponentType>();
-			var belongsTos = new Dictionary<string, ManyToOneType>();
-			var oneToOnes = new Dictionary<string, OneToOneType>();
-			var anys = new Dictionary<string, AnyType>();
-			var hasManys = new Dictionary<string, Collection>();
-			var hasAndBelongsToManys = new Dictionary<string, Collection>();
+			Properties = new Dictionary<string, IType>();
+			Components = new Dictionary<string, Model>();
+			BelongsTos = new Dictionary<string, ManyToOneType>();
+			OneToOnes = new Dictionary<string, OneToOneType>();
+			Anys = new Dictionary<string, AnyType>();
+			HasManys = new Dictionary<string, Collection>();
+			HasAndBelongsToManys = new Dictionary<string, Collection>();
 
 			PrimaryKey = new KeyValuePair<string, IType>(Metadata.IdentifierPropertyName, Metadata.IdentifierType);
-			foreach (var name in Metadata.PropertyNames)
-			{
+			foreach (var name in Metadata.PropertyNames) {
 				var prop = Metadata.GetPropertyType(name);
-				if (prop is ComponentType)
-				{
-					components.Add(name, (ComponentType)prop);
-				}
-				else if (prop is OneToOneType)
-				{
-					oneToOnes.Add(name, (OneToOneType)prop);
-				}
-				else if (prop is ManyToOneType)
-				{
-					belongsTos.Add(name, (ManyToOneType)prop);
-				}
-				else if (prop is AnyType)
-				{
-					anys.Add(name, (AnyType)prop);
-				}
-				else if (prop is CollectionType)
-				{
-					var ctype = (CollectionType)prop;
-					var persister = sessionfactory.GetCollectionMetadata(ctype.Role) as ICollectionPersister;
-					if (persister == null) return;
-
-					var reltype = persister.ElementType.ReturnedClass;
-					var childmetadata = sessionfactory.GetClassMetadata(reltype);
-					if (childmetadata == null) return;
-
-					if (persister.IsManyToMany)
-					{
-						hasAndBelongsToManys.Add(name, new Collection(ctype, persister));
-					}
-					else
-					{
-						hasManys.Add(name, new Collection(ctype, persister));
-					}
-				}
-				else
-				{
-					properties.Add(name, prop);
-				}
+				CategorizeProperty(sessionfactory, prop, name);
 			}
-			Properties = new ReadOnlyDictionary<string, IType>(properties);
-			Components = new ReadOnlyDictionary<string, ComponentType>(components);
-			BelongsTos = new ReadOnlyDictionary<string, ManyToOneType>(belongsTos);
-			OneToOnes = new ReadOnlyDictionary<string, OneToOneType>(oneToOnes);
-			Anys = new ReadOnlyDictionary<string, AnyType>(anys);
-			HasManys = new ReadOnlyDictionary<string, Collection>(hasManys);
-			HasAndBelongsToManys = new ReadOnlyDictionary<string, Collection>(hasAndBelongsToManys);
+			Properties = new ReadOnlyDictionary<string, IType>(Properties);
+			Components = new ReadOnlyDictionary<string, Model>(Components);
+			BelongsTos = new ReadOnlyDictionary<string, ManyToOneType>(BelongsTos);
+			OneToOnes = new ReadOnlyDictionary<string, OneToOneType>(OneToOnes);
+			Anys = new ReadOnlyDictionary<string, AnyType>(Anys);
+			HasManys = new ReadOnlyDictionary<string, Collection>(HasManys);
+			HasAndBelongsToManys = new ReadOnlyDictionary<string, Collection>(HasAndBelongsToManys);
+		}
+
+		void CategorizeProperty(ISessionFactory sessionfactory, IType prop, string name) {
+			if (prop is ComponentType) {
+				Components.Add(name, new Model(sessionfactory, (ComponentType) prop));
+			} else if (prop is OneToOneType) {
+				OneToOnes.Add(name, (OneToOneType) prop);
+			} else if (prop is ManyToOneType) {
+				BelongsTos.Add(name, (ManyToOneType) prop);
+			} else if (prop is AnyType) {
+				Anys.Add(name, (AnyType) prop);
+			} else if (prop is CollectionType) {
+				var ctype = (CollectionType) prop;
+				var persister = sessionfactory.GetCollectionMetadata(ctype.Role) as ICollectionPersister;
+				if (persister == null) return;
+
+				var reltype = persister.ElementType.ReturnedClass;
+				var childmetadata = sessionfactory.GetClassMetadata(reltype);
+				if (childmetadata == null) return;
+
+				if (persister.IsManyToMany) {
+					HasAndBelongsToManys.Add(name, new Collection(ctype, persister));
+				} else {
+					HasManys.Add(name, new Collection(ctype, persister));
+				}
+			} else {
+				Properties.Add(name, prop);
+			}
 		}
 	}
 }

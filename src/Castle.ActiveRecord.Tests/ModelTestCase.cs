@@ -66,5 +66,12 @@ namespace Castle.ActiveRecord.Tests {
 			var model = AR.Holder.GetModel(typeof (Employee));
 			Assert.True(model.OneToOnes.ContainsKey("Award"));
 		}
+
+		[Test]
+		public void CompanyModelHasPostalAddressComponent() {
+			var model = AR.Holder.GetModel(typeof (Company));
+			Assert.True(model.Components.ContainsKey("Address"));
+			Assert.True(model.Components["Address"].Properties.Count == 4);
+		}
 	}
 }
