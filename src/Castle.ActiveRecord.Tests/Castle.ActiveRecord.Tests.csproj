@@ -71,8 +71,9 @@
     <Reference Include="Iesi.Collections">
       <HintPath>..\..\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>
     </Reference>
-    <Reference Include="NHibernate">
-      <HintPath>..\..\packages\NHibernate.3.3.0.4000\lib\Net35\NHibernate.dll</HintPath>
+    <Reference Include="NHibernate, Version=3.3.1.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NHibernate.3.3.1.4000\lib\Net35\NHibernate.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -188,7 +189,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Castle.ActiveRecord.Tests.Model\Castle.ActiveRecord.Tests.Model.csproj">
       <Project>{DC2D80AC-4641-4798-B059-C90AA162D2AB}</Project>
-      <Name>Castle.ActiveRecord.Tests.Model-vs2010</Name>
+      <Name>Castle.ActiveRecord.Tests.Model</Name>
     </ProjectReference>
     <ProjectReference Include="..\Castle.ActiveRecord.Web\Castle.ActiveRecord.Web.csproj">
       <Project>{3A0B9A64-8140-429E-A3F0-5B1617CEB466}</Project>
@@ -196,7 +197,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Castle.ActiveRecord\Castle.ActiveRecord.csproj">
       <Project>{652F95D4-86E2-40B6-919D-CFC6E449386B}</Project>
-      <Name>Castle.ActiveRecord-vs2010</Name>
+      <Name>Castle.ActiveRecord</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

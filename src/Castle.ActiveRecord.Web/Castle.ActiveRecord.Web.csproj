@@ -66,13 +66,13 @@
     <Compile Include="SessionScopeWebModule.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Castle.ActiveRecord\Castle.ActiveRecord.csproj">
-      <Project>{652F95D4-86E2-40B6-919D-CFC6E449386B}</Project>
-      <Name>Castle.ActiveRecord-vs2010</Name>
-    </ProjectReference>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <ProjectReference Include="..\Castle.ActiveRecord\Castle.ActiveRecord.csproj">
+      <Project>{652F95D4-86E2-40B6-919D-CFC6E449386B}</Project>
+      <Name>Castle.ActiveRecord</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
