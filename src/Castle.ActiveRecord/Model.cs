@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using NHibernate;
@@ -12,6 +13,7 @@ namespace Castle.ActiveRecord
 	/// <summary>
 	/// An easier to work with wrapper for IClassMetadata
 	/// </summary>
+	[DebuggerDisplay("Model: {Type}")]
 	public class Model
 	{
 		public class Collection {
@@ -106,10 +108,6 @@ namespace Castle.ActiveRecord
 				var ctype = (CollectionType) prop;
 				var persister = sessionfactory.GetCollectionMetadata(ctype.Role) as ICollectionPersister;
 				if (persister == null) return;
-
-				var reltype = persister.ElementType.ReturnedClass;
-				var childmetadata = sessionfactory.GetClassMetadata(reltype);
-				if (childmetadata == null) return;
 
 				if (persister.IsManyToMany) {
 					HasAndBelongsToManys.Add(name, new Collection(ctype, persister));
