@@ -40,6 +40,11 @@ namespace Castle.ActiveRecord {
 			return AR.Execute<T, TR>(session => query.GetExecutableQueryOver(session).List<TR>().FirstOrDefault());
 		}
 
+		public static int RowCount<T>(this QueryOver<T> query) where T : class
+		{
+			return AR.Execute<T, int>(session => query.GetExecutableQueryOver(session).RowCount());
+		}
+
 		public static IFutureValue<TR> FutureValue<T, TR>(this QueryOver<T> query) where T : class
 		{
 			return AR.Execute<T, IFutureValue<TR>>(session => query.GetExecutableQueryOver(session).FutureValue<TR>());
@@ -60,7 +65,7 @@ namespace Castle.ActiveRecord {
 
 		public static int Count<T>(this QueryOver<T, T> queryover) where T : class
 		{
-			return queryover.Select(Projections.RowCount()).UniqueResult<T, int>();
+			return queryover.ToRowCountQuery().RowCount<T>();
 		}
 
 		public static void DeleteAll<T>(this QueryOver<T, T> query) where T : class
