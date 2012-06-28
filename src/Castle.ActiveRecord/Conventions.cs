@@ -63,7 +63,6 @@ namespace Castle.ActiveRecord {
 			mapper.Class<TControllingEntity>(
 				map => map.Bag(controllingProperty,
 					cm => {
-						cm.Cascade(Cascade.All | Cascade.DeleteOrphans);
 						cm.Table(tableName);
 						cm.Key(km => km.Column(inverseColumnName));
 					},
@@ -127,7 +126,6 @@ namespace Castle.ActiveRecord {
 			mapper.Class<TControllingEntity>(
 				map => map.Set(controllingProperty,
 					cm => {
-						cm.Cascade(Cascade.All | Cascade.DeleteOrphans);
 						cm.Table(tableName);
 						cm.Key(km => km.Column(inverseColumnName));
 					},
