@@ -19,6 +19,7 @@ using System.Linq;
 using System.Threading;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using Castle.ActiveRecord.Config;
 using Castle.ActiveRecord.Scopes;
 using Castle.Core.Internal;
 using Iesi.Collections;
@@ -48,16 +49,16 @@ namespace Castle.ActiveRecord
 			public ISessionFactory SessionFactory { get; private set; }
 		}
 
-		static readonly ConcurrentDictionary<Type, Model> Type2Model = new ConcurrentDictionary<Type, Model>();
-		readonly IDictionary<Type, SfHolder> type2SessFactory = new ConcurrentDictionary<Type, SfHolder>();
-		IThreadScopeInfo threadScopeInfo;
+		readonly ConcurrentDictionary<Type, Model> _type2Model = new ConcurrentDictionary<Type, Model>();
+		readonly IDictionary<Type, SfHolder> _type2SessFactory = new ConcurrentDictionary<Type, SfHolder>();
+		IThreadScopeInfo _threadScopeInfo;
 
 		/// <summary>
 		/// Requests the Configuration associated to the type.
 		/// </summary>
 		public Configuration GetConfiguration(Type type)
 		{
-			return type2SessFactory.ContainsKey(type) ? type2SessFactory[type].Configuration : GetConfiguration(type.BaseType);
+			return _type2SessFactory.ContainsKey(type) ? _type2SessFactory[type].Configuration : GetConfiguration(type.BaseType);
 		}
 
 		/// <summary>
@@ -65,7 +66,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		public Configuration[] GetAllConfigurations()
 		{
-			return type2SessFactory.Values.Select(s => s.Configuration).Distinct().ToArray();
+			return _type2SessFactory.Values.Select(s => s.Configuration).Distinct().ToArray();
 		}
 
 		/// <summary>
@@ -74,15 +75,15 @@ namespace Castle.ActiveRecord
 		public Type[] GetRegisteredTypes()
 
 		{
-			return type2SessFactory.Keys.ToArray();
+			return _type2SessFactory.Keys.ToArray();
 		}
 
 		public Model GetModel(Type type)
 		{
 			type = GetNonProxyType(type);
 
-			return type2SessFactory.ContainsKey(type)
-				? Type2Model.GetOrAdd(type, t => {
+			return _type2SessFactory.ContainsKey(type)
+				? _type2Model.GetOrAdd(type, t => {
 					var sf = GetSessionFactory(t);
 					var model = new Model(sf, type);
 					return model;
@@ -92,8 +93,8 @@ namespace Castle.ActiveRecord
 
 		public IClassMetadata GetClassMetadata(Type type) {
 			type = GetNonProxyType(type);
-			return type2SessFactory.ContainsKey(type) 
-				? type2SessFactory[type].SessionFactory.GetClassMetadata(type)
+			return _type2SessFactory.ContainsKey(type) 
+				? _type2SessFactory[type].SessionFactory.GetClassMetadata(type)
 				: null;
 		}
 
@@ -103,7 +104,7 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		public ISessionFactory[] GetSessionFactories()
 		{
-			return type2SessFactory.Values.Select(sf => sf.SessionFactory).Distinct().ToArray();
+			return _type2SessFactory.Values.Select(sf => sf.SessionFactory).Distinct().ToArray();
 		}
 
 		/// <summary>
@@ -116,12 +117,12 @@ namespace Castle.ActiveRecord
 			if (type == null) throw new ArgumentNullException("type");
 
 			type = GetNonProxyType(type);
-			if (!type2SessFactory.ContainsKey(type))
+			if (!_type2SessFactory.ContainsKey(type))
 			{
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
 
-			var sessFactory = type2SessFactory[type].SessionFactory;
+			var sessFactory = _type2SessFactory[type].SessionFactory;
 
 			if (sessFactory != null)
 			{
@@ -132,7 +133,7 @@ namespace Castle.ActiveRecord
 
 			sessFactory = cfg.BuildSessionFactory();
 
-			type2SessFactory[type] = new SfHolder(cfg, sessFactory);
+			_type2SessFactory[type] = new SfHolder(cfg, sessFactory);
 
 			return sessFactory;
 		}
@@ -140,7 +141,7 @@ namespace Castle.ActiveRecord
 		///<summary>
 		/// This method allows direct registration of Configuration
 		///</summary>
-		public void RegisterConfiguration(Configuration cfg)
+		public void RegisterConfiguration(Configuration cfg, string name)
 		{
 			var sf = cfg.BuildSessionFactory();
 			var sfholder = new SfHolder(cfg, sf);
@@ -148,9 +149,15 @@ namespace Castle.ActiveRecord
 			foreach (var classMetadata in sf.GetAllClassMetadata()) {
 				var entitytype = classMetadata.Value.GetMappedClass(EntityMode.Poco);
 
-				if (!type2SessFactory.ContainsKey(entitytype))
-					type2SessFactory.Add(entitytype, sfholder);
+				if (!_type2SessFactory.ContainsKey(entitytype))
+					_type2SessFactory.Add(entitytype, sfholder);
 			}
+			AR.RaiseSessionFactoryCreated(sf, name);
+		}
+
+		public void RegisterConfiguration(SessionFactoryConfig config) {
+			var cfg = config.BuildConfiguration();
+			RegisterConfiguration(cfg, config.Name);
 		}
 
 		/// <summary>
@@ -159,7 +166,7 @@ namespace Castle.ActiveRecord
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public ISession CreateSession(Type type)
 		{
-			if (threadScopeInfo.HasInitializedScope)
+			if (_threadScopeInfo.HasInitializedScope)
 			{
 				return CreateScopeSession(type);
 			}
@@ -192,7 +199,7 @@ namespace Castle.ActiveRecord
 		/// <param name="session"></param>
 		public void ReleaseSession(ISession session)
 		{
-			if (threadScopeInfo.HasInitializedScope) return;
+			if (_threadScopeInfo.HasInitializedScope) return;
 
 			session.Flush();
 			session.Dispose();
@@ -204,9 +211,9 @@ namespace Castle.ActiveRecord
 		/// <param name="session"></param>
 		public void FailSession(ISession session)
 		{
-			if (threadScopeInfo.HasInitializedScope)
+			if (_threadScopeInfo.HasInitializedScope)
 			{
-				ISessionScope scope = threadScopeInfo.GetRegisteredScope();
+				ISessionScope scope = _threadScopeInfo.GetRegisteredScope();
 				scope.FailSession(session);
 			}
 			else
@@ -221,17 +228,17 @@ namespace Castle.ActiveRecord
 		/// <value></value>
 		public IThreadScopeInfo ThreadScopeInfo
 		{
-			get { return threadScopeInfo; }
+			get { return _threadScopeInfo; }
 			set
 			{
 				ThreadScopeAccessor.Instance.ScopeInfo = value;
-				threadScopeInfo = value;
+				_threadScopeInfo = value;
 			}
 		}
 
 		private ISession CreateScopeSession(Type type)
 		{
-			ISessionScope scope = threadScopeInfo.GetRegisteredScope();
+			ISessionScope scope = _threadScopeInfo.GetRegisteredScope();
 			ISessionFactory sessionFactory = GetSessionFactory(type);
 #if DEBUG
 			System.Diagnostics.Debug.Assert(scope != null);
@@ -256,8 +263,8 @@ namespace Castle.ActiveRecord
 		}
 
 		public void Dispose() {
-			type2SessFactory.Values.ForEach(sf => sf.SessionFactory.Dispose());
-			type2SessFactory.Clear();
+			_type2SessFactory.Values.ForEach(sf => sf.SessionFactory.Dispose());
+			_type2SessFactory.Clear();
 		}
 
 		public Type GetNonProxyType(Type type) {

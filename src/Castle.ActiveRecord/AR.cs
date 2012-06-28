@@ -13,6 +13,7 @@
 // limitations under the License.
 
 
+using System.Linq;
 using NHibernate;
 using NHibernate.Cfg.MappingSchema;
 
@@ -38,8 +39,8 @@ namespace Castle.ActiveRecord {
 	{
 		#region Configuration/Registeration
 
-		private static readonly ISet<Assembly> _registeredassemblies = new HashSet<Assembly>();
-		private static readonly Object lockConfig = new object();
+		private static readonly ISet<Assembly> RegisteredAssemblies = new HashSet<Assembly>();
+		private static readonly Object LockConfig = new object();
 
 		public static IActiveRecordConfiguration ConfigurationSource { get; private set; }
 
@@ -52,7 +53,9 @@ namespace Castle.ActiveRecord {
 		/// So others frameworks can intercept the 
 		/// creation and act on the holder instance
 		/// </summary>
-		public static event SessionFactoryHolderDelegate SessionFactoryHolderCreated;
+		public static event SessionFactoryHolderDelegate OnSessionFactoryHolderCreated;
+
+		public static event SessionFactoryDelegate OnSessionFactoryCreated;
 
 		/// <summary>
 		/// Allows other frameworks to modify the ModelMapper
@@ -91,7 +94,7 @@ namespace Castle.ActiveRecord {
 		/// </summary>
 		public static void Initialize()
 		{
-			IActiveRecordConfiguration source = ActiveRecordSectionHandler.Instance;
+			var source = ActiveRecordSectionHandler.Instance;
 
 			Initialize(source);
 		}
@@ -100,14 +103,14 @@ namespace Castle.ActiveRecord {
 		/// Initialize the mappings using the configuration and 
 		/// the list of types
 		/// </summary>
-		static void CreateSessionFactoryAndRegisterToHolder(IActiveRecordConfiguration source)
+		private static void CreateSessionFactoryAndRegisterToHolder(IActiveRecordConfiguration source)
 		{
 			if (source == null)
 			{
 				throw new ArgumentNullException("source");
 			}
 
-			lock(lockConfig)
+			lock(LockConfig)
 			{
 				if (Holder == null) {
 					// First initialization
@@ -123,12 +126,12 @@ namespace Castle.ActiveRecord {
 					var config = source.GetConfiguration(key);
 
 					foreach (var asm in config.Assemblies) {
-						if (_registeredassemblies.Contains(asm))
+						if (RegisteredAssemblies.Contains(asm))
 							throw new ActiveRecordException(string.Format("Assembly {0} has already been registered.", asm));
 
 					}
 
-					Holder.RegisterConfiguration(config.BuildConfiguration());
+					Holder.RegisterConfiguration(config);
 				}
 
 			}
@@ -149,9 +152,9 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			foreach(Configuration config in Holder.GetAllConfigurations())
+			foreach(var config in Holder.GetAllConfigurations())
 			{
-				SchemaExport export = CreateSchemaExport(config);
+				var export = CreateSchemaExport(config);
 
 				try
 				{
@@ -172,9 +175,9 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			Configuration config = Holder.GetConfiguration(baseClass);
+			var config = Holder.GetConfiguration(baseClass);
 
-			SchemaExport export = CreateSchemaExport(config);
+			var export = CreateSchemaExport(config);
 
 			try
 			{
@@ -193,9 +196,9 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			foreach(Configuration config in Holder.GetAllConfigurations())
+			foreach(var config in Holder.GetAllConfigurations())
 			{
-				SchemaExport export = CreateSchemaExport(config);
+				var export = CreateSchemaExport(config);
 
 				try
 				{
@@ -237,11 +240,11 @@ namespace Castle.ActiveRecord {
 		public static IList<Exception> UpdateSchema()
 		{
 			CheckInitialized();
-			List<Exception> exceptions = new List<Exception>();
+			var exceptions = new List<Exception>();
 
-			foreach(Configuration config in Holder.GetAllConfigurations())
+			foreach(var config in Holder.GetAllConfigurations())
 			{
-				SchemaUpdate updater = CreateSchemaUpdate(config);
+				var updater = CreateSchemaUpdate(config);
 
 				try
 				{
@@ -266,9 +269,9 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			Configuration config = Holder.GetConfiguration(baseClass);
+			var config = Holder.GetConfiguration(baseClass);
 
-			SchemaUpdate updater = CreateSchemaUpdate(config);
+			var updater = CreateSchemaUpdate(config);
 
 			try
 			{
@@ -293,12 +296,12 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			bool isFirstExport = true;
-			int fileCount = 1;
+			var isFirstExport = true;
+			var fileCount = 1;
 
-			foreach(Configuration config in Holder.GetAllConfigurations())
+			foreach(var config in Holder.GetAllConfigurations())
 			{
-				SchemaExport export = CreateSchemaExport(config);
+				var export = CreateSchemaExport(config);
 
 				try
 				{
@@ -322,9 +325,9 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			Configuration config = Holder.GetConfiguration(baseType);
+			var config = Holder.GetConfiguration(baseType);
 
-			SchemaExport export = CreateSchemaExport(config);
+			var export = CreateSchemaExport(config);
 
 			try
 			{
@@ -348,13 +351,11 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			bool isFirstExport = true;
-			int fileCount = 1;
+			var isFirstExport = true;
+			var fileCount = 1;
 
-			foreach(Configuration config in Holder.GetAllConfigurations())
+			foreach(var export in Holder.GetAllConfigurations().Select(c => CreateSchemaExport(c)))
 			{
-				SchemaExport export = CreateSchemaExport(config);
-
 				try
 				{
 					export.SetOutputFile(isFirstExport ? fileName : CreateAnotherFile(fileName, fileCount++));
@@ -377,9 +378,9 @@ namespace Castle.ActiveRecord {
 		{
 			CheckInitialized();
 
-			Configuration config = Holder.GetConfiguration(baseType);
+			var config = Holder.GetConfiguration(baseType);
 
-			SchemaExport export = CreateSchemaExport(config);
+			var export = CreateSchemaExport(config);
 
 			try
 			{
@@ -416,7 +417,7 @@ namespace Castle.ActiveRecord {
 
 		private static SchemaExport CreateSchemaExport(Configuration cfg)
 		{
-			SchemaExport export = new SchemaExport(cfg);
+			var export = new SchemaExport(cfg);
 			return export;
 		}
 
@@ -434,56 +435,40 @@ namespace Castle.ActiveRecord {
 		}
 
 
-		private static void RaiseSessionFactoryHolderCreated(ISessionFactoryHolder holder)
-		{
-			if (SessionFactoryHolderCreated != null)
-			{
-				SessionFactoryHolderCreated(holder);
-			}
-		}
-
 		private static ISessionFactoryHolder CreateSessionFactoryHolderImplementation(IActiveRecordConfiguration source)
 		{
-			if (source.SessionFactoryHolderImplementation != null)
-			{
-				Type sessionFactoryHolderType = source.SessionFactoryHolderImplementation;
-
-				if (!typeof(ISessionFactoryHolder).IsAssignableFrom(sessionFactoryHolderType))
-				{
-					String message =
-						String.Format("The specified type {0} does " + "not implement the interface ISessionFactoryHolder",
-						              sessionFactoryHolderType.FullName);
-
-					throw new ActiveRecordException(message);
-				}
-
-				return (ISessionFactoryHolder) Activator.CreateInstance(sessionFactoryHolderType);
-			}
-			else
-			{
+			if (source.SessionFactoryHolderImplementation == null)
 				return new SessionFactoryHolder();
+
+			var sessionFactoryHolderType = source.SessionFactoryHolderImplementation;
+
+			if (!typeof(ISessionFactoryHolder).IsAssignableFrom(sessionFactoryHolderType))
+			{
+				var message =
+					String.Format("The specified type {0} does " + "not implement the interface ISessionFactoryHolder",
+					              sessionFactoryHolderType.FullName);
+
+				throw new ActiveRecordException(message);
 			}
+
+			return (ISessionFactoryHolder) Activator.CreateInstance(sessionFactoryHolderType);
 		}
 
 		private static IThreadScopeInfo CreateThreadScopeInfoImplementation(IActiveRecordConfiguration source)
 		{
-			if (source.ThreadScopeInfoImplementation != null)
-			{
-				Type threadScopeType = source.ThreadScopeInfoImplementation;
-
-				if (!typeof(IThreadScopeInfo).IsAssignableFrom(threadScopeType))
-				{
-					String message = String.Format("The specified type {0} does " + "not implement the interface IThreadScopeInfo", threadScopeType.FullName);
-
-					throw new ActiveRecordInitializationException(message);
-				}
-
-				return (IThreadScopeInfo) Activator.CreateInstance(threadScopeType);
-			}
-			else
-			{
+			if (source.ThreadScopeInfoImplementation == null)
 				return new ThreadScopeInfo();
+
+			var threadScopeType = source.ThreadScopeInfoImplementation;
+
+			if (!typeof(IThreadScopeInfo).IsAssignableFrom(threadScopeType))
+			{
+				var message = String.Format("The specified type {0} does " + "not implement the interface IThreadScopeInfo", threadScopeType.FullName);
+
+				throw new ActiveRecordInitializationException(message);
 			}
+
+			return (IThreadScopeInfo) Activator.CreateInstance(threadScopeType);
 		}
 
 
@@ -496,26 +481,37 @@ namespace Castle.ActiveRecord {
 		/// <returns></returns>
 		private static string CreateAnotherFile(string originalFileName, int fileCount)
 		{
-			string path = Path.GetDirectoryName(originalFileName);
-			string fileName = Path.GetFileNameWithoutExtension(originalFileName);
-			string extension = Path.GetExtension(originalFileName);
+			var path = Path.GetDirectoryName(originalFileName);
+			var fileName = Path.GetFileNameWithoutExtension(originalFileName);
+			var extension = Path.GetExtension(originalFileName);
 
 			return Path.Combine(path, string.Format("{0}_{1}{2}", fileName, fileCount, extension));
 		}
 
-		public static void RaiseOnMapperCreated(ConventionModelMapper mapper, SessionFactoryConfig sessionFactoryConfig) {
+		private static void RaiseSessionFactoryHolderCreated(ISessionFactoryHolder holder) {
+			if (OnSessionFactoryHolderCreated != null) {
+				OnSessionFactoryHolderCreated(holder);
+			}
+		}
+
+		internal static void RaiseOnMapperCreated(ConventionModelMapper mapper, SessionFactoryConfig sessionFactoryConfig) {
 			if (OnMapperCreated != null)
 				OnMapperCreated(mapper, sessionFactoryConfig);
 		}
 
-		public static void RaiseOnConfigurationCreated(Configuration cfg, SessionFactoryConfig sessionFactoryConfig) {
+		internal static void RaiseOnConfigurationCreated(Configuration cfg, SessionFactoryConfig sessionFactoryConfig) {
 			if (OnConfigurationCreated != null)
 				OnConfigurationCreated(cfg, sessionFactoryConfig);
 		}
 
-		public static void RaiseOnHbmMappingCreated(HbmMapping mapping, SessionFactoryConfig sessionFactoryConfig) {
+		internal static void RaiseOnHbmMappingCreated(HbmMapping mapping, SessionFactoryConfig sessionFactoryConfig) {
 			if (OnHbmMappingCreated != null)
 				OnHbmMappingCreated(mapping, sessionFactoryConfig);
+		}
+
+		internal static void RaiseSessionFactoryCreated(ISessionFactory sf, string name) {
+			if (OnSessionFactoryCreated != null)
+				OnSessionFactoryCreated(sf, name);
 		}
 
 		#endregion
@@ -657,5 +653,6 @@ namespace Castle.ActiveRecord {
 		}
 
 		#endregion
+
 	}
 }

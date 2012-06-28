@@ -13,16 +13,22 @@
 // limitations under the License.
 
 using Castle.ActiveRecord.Config;
+using NHibernate;
 using NHibernate.Cfg.MappingSchema;
 using NHibernate.Mapping.ByCode;
 
 namespace Castle.ActiveRecord
 {
 	/// <summary>
-	/// Delegate for use in <see cref="AR.SessionFactoryHolderCreated"/>
+	/// Delegate for use in <see cref="AR.OnSessionFactoryHolderCreated"/>
 	/// </summary>
 	/// <param name="holder"></param>
 	public delegate void SessionFactoryHolderDelegate(ISessionFactoryHolder holder);
+
+	/// <summary>
+	/// Delegate for use in <see cref="AR.OnSessionFactoryCreated"/>
+	/// </summary>
+	public delegate void SessionFactoryDelegate(ISessionFactory sf, string name);
 
 	/// <summary>
 	/// Delegate for use in <see cref="AR.OnMapperCreated"/>
@@ -38,4 +44,5 @@ namespace Castle.ActiveRecord
 	/// Delegate for use in <see cref="AR.OnConfigurationCreated"/>
 	/// </summary>
 	public delegate void ConfigurationDelegate(NHibernate.Cfg.Configuration cfg, SessionFactoryConfig sfcfg);
+
 }

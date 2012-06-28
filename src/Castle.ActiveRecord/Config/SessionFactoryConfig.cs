@@ -21,7 +21,6 @@ using Castle.ActiveRecord.Attributes;
 using Castle.Core.Internal;
 using NHibernate.Cfg;
 using NHibernate.Mapping.ByCode;
-using Environment = NHibernate.Cfg.Environment;
 
 namespace Castle.ActiveRecord.Config {
 	public class SessionFactoryConfig {
@@ -30,7 +29,7 @@ namespace Castle.ActiveRecord.Config {
 			Contributors = new List<INHContributor>();
 			Properties = new NameValueCollection();
 			Name = string.Empty;
-			this.Source = source;
+			Source = source;
 		}
 
 		public IActiveRecordConfiguration Source { get; private set; }

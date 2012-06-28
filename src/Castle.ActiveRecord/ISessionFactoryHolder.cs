@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using Castle.ActiveRecord.Config;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Metadata;
@@ -98,6 +99,11 @@ namespace Castle.ActiveRecord
 		///<summary>
 		/// This method allows direct registration of Configuration
 		///</summary>
-		void RegisterConfiguration(Configuration cfg);
+		void RegisterConfiguration(Configuration cfg, string name);
+
+		///<summary>
+		/// This method allows registration of SessionFactoryConfig 
+		///</summary>
+		void RegisterConfiguration(SessionFactoryConfig config);
 	}
 }
