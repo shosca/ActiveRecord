@@ -9,7 +9,7 @@ namespace Castle.ActiveRecord {
 				t.IsAssignableToGenericType(typeof (SubclassMapping<>)) ||
 				t.IsAssignableToGenericType(typeof (JoinedSubclassMapping<>)) ||
 				t.IsAssignableToGenericType(typeof (UnionSubclassMapping<>))
-			);
+			).ToArray();
 			if (maptypes.Any())
 				mapper.AddMappings(maptypes);
 		}

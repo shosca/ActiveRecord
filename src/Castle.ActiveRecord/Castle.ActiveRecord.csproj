@@ -123,9 +123,14 @@
     <Compile Include="INHContributor.cs" />
     <Compile Include="ISessionFactoryHolder.cs" />
     <Compile Include="IThreadScopeInfo.cs" />
+    <Compile Include="IWebThreadScopeInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Model.cs" />
     <Compile Include="NHEventListeners.cs" />
-    <Compile Include="NotFoundException.cs" />
+    <Compile Include="NotFoundException.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="QueryExtensions.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="Scopes\AbstractScope.cs" />
@@ -138,21 +143,17 @@
     <Compile Include="Scopes\TransactionScope.cs" />
     <Compile Include="SessionFactoryHolder.cs" />
     <Compile Include="Testing\AbstractTesting.cs" />
-    <Compile Include="TransactionException.cs" />
     <Compile Include="..\..\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ActiveRecordBase.cs" />
     <Compile Include="ActiveRecordHooksBase.cs" />
-    <Compile Include="ARSchemaCreator.cs" />
     <Compile Include="Config\DefaultDatabaseConfigurationExtensions.cs" />
     <Compile Include="Config\DatabaseType.cs" />
     <Compile Include="Config\DefaultFlushType.cs" />
     <Compile Include="StatelessSessionWrapper.cs" />
     <Compile Include="InterceptorFactory.cs" />
-    <Compile Include="Inflector.cs" />
-    <Compile Include="IWebThreadScopeInfo.cs" />
     <Compile Include="Scopes\StatelessSessionScope.cs" />
     <Compile Include="Scopes\DifferentDatabaseScope.cs" />
     <Compile Include="Scopes\FlushAction.cs" />
