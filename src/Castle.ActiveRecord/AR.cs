@@ -640,7 +640,7 @@ namespace Castle.ActiveRecord {
 		/// <param name="id">Identifier value</param>
 		public static object Find(Type type, object id)
 		{
-			return Execute<object>(type, session => session.Get(type, ConvertId(type, id)));
+			return id == null ? null : Execute<object>(type, session => session.Get(type, ConvertId(type, id)));
 		}
 
 		/// <summary>

@@ -147,7 +147,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="id">Identifier value</param>
 		public static T Find<T>(object id) where T : class {
-			return Execute<T, T>(session => session.Get<T>(ConvertId<T>(id)));
+			return id == null ? null : Execute<T, T>(session => session.Get<T>(ConvertId<T>(id)));
 		}
 
 		/// <summary>

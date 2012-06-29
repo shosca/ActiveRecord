@@ -174,12 +174,12 @@ namespace Castle.ActiveRecord.Tests
 
 		[Test]
 		public void CanConvertId() {
-			var blogs = Blog.FindAll().ToArray();
-
-			Assert.IsNotNull(blogs);
-			Assert.AreEqual(10, blogs.Length);
-
 			Assert.IsTrue(Blog.Find("1") != null);
+		}
+
+		[Test]
+		public void FindWithNullIdReturnsNull() {
+			Assert.IsTrue(Blog.Find(null) == null);
 		}
 
 		[Test]
