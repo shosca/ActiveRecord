@@ -142,36 +142,27 @@ namespace Castle.ActiveRecord
 		#region Find/Peek
 
 		/// <summary>
-		/// Finds an object instance by its primary key.
+		/// Finds an object instance by its primary key
+		/// returns null if not found
 		/// </summary>
-		/// <param name="id">ID value</param>
+		/// <param name="id">Identifier value</param>
 		public static T Find<T>(object id) where T : class {
-			return Execute<T, T>(session => session.Get<T>(id));
+			return Execute<T, T>(session => session.Get<T>(ConvertId<T>(id)));
 		}
 
 		/// <summary>
 		/// Peeks for an object instance by its primary key,
-		/// returns null if not found
+		/// never returns null
 		/// </summary>
-		/// <param name="id">ID value</param>
+		/// <param name="id">Identifier value</param>
 		public static T Peek<T>(object id) where T : class
 		{
-			return Execute<T, T>(session => session.Load<T>(id));
+			return Execute<T, T>(session => session.Load<T>(ConvertId<T>(id)));
 		}
 
 		#endregion
 
 		#region Exists/Count
-
-		/// <summary>
-		/// Check if the <paramref name="id"/> exists in the database.
-		/// </summary>
-		/// <param name="id">The id to check on</param>
-		/// <returns><c>true</c> if the ID exists; otherwise <c>false</c>.</returns>
-		public static bool Exists<T>(object id) where T : class
-		{
-			return Execute<T, bool>(session => session.Get<T>(id) != null);
-		}
 
 		/// <summary>
 		/// Check if any instance matches the query.

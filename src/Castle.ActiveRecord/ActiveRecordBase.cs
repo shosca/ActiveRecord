@@ -34,22 +34,20 @@ namespace Castle.ActiveRecord
 		#region Find/Peek
 
 		/// <summary>
-		/// Finds an object instance by an unique ID 
+		/// Finds an object instance by its primary key
+		/// returns null if not found
 		/// </summary>
-		/// <param name="id">ID value</param>
-		/// <exception cref="ObjectNotFoundException">if the row is not found</exception>
-		/// <returns>T</returns>
+		/// <param name="id">Identifier value</param>
 		public static T Find(object id)
 		{
 			return AR.Find<T>(id);
 		}
 
 		/// <summary>
-		/// Finds an object instance by an unique ID.
-		/// If the row is not found this method will return null
+		/// Peeks for an object instance by its primary key,
+		/// never returns null
 		/// </summary>
-		/// <param name="id">ID value</param>
-		/// <returns>A <typeparamref name="T"/></returns>
+		/// <param name="id">Identifier value</param>
 		public static T Peek(object id)
 		{
 			return AR.Peek<T>(id);
@@ -58,16 +56,6 @@ namespace Castle.ActiveRecord
 		#endregion
 
 		#region Exists/Count
-
-		/// <summary>
-		/// Check if the <paramref name="id"/> exists in the database.
-		/// </summary>
-		/// <param name="id">The id to check on</param>
-		/// <returns><c>true</c> if the ID exists; otherwise <c>false</c>.</returns>
-		public static bool Exists(object id)
-		{
-			return AR.Exists<T>(id);
-		}
 
 		/// <summary>
 		/// Check if any instance matches the query.

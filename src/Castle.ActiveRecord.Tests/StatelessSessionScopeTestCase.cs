@@ -72,7 +72,7 @@ namespace Castle.ActiveRecord.Tests
 
 			using (new StatelessSessionScope())
 			{
-				Assert.IsTrue(AR.Exists<Ship>(ship.Id));
+				Assert.IsTrue(AR.Find<Ship>(ship.Id) != null);
 				Assert.AreEqual("Andrea Doria",AR.Find<Ship>(ship.Id).Name);
 			}
 		}

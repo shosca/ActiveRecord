@@ -162,14 +162,24 @@ namespace Castle.ActiveRecord.Tests
 			blog.Save();
 
 			Assert.IsTrue(blog.Id > 0);
-			Assert.IsTrue(Blog.Exists(blog.Id));
+			Assert.IsTrue(Blog.Find(blog.Id) != null);
 
 			blog = new Blog {Name = "chad's blog", Author = "chad humphries"};
 			blog.Save();
 
-			Assert.IsTrue(Blog.Exists(blog.Id));
+			Assert.IsTrue(Blog.Find(blog.Id) != null);
 
-			Assert.IsFalse(Blog.Exists(1000));
+			Assert.IsFalse(Blog.Find(1000) != null);
+		}
+
+		[Test]
+		public void CanConvertId() {
+			var blogs = Blog.FindAll().ToArray();
+
+			Assert.IsNotNull(blogs);
+			Assert.AreEqual(10, blogs.Length);
+
+			Assert.IsTrue(Blog.Find("1") != null);
 		}
 
 		[Test]
