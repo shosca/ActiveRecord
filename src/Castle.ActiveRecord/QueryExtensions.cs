@@ -35,6 +35,16 @@ namespace Castle.ActiveRecord {
 			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQueryOver(session).List<TR>());
 		}
 
+		public static IEnumerable<T> Future<T>(this QueryOver<T> query) where T : class
+		{
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQueryOver(session).Future<T>());
+		}
+
+		public static IEnumerable<TR> Future<T, TR>(this QueryOver<T> query) where T : class
+		{
+			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQueryOver(session).Future<TR>());
+		}
+
 		public static TR UniqueResult<T, TR>(this QueryOver<T> query) where T : class
 		{
 			return AR.Execute<T, TR>(session => query.GetExecutableQueryOver(session).List<TR>().FirstOrDefault());
