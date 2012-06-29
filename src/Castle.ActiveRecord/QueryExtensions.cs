@@ -191,6 +191,12 @@ namespace Castle.ActiveRecord {
 		{
 			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQuery(session).List<TR>());
 		}
+
+		public static void ExecuteUpdate<T>(this IDetachedQuery query) where T : class
+		{
+			AR.Execute<T>(session => query.GetExecutableQuery(session).ExecuteUpdate());
+		}
+
 		#endregion
 	}
 }
