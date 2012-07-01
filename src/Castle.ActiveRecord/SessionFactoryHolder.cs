@@ -51,7 +51,6 @@ namespace Castle.ActiveRecord
 
 		readonly ConcurrentDictionary<Type, Model> _type2Model = new ConcurrentDictionary<Type, Model>();
 		readonly IDictionary<Type, SfHolder> _type2SessFactory = new ConcurrentDictionary<Type, SfHolder>();
-		IThreadScopeInfo _threadScopeInfo;
 
 		/// <summary>
 		/// Requests the Configuration associated to the type.
@@ -166,7 +165,7 @@ namespace Castle.ActiveRecord
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public ISession CreateSession(Type type)
 		{
-			if (_threadScopeInfo.HasInitializedScope)
+			if (ThreadScopeInfo.HasInitializedScope)
 			{
 				return CreateScopeSession(type);
 			}
@@ -199,7 +198,7 @@ namespace Castle.ActiveRecord
 		/// <param name="session"></param>
 		public void ReleaseSession(ISession session)
 		{
-			if (_threadScopeInfo.HasInitializedScope) return;
+			if (ThreadScopeInfo.HasInitializedScope) return;
 
 			session.Flush();
 			session.Dispose();
@@ -211,9 +210,9 @@ namespace Castle.ActiveRecord
 		/// <param name="session"></param>
 		public void FailSession(ISession session)
 		{
-			if (_threadScopeInfo.HasInitializedScope)
+			if (ThreadScopeInfo.HasInitializedScope)
 			{
-				ISessionScope scope = _threadScopeInfo.GetRegisteredScope();
+				var scope = ThreadScopeInfo.GetRegisteredScope();
 				scope.FailSession(session);
 			}
 			else
@@ -226,20 +225,12 @@ namespace Castle.ActiveRecord
 		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
 		/// </summary>
 		/// <value></value>
-		public IThreadScopeInfo ThreadScopeInfo
-		{
-			get { return _threadScopeInfo; }
-			set
-			{
-				ThreadScopeAccessor.Instance.ScopeInfo = value;
-				_threadScopeInfo = value;
-			}
-		}
+		public IThreadScopeInfo ThreadScopeInfo { get; set; }
 
 		private ISession CreateScopeSession(Type type)
 		{
-			ISessionScope scope = _threadScopeInfo.GetRegisteredScope();
-			ISessionFactory sessionFactory = GetSessionFactory(type);
+			var scope = ThreadScopeInfo.GetRegisteredScope();
+			var sessionFactory = GetSessionFactory(type);
 #if DEBUG
 			System.Diagnostics.Debug.Assert(scope != null);
 			System.Diagnostics.Debug.Assert(sessionFactory != null);

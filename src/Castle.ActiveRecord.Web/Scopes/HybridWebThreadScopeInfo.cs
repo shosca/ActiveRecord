@@ -43,16 +43,11 @@ namespace Castle.ActiveRecord.Scopes
 			[MethodImpl(MethodImplOptions.Synchronized)]
 			get
 			{
-				HttpContext current = HttpContext.Current;
+				var current = HttpContext.Current;
 
 				if (current == null)
 				{
-					if (stack == null)
-					{
-						stack = new Stack<ISessionScope>();
-					}
-
-					return stack;
+					return stack ?? (stack = new Stack<ISessionScope>());
 				}
 
 				var contextstack = current.Items[ActiveRecordCurrentStack] as Stack<ISessionScope>;

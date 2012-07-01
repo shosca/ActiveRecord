@@ -45,7 +45,7 @@ namespace Castle.ActiveRecord.Scopes
 			this.type = type;
 			HasSessionError = false;
 
-			ThreadScopeAccessor.Instance.RegisterScope(this);
+			AR.Holder.ThreadScopeInfo.RegisterScope(this);
 		}
 
 		/// <summary>
@@ -180,7 +180,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// </summary>
 		public void Dispose()
 		{
-			ThreadScopeAccessor.Instance.UnRegisterScope(this);
+			AR.Holder.ThreadScopeInfo.UnRegisterScope(this);
 
 			PerformDisposal(key2Session.Values);
 		}
@@ -343,7 +343,7 @@ namespace Castle.ActiveRecord.Scopes
 
 		protected ISessionScope FindPreviousScope(bool preferenceForTransactional, bool doNotReturnSessionScope)
 		{
-			object[] items = ThreadScopeAccessor.Instance.CurrentStack.ToArray();
+			object[] items = AR.Holder.ThreadScopeInfo.CurrentStack.ToArray();
 
 			ISessionScope first = null;
 

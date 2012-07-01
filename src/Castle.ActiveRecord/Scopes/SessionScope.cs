@@ -73,8 +73,8 @@ namespace Castle.ActiveRecord.Scopes
 		public static ISessionScope Current
 		{
 			get {
-				return ThreadScopeAccessor.Instance.HasInitializedScope
-					? ThreadScopeAccessor.Instance.GetRegisteredScope()
+				return AR.Holder.ThreadScopeInfo.HasInitializedScope
+					? AR.Holder.ThreadScopeInfo.GetRegisteredScope()
 					: null;
 			}
 		}

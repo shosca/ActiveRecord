@@ -37,13 +37,11 @@ namespace Castle.ActiveRecord.Scopes
 			[MethodImpl(MethodImplOptions.Synchronized)]
 			get
 			{
-				HttpContext current = HttpContext.Current;
+				var current = HttpContext.Current;
 
 				if (current == null)
 				{
-					String message = "WebThreadScopeInfo: Could not access HttpContext.Current";
-					
-					throw new ScopeMachineryException(message);
+					throw new ScopeMachineryException("WebThreadScopeInfo: Could not access HttpContext.Current");
 				}
 
 				var stack = current.Items[ActiveRecordCurrentStack] as Stack<ISessionScope>;

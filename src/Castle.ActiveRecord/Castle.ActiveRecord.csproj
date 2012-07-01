@@ -138,7 +138,6 @@
     <Compile Include="Scopes\ISessionScope.cs" />
     <Compile Include="Scopes\ScopeMachineryException.cs" />
     <Compile Include="Scopes\SessionScope.cs" />
-    <Compile Include="Scopes\ThreadScopeAccessor.cs" />
     <Compile Include="Scopes\ThreadScopeInfo.cs" />
     <Compile Include="Scopes\TransactionScope.cs" />
     <Compile Include="SessionFactoryHolder.cs" />

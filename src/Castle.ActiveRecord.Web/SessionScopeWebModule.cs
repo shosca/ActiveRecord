@@ -36,16 +36,13 @@ namespace Castle.ActiveRecord
 	/// </remarks>
 	public class SessionScopeWebModule : IHttpModule
 	{
+		private static bool _iswebconfigured;
+
 		/// <summary>
 		/// The key used to store the session in the context items
 		/// </summary>
 		protected static readonly String SessionKey = "SessionScopeWebModule.session";
 		
-		/// <summary>
-		/// Used to check whether the ThreadScopeInfo being used is suitable for a web environment
-		/// </summary>
-		private static bool isWebConfigured;
-
 		/// <summary>
 		/// Initialize the module.
 		/// </summary>
@@ -63,8 +60,8 @@ namespace Castle.ActiveRecord
 
 			app.BeginRequest += OnBeginRequest;
 			app.EndRequest += OnEndRequest;
-			
-			isWebConfigured = (AR.Holder.ThreadScopeInfo is IWebThreadScopeInfo);
+
+			_iswebconfigured = (AR.Holder.ThreadScopeInfo is IWebThreadScopeInfo);
 		}
 
 		/// <summary>
@@ -74,21 +71,22 @@ namespace Castle.ActiveRecord
 		{
 		}
 
+		const string Misconfigerrmessage = "Seems that the framework isn't configured properly. " +
+											"(isWeb != true and SessionScopeWebModule is in use) " +
+											"Check the documentation for further information";
+
 		/// <summary>
 		/// Called when request is started, create a session for the request
 		/// </summary>
 		/// <param name="sender">The sender.</param>
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		private static void OnBeginRequest(object sender, EventArgs e)
+		private void OnBeginRequest(object sender, EventArgs e)
 		{
-			if (isWebConfigured) 
-			{
-				HttpContext.Current.Items.Add(SessionKey, new SessionScope());
-			} 
-			else 
-			{
-				throw new ActiveRecordException("Seems that the framework isn't configured properly. (isWeb != true and SessionScopeWebModule is in use) Check the documentation for further information");
-			}
+			var app = sender as HttpApplication;
+			if (!_iswebconfigured || app == null)
+				throw new ActiveRecordException(Misconfigerrmessage);
+
+			app.Context.Items.Add(SessionKey, new SessionScope());
 		}
 
 		/// <summary>
@@ -96,14 +94,14 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="sender">The sender.</param>
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-		private static void OnEndRequest(object sender, EventArgs e)
+		private void OnEndRequest(object sender, EventArgs e)
 		{
-			SessionScope session = (SessionScope) HttpContext.Current.Items[SessionKey];
+			var app = sender as HttpApplication;
+			if (app == null)
+				throw new ActiveRecordException(Misconfigerrmessage);
 
-			if (session != null)
-			{
-				session.Dispose();
-			}
+			var session = app.Context.Items[SessionKey] as ISessionScope;
+			if (session != null) session.Dispose();
 		}
 	}
 }
