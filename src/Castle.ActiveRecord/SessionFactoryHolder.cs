@@ -77,6 +77,12 @@ namespace Castle.ActiveRecord
 			return _type2SessFactory.Keys.ToArray();
 		}
 
+		public bool IsInitialized(Type type)
+		{
+			type = GetNonProxyType(type);
+			return _type2SessFactory.ContainsKey(type);
+		}
+
 		public Model GetModel(Type type)
 		{
 			type = GetNonProxyType(type);

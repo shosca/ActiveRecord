@@ -1007,9 +1007,7 @@ namespace Castle.ActiveRecord
 				throw new ActiveRecordException(message);
 			}
 
-			var sf = Holder.GetSessionFactory(type);
-
-			if (sf.GetClassMetadata(type) == null)
+			if (!Holder.IsInitialized(type))
 			{
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}

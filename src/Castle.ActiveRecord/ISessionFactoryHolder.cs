@@ -65,6 +65,12 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		Model GetModel(Type type);
 
+		/// <summary>
+		/// Checks if type config is initialized
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		bool IsInitialized(Type type);
 
 		/// <summary>
 		/// Gets the all the session factories.
