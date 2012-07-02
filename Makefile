@@ -8,21 +8,20 @@ VERSION=4.0.0.0
 
 CONFIG=release
 FW=v4.0
+FILES:=$(shell find src -name '*.cs' -print)
 
 -include config.mk
 
 all: test
 
-debug: $(eval CONFIG=debug)
+files:
+	echo $(FILES)
 
-release: $(eval CONFIG=release)
-
-
-build: asminfo $(shell find src -type f -iname '*.cs')
+build: $(FILES) $(BASEDIR)/CommonAssemblyInfo.cs
 	$(MSBUILD) $(SLN) $(SOLUTION) -p:Configuration=$(CONFIG) -p:OutputPath=$(OUTPUTPATH)/$(CONFIG)/$(FW) \
 		-p:TargetFrameworkVersion=$(FW)
 
-asminfo:
+$(BASEDIR)/CommonAssemblyInfo.cs:
 	@echo "using System.Reflection; \
 	[assembly: AssemblyCompany(\"Castle Project\")] \
 	[assembly: AssemblyCopyright(\"Copyright (c) 2004-2010 Castle Project - http://www.castleproject.org\")] \
@@ -38,7 +37,7 @@ clean:
 	find $(BASEDIR)/src -type d -iname build -prune -exec rm -rf {} \;
 	find $(BASEDIR)/src -type d -iname obj -prune -exec rm -rf {} \;
 
-test: clean build
+test: build
 	$(shell find packages -name nunit-console.exe) $(shell find $(BUILDDIR) -name $(PROJ).Tests.dll)
 
 zip: clean release build
