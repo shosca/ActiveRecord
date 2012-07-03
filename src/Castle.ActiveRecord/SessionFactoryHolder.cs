@@ -72,7 +72,6 @@ namespace Castle.ActiveRecord
 		/// Requests the registered types
 		/// </summary>
 		public Type[] GetRegisteredTypes()
-
 		{
 			return _type2SessFactory.Keys.ToArray();
 		}
