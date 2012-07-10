@@ -116,22 +116,9 @@ namespace Castle.ActiveRecord
 			return statelessSession.QueryOver<T>(alias);
 		}
 
-		public IQueryOver<T, T> QueryOver<T>(string entityName) where T : class {
-			throw new NotImplementedException();
-		}
-
-		public IQueryOver<T, T> QueryOver<T>(string entityName, Expression<Func<T>> alias) where T : class {
-			throw new NotImplementedException();
-		}
-
 		public IQuery CreateQuery(string queryString)
 		{
 			return statelessSession.CreateQuery(queryString);
-		}
-
-		public IQuery CreateQuery(IQueryExpression queryExpression)
-		{
-			throw new NotImplementedException();
 		}
 
 		public ISQLQuery CreateSQLQuery(string queryString)
@@ -567,6 +554,19 @@ namespace Castle.ActiveRecord
 		/// An ICriteria&lt;T&gt; object
 		/// </returns>
 		public IQueryOver<T, T> QueryOver<T>() where T : class
+		{
+			throw new NotWrappedException();
+		}
+
+		public IQueryOver<T, T> QueryOver<T>(string entityName) where T : class {
+			throw new NotWrappedException();
+		}
+
+		public IQueryOver<T, T> QueryOver<T>(string entityName, Expression<Func<T>> alias) where T : class {
+			throw new NotWrappedException();
+		}
+
+		public IQuery CreateQuery(IQueryExpression queryExpression)
 		{
 			throw new NotWrappedException();
 		}
