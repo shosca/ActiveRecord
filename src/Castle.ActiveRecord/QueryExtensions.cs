@@ -179,17 +179,27 @@ namespace Castle.ActiveRecord {
 			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQuery(session).List<T>());
 		}
 
+		public static IEnumerable<TR> List<T, TR>(this IDetachedQuery query) where T : class
+		{
+			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQuery(session).List<TR>());
+		}
+
+		public static IEnumerable<T> Future<T>(this IDetachedQuery query) where T : class
+		{
+			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQuery(session).Future<T>());
+		}
+
+		public static IFutureValue<TR> FutureValue<T, TR>(this IDetachedQuery query) where T : class
+		{
+			return AR.Execute<T, IFutureValue<TR>>(session => query.GetExecutableQuery(session).FutureValue<TR>());
+		}
+
 		public static IEnumerable<T> SlicedFindAll<T>(this IDetachedQuery query, int firstResult, int maxResults) where T : class
 		{
 			return AR.Execute<T, IEnumerable<T>>(session => query.GetExecutableQuery(session)
 					.SetFirstResult(firstResult)
 					.SetMaxResults(maxResults)
 					.List<T>());
-		}
-
-		public static IEnumerable<TR> List<T, TR>(this IDetachedQuery query) where T : class
-		{
-			return AR.Execute<T, IEnumerable<TR>>(session => query.GetExecutableQuery(session).List<TR>());
 		}
 
 		public static void ExecuteUpdate<T>(this IDetachedQuery query) where T : class
