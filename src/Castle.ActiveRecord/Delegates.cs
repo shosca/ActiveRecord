@@ -28,7 +28,7 @@ namespace Castle.ActiveRecord
 	/// <summary>
 	/// Delegate for use in <see cref="AR.OnSessionFactoryCreated"/>
 	/// </summary>
-	public delegate void SessionFactoryDelegate(ISessionFactory sf, string name);
+	public delegate void SessionFactoryDelegate(ISessionFactory sf, NHibernate.Cfg.Configuration cfg, string name);
 
 	/// <summary>
 	/// Delegate for use in <see cref="AR.OnMapperCreated"/>

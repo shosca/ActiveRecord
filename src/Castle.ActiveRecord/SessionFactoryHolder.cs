@@ -153,10 +153,12 @@ namespace Castle.ActiveRecord
 			foreach (var classMetadata in sf.GetAllClassMetadata()) {
 				var entitytype = classMetadata.Value.GetMappedClass(EntityMode.Poco);
 
-				if (!_type2SessFactory.ContainsKey(entitytype))
-					_type2SessFactory.Add(entitytype, sfholder);
+				if (_type2SessFactory.ContainsKey(entitytype))
+					throw new ActiveRecordException("Type has already been registered -> " + entitytype.FullName);
+				
+				_type2SessFactory.Add(entitytype, sfholder);
 			}
-			AR.RaiseSessionFactoryCreated(sf, name);
+			AR.RaiseSessionFactoryCreated(sf, cfg, name);
 		}
 
 		public void RegisterConfiguration(SessionFactoryConfig config) {

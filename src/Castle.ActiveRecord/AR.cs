@@ -510,9 +510,9 @@ namespace Castle.ActiveRecord {
 				OnHbmMappingCreated(mapping, sessionFactoryConfig);
 		}
 
-		internal static void RaiseSessionFactoryCreated(ISessionFactory sf, string name) {
+		internal static void RaiseSessionFactoryCreated(ISessionFactory sf, NHibernate.Cfg.Configuration cfg, string name) {
 			if (OnSessionFactoryCreated != null)
-				OnSessionFactoryCreated(sf, name);
+				OnSessionFactoryCreated(sf, cfg, name);
 		}
 
 		#endregion
