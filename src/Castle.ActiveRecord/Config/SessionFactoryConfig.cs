@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -85,6 +86,18 @@ namespace Castle.ActiveRecord.Config {
 			var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 			mapping.autoimport = Source.AutoImport;
 			mapping.defaultlazy = Source.Lazy;
+
+			if (Source.Debug) {
+				try {
+					File.WriteAllText(
+						Path.Combine(
+							AppDomain.CurrentDomain.BaseDirectory,
+							Name + "mapping.hbm.xml"
+							
+						), mapping.AsString()
+					);
+				} catch { /* just bail out */ }
+			}
 
 			AR.RaiseOnHbmMappingCreated(mapping, this);
 
