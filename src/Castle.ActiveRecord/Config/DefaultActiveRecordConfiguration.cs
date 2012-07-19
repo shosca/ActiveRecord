@@ -36,6 +36,8 @@ namespace Castle.ActiveRecord.Config
 		/// </summary>
 		public DefaultActiveRecordConfiguration() {
 			DefaultFlushType = DefaultFlushType.Classic;
+			AutoImport = true;
+			Lazy = true;
 		}
 
 		/// <summary>
@@ -74,6 +76,16 @@ namespace Castle.ActiveRecord.Config
 		/// </summary>
 		/// <value><c>true</c> if _debug; otherwise, <c>false</c>.</value>
 		public bool Debug { get; set; }
+
+		/// <summary>
+		/// Determines default lazy configuration
+		/// </summary>
+		public bool Lazy { get; set; }
+
+		/// <summary>
+		/// Determines default auto-import configuration
+		/// </summary>
+		public bool AutoImport { get; set; }
 
 		/// <summary>
 		/// Determines the default flushing behaviour of scopes.
@@ -185,6 +197,24 @@ namespace Castle.ActiveRecord.Config
 		public void SetDebugFlag(bool isDebug)
 		{
 			Debug = isDebug;
+		}
+
+		/// <summary>
+		/// Sets the auto-import flag.
+		/// </summary>
+		/// <param name="autoimport"></param>
+		public void SetAutoImport(bool autoimport)
+		{
+			AutoImport = autoimport;
+		}
+
+		/// <summary>
+		/// Sets the default lazy flag.
+		/// </summary>
+		/// <param name="lazy"></param>
+		public void SetLazy(bool lazy)
+		{
+			Lazy = lazy;
 		}
 
 		/// <summary>

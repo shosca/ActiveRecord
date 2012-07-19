@@ -80,6 +80,8 @@ namespace Castle.ActiveRecord.Config
 			XmlAttribute threadInfoAtt = section.Attributes["threadinfotype"];
 			XmlAttribute isDebug = section.Attributes["isDebug"];
 			XmlAttribute defaultFlushType = section.Attributes["flush"];
+			XmlAttribute autoimportatt = section.Attributes["auto-import"];
+			XmlAttribute lazyatt = section.Attributes["default-lazy"];
 
 			SetUpThreadInfoType(isWebAtt != null && "true" == isWebAtt.Value,
 			                    threadInfoAtt != null ? threadInfoAtt.Value : String.Empty);
@@ -97,6 +99,10 @@ namespace Castle.ActiveRecord.Config
 			SetUpNamingStrategyType(namingStrategyTypeAtt != null ? namingStrategyTypeAtt.Value : String.Empty);
 
 			SetDebugFlag(ConvertBool(isDebug));
+
+			SetAutoImport(autoimportatt == null || ConvertBool(autoimportatt));
+
+			SetLazy(lazyatt == null || ConvertBool(lazyatt));
 
 			if (defaultFlushType == null)
 			{

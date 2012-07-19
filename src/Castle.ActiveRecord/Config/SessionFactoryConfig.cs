@@ -83,6 +83,8 @@ namespace Castle.ActiveRecord.Config {
 			AR.RaiseOnMapperCreated(mapper, this);
 
 			var mapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
+			mapping.autoimport = Source.AutoImport;
+			mapping.defaultlazy = Source.Lazy;
 
 			AR.RaiseOnHbmMappingCreated(mapping, this);
 

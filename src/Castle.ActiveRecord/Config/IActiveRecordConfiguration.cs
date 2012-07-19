@@ -64,6 +64,16 @@ namespace Castle.ActiveRecord.Config
 		bool Debug { get; }
 
 		/// <summary>
+		/// Determines default lazy configuration
+		/// </summary>
+		bool Lazy { get; }
+
+		/// <summary>
+		/// Determines default auto-import configuration
+		/// </summary>
+		bool AutoImport { get; }
+
+		/// <summary>
 		/// Determines the default flushing behaviour of scopes.
 		/// </summary>
 		DefaultFlushType DefaultFlushType { get; }
