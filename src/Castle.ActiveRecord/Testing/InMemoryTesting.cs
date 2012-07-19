@@ -31,7 +31,7 @@ namespace Castle.ActiveRecord.Testing
 					.AddAssemblies(GetAssemblies())
 					.SetDatabaseType(DatabaseType.SQLite)
 					.ConnectionString("Data Source=:memory:;Version=3;New=True")
-					.Set(NHibernate.Cfg.Environment.ConnectionProvider, typeof(InMemoryConnectionProvider).AssemblyQualifiedName)
+					.ConnectionProvider<InMemoryConnectionProvider>()
 					.Set(GetProperties())
 				);
 

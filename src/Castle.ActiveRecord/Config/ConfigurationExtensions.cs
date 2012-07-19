@@ -133,6 +133,11 @@ namespace Castle.ActiveRecord.Config
 			return config.Set(Environment.ConnectionString, connectionstring);
 		}
 
+		public static SessionFactoryConfig ConnectionProvider<T>(this SessionFactoryConfig config) where T : IConnectionProvider
+		{
+			return config.Set(Environment.ConnectionProvider, LongName<T>());
+		}
+
 		public static SessionFactoryConfig Dialect<T>(this SessionFactoryConfig config) where T : Dialect
 		{
 			return config.Set(Environment.Dialect, LongName<T>());
