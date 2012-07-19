@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using NHibernate.Bytecode;
+using NHibernate.Cache;
+
 namespace Castle.ActiveRecord.Config
 {
 	using System;
@@ -121,16 +124,64 @@ namespace Castle.ActiveRecord.Config
 			return config;
 		}
 
+		public static SessionFactoryConfig QuerySubstitutions(this SessionFactoryConfig config, string substitutions) {
+			return config.Set(Environment.QuerySubstitutions, substitutions);
+		}
+
+		public static SessionFactoryConfig MaxFetchDepth(this SessionFactoryConfig config, int depth) {
+			return config.Set(Environment.MaxFetchDepth, Math.Min(3, depth).ToString(CultureInfo.InvariantCulture));
+		}
+
+		public static SessionFactoryConfig ProxyFactoryFactoryClass<T>(this SessionFactoryConfig config) where T : IProxyFactoryFactory {
+			return config.Set(Environment.ProxyFactoryFactoryClass, LongName<T>());
+		}
+
+		public static SessionFactoryConfig BatchSize(this SessionFactoryConfig config, int batchsize) {
+			return config.Set(Environment.BatchSize, batchsize.ToString(CultureInfo.InvariantCulture));
+		}
+
+		public static SessionFactoryConfig Isolation(this SessionFactoryConfig config, IsolationLevel isolation) {
+			return config.Set(Environment.Isolation, isolation.ToString());
+		}
+
+		public static SessionFactoryConfig ShowSql(this SessionFactoryConfig config, bool showsql) {
+			return config.Set(Environment.ShowSql, showsql.ToString(CultureInfo.InvariantCulture));
+		}
+
 		public static SessionFactoryConfig CreateConfiguration(this IActiveRecordConfiguration source, string name) {
 			source.Add(new SessionFactoryConfig(source) {Name = name});
 			return source.GetConfiguration(name)
-				.Set(Environment.ConnectionProvider, typeof(DriverConnectionProvider).AssemblyQualifiedName)
-				.Set(Environment.UseSecondLevelCache, false.ToString(CultureInfo.InvariantCulture))
+				.ConnectionProvider<DriverConnectionProvider>()
+				.UseSecondLevelCache(false)
 				;
+		}
+
+		public static SessionFactoryConfig CacheDefaultExpiration(this SessionFactoryConfig config, int expiration) {
+			return config.Set(Environment.CacheDefaultExpiration, expiration.ToString(CultureInfo.InvariantCulture));
+		}
+
+		public static SessionFactoryConfig CacheProvider<T>(this SessionFactoryConfig config) where T : ICacheProvider {
+			return config.Set(Environment.CacheProvider, LongName<T>());
+		}
+
+		public static SessionFactoryConfig CacheRegion(this SessionFactoryConfig config, string region) {
+			return config.Set(Environment.CacheRegionPrefix, region);
+		}
+
+		public static SessionFactoryConfig UseSecondLevelCache(this SessionFactoryConfig config, bool cache) {
+			return config.Set(Environment.UseSecondLevelCache, cache.ToString(CultureInfo.InvariantCulture));
+		}
+
+		public static SessionFactoryConfig UseQueryCache(this SessionFactoryConfig config, bool usequerycache) {
+			return config.Set(Environment.UseQueryCache, usequerycache.ToString(CultureInfo.InvariantCulture));
 		}
 
 		public static SessionFactoryConfig ConnectionString(this SessionFactoryConfig config, string connectionstring) {
 			return config.Set(Environment.ConnectionString, connectionstring);
+		}
+
+		public static SessionFactoryConfig CommandTimeout(this SessionFactoryConfig config, int timeout) {
+			return config.Set(Environment.CommandTimeout, timeout.ToString(CultureInfo.InvariantCulture));
 		}
 
 		public static SessionFactoryConfig ConnectionProvider<T>(this SessionFactoryConfig config) where T : IConnectionProvider
@@ -170,7 +221,7 @@ namespace Castle.ActiveRecord.Config
 					config
 						.ConnectionDriver<SQLite20Driver>()
 						.Dialect<SQLiteDialect>()
-						.Set(SQLite());
+						.QuerySubstitutions("true=1;false=0"); // based on https://www.hibernate.org/361.html#A9
 					break;
 				case DatabaseType.MySql:
 					config
@@ -186,7 +237,11 @@ namespace Castle.ActiveRecord.Config
 					config
 						.ConnectionDriver<FirebirdDriver>()
 						.Dialect<FirebirdDialect>()
-						.Set(Firebird());
+						// based on https://www.hibernate.org/361.html#A5
+						.QuerySubstitutions("true 1, false 0, yes 1, no 0")
+						.Isolation(IsolationLevel.ReadCommitted)
+						.CommandTimeout(444)
+						.Set("use_outer_join", true.ToString(CultureInfo.InvariantCulture));
 					break;
 				case DatabaseType.PostgreSQL:
 					config
@@ -207,7 +262,10 @@ namespace Castle.ActiveRecord.Config
 					config
 						.ConnectionDriver<SqlServerCeDriver>()
 						.Dialect<MsSqlCeDialect>()
-						.Set(MsSqlCe());
+						// to workaround exception being thrown with default setting
+						// when an implicit transaction is used with identity id
+						// see: AR-ISSUE-273 for details
+						.Set(Environment.ReleaseConnections, "on_close");
 					break;
 				// using oracle's own data driver since Microsoft
 				// discontinued theirs, and that's what everyone
@@ -238,36 +296,5 @@ namespace Castle.ActiveRecord.Config
 			return typeof(TType).AssemblyQualifiedName;
 		}
 
-		static Dictionary<string, string> SQLite()
-		{
-			// based on https://www.hibernate.org/361.html#A9
-			return new Dictionary<string, string>
-			{
-				{ Environment.QuerySubstitutions, "true=1;false=0" }
-			};
-		}
-
-		static Dictionary<string, string> MsSqlCe()
-		{
-			// to workaround exception being thrown with default setting
-			// when an implicit transaction is used with identity id
-			// see: AR-ISSUE-273 for details
-			return new Dictionary<string, string>
-			{
-				{ Environment.ReleaseConnections, "on_close" }
-			};
-		}
-
-		static Dictionary<string, string> Firebird()
-		{
-			// based on https://www.hibernate.org/361.html#A5
-			return new Dictionary<string, string>
-			{
-				{ Environment.QuerySubstitutions, "true 1, false 0, yes 1, no 0" },
-				{ Environment.Isolation, IsolationLevel.ReadCommitted.ToString() },
-				{ Environment.CommandTimeout, 444.ToString() },
-				{ "use_outer_join", true.ToString() },
-			};
-		}
 	}
 }
