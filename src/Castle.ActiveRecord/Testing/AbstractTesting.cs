@@ -27,14 +27,6 @@ namespace Castle.ActiveRecord.Testing
 		public abstract IActiveRecordConfiguration GetConfigSource();
 
 		/// <summary>
-		/// Hook for modifying the configuration before initialization
-		/// </summary>
-		/// <param name="config"></param>
-		public virtual void Configure(IActiveRecordConfiguration config)
-		{
-		}
-
-		/// <summary>
 		/// Hook to add additional properties for each base class' configuration. As an example, "show_sql" can
 		/// be added to verify the behaviour of NHibernate in specific situations.
 		/// </summary>
@@ -63,9 +55,8 @@ namespace Castle.ActiveRecord.Testing
 		{
 			AR.ResetInitialization();
 
-			var source = GetConfigSource();
-			Configure(source);
-			AR.Initialize(source);
+			GetConfigSource().Initialize();
+
 			AR.CreateSchema();
 		}
 

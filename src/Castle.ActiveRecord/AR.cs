@@ -84,7 +84,7 @@ namespace Castle.ActiveRecord {
 		/// Initialize the mappings using the configuration and 
 		/// checking all the types on the specified Assemblies
 		/// </summary>
-		public static void Initialize(IActiveRecordConfiguration source)
+		public static void Initialize(this IActiveRecordConfiguration source)
 		{
 			CreateSessionFactoryAndRegisterToHolder(source);
 		}

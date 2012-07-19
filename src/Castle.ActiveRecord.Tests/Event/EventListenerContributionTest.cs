@@ -28,14 +28,16 @@ namespace Castle.ActiveRecord.Tests.Event
 	[TestFixture]
 	public class EventListenerContributionTest : AbstractActiveRecordTest
 	{
-		public override void Configure(Castle.ActiveRecord.Config.IActiveRecordConfiguration config)
+		public override ActiveRecord.Config.IActiveRecordConfiguration GetConfigSource()
 		{
 			var contributor = new NHEventListeners();
 			var listener = new MockListener();
-
-			base.Configure(config);
 			contributor.Add(listener);
-			config.GetConfiguration(string.Empty).AddContributor(contributor);
+
+			return base.GetConfigSource()
+				.GetConfiguration(string.Empty)
+				.AddContributor(contributor)
+				.Source;
 		}
 
 		[Test]

@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-using System.Reflection;
-
 namespace Castle.ActiveRecord.Tests.Testing
 {
 	using System;
+	using System.Reflection;
 	using NUnit.Framework;
 	using NHibernate;
 
@@ -34,9 +32,9 @@ namespace Castle.ActiveRecord.Tests.Testing
 			return new Assembly[] { typeof(Blog).Assembly };
 		}
 
-		public override void Configure(IActiveRecordConfiguration config)
+		public override IActiveRecordConfiguration GetConfigSource()
 		{
-			config.Flush(DefaultFlushType.Leave);
+			return base.GetConfigSource().Flush(DefaultFlushType.Leave);
 		}
 
 		[Test]

@@ -162,8 +162,9 @@ namespace Castle.ActiveRecord.Config {
 			return contributor;
 		}
 
-		public void AddContributor(INHContributor contributor) {
+		public SessionFactoryConfig AddContributor(INHContributor contributor) {
 			Contributors.Add(contributor);
+			return this;
 		}
 	}
 }
