@@ -37,22 +37,10 @@ namespace Castle.ActiveRecord.Tests.Config
 			AssertConfig(xmlConfig, expectedType, null);
 		}
 
-
-		[Test]
-		public void TestLoadWebThreadScopeInfo()
-		{
-			String xmlConfig = @"<activerecord isWeb=""true"">" + GetDefaultHibernateConfigAndCloseActiveRecordSection();
-
-			Type expectedType = typeof(WebThreadScopeInfo);
-
-			AssertConfig(xmlConfig, expectedType, null);
-		}
-
-
 		[Test]
 		public void TestDefaultSessionFactoryHolder()
 		{
-			String xmlConfig = @"<activerecord isWeb=""true"">" + GetDefaultHibernateConfigAndCloseActiveRecordSection();
+			String xmlConfig = @"<activerecord>" + GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
 			Type sfh = typeof(SessionFactoryHolder);
 
@@ -64,7 +52,7 @@ namespace Castle.ActiveRecord.Tests.Config
 		public void TestCustomSessionFactoryholder()
 		{
 			String xmlConfig =
-				@"<activerecord isWeb=""true"" sessionfactoryholdertype=""Castle.ActiveRecord.Tests.Config.MySessionFactoryHolder, Castle.ActiveRecord.Tests"">"
+				@"<activerecord sessionfactoryholdertype=""Castle.ActiveRecord.Tests.Config.MySessionFactoryHolder, Castle.ActiveRecord.Tests"">"
 						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
 			Type sfh = typeof(MySessionFactoryHolder);
@@ -77,7 +65,7 @@ namespace Castle.ActiveRecord.Tests.Config
 		public void TestDebug()
 		{
 			String xmlConfig =
-				@"<activerecord isDebug=""true"" isWeb=""true"" sessionfactoryholdertype=""Castle.ActiveRecord.Tests.Config.MySessionFactoryHolder, Castle.ActiveRecord.Tests"">"
+				@"<activerecord isDebug=""true"" sessionfactoryholdertype=""Castle.ActiveRecord.Tests.Config.MySessionFactoryHolder, Castle.ActiveRecord.Tests"">"
 						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
 			AssertConfig(xmlConfig, null, null, true, false);

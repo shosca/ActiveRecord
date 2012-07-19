@@ -72,7 +72,7 @@ namespace Castle.ActiveRecord
 		}
 
 		const string Misconfigerrmessage = "Seems that the framework isn't configured properly. " +
-											"(isWeb != true and SessionScopeWebModule is in use) " +
+											"(SessionScopeWebModule is not use) " +
 											"Check the documentation for further information";
 
 		/// <summary>

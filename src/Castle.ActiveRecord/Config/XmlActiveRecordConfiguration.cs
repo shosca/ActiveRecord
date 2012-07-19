@@ -76,15 +76,13 @@ namespace Castle.ActiveRecord.Config
 		{
 			if (section.Attributes == null) return;
 
-			XmlAttribute isWebAtt = section.Attributes["isWeb"];
 			XmlAttribute threadInfoAtt = section.Attributes["threadinfotype"];
 			XmlAttribute isDebug = section.Attributes["isDebug"];
 			XmlAttribute defaultFlushType = section.Attributes["flush"];
 			XmlAttribute autoimportatt = section.Attributes["auto-import"];
 			XmlAttribute lazyatt = section.Attributes["default-lazy"];
 
-			SetUpThreadInfoType(isWebAtt != null && "true" == isWebAtt.Value,
-			                    threadInfoAtt != null ? threadInfoAtt.Value : String.Empty);
+			SetUpThreadInfoType(threadInfoAtt != null ? threadInfoAtt.Value : String.Empty);
 
 			XmlAttribute sessionfactoryholdertypeAtt =
 				section.Attributes["sessionfactoryholdertype"];
@@ -106,11 +104,11 @@ namespace Castle.ActiveRecord.Config
 
 			if (defaultFlushType == null)
 			{
-				SetDefaultFlushType(DefaultFlushType.Classic);
+				Flush(DefaultFlushType.Classic);
 			}
 			else
 			{
-				SetDefaultFlushType(defaultFlushType.Value);
+				Flush(defaultFlushType.Value);
 			}
 
 			PopulateConfigNodes(section);

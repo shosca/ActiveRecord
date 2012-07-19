@@ -15,12 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Globalization;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using Castle.Core.Configuration;
-using NHibernate.Connection;
-using Environment = NHibernate.Cfg.Environment;
 
 namespace Castle.ActiveRecord.Config
 {
@@ -93,17 +88,6 @@ namespace Castle.ActiveRecord.Config
 		public DefaultFlushType DefaultFlushType { get; set; }
 
 		/// <summary>
-		/// Sets a value indicating whether this instance is running in web app.
-		/// </summary>
-		/// <value>
-		/// 	<c>true</c> if this instance is running in web app; otherwise, <c>false</c>.
-		/// </value>
-		public bool IsRunningInWebApp
-		{
-			set { SetUpThreadInfoType(value, null); }
-		}
-
-		/// <summary>
 		/// Adds the specified type with configuration
 		/// </summary>
 		/// <param name="config">The config.</param>
@@ -116,16 +100,10 @@ namespace Castle.ActiveRecord.Config
 		/// <summary>
 		/// Sets the type of the thread info.
 		/// </summary>
-		/// <param name="isWeb">If we are running in a web context.</param>
 		/// <param name="customType">The type of the custom implementation.</param>
-		protected void SetUpThreadInfoType(bool isWeb, string customType)
+		protected void SetUpThreadInfoType(string customType)
 		{
 			Type threadInfoType = null;
-
-			if (isWeb)
-			{
-				threadInfoType = Type.GetType("Castle.ActiveRecord.Scopes.WebThreadScopeInfo, Castle.ActiveRecord.Web");
-			}
 
 			if (!string.IsNullOrEmpty(customType))
 			{
@@ -194,7 +172,7 @@ namespace Castle.ActiveRecord.Config
 		/// Sets the _debug flag.
 		/// </summary>
 		/// <param name="isDebug">If set to <c>true</c> ActiveRecord will produce _debug information.</param>
-		public void SetDebugFlag(bool isDebug)
+		protected void SetDebugFlag(bool isDebug)
 		{
 			Debug = isDebug;
 		}
@@ -203,7 +181,7 @@ namespace Castle.ActiveRecord.Config
 		/// Sets the auto-import flag.
 		/// </summary>
 		/// <param name="autoimport"></param>
-		public void SetAutoImport(bool autoimport)
+		protected void SetAutoImport(bool autoimport)
 		{
 			AutoImport = autoimport;
 		}
@@ -212,18 +190,9 @@ namespace Castle.ActiveRecord.Config
 		/// Sets the default lazy flag.
 		/// </summary>
 		/// <param name="lazy"></param>
-		public void SetLazy(bool lazy)
+		protected void SetLazy(bool lazy)
 		{
 			Lazy = lazy;
-		}
-
-		/// <summary>
-		/// Sets the value indicating the default flush behaviour.
-		/// </summary>
-		/// <param name="flushType">The chosen default behaviour.</param>
-		protected void SetDefaultFlushType(DefaultFlushType flushType)
-		{
-			DefaultFlushType = flushType;
 		}
 
 		/// <summary>
@@ -232,11 +201,11 @@ namespace Castle.ActiveRecord.Config
 		/// duplication in ActiveRecordIntegrationFacility.
 		/// </summary>
 		/// <param name="configurationValue">The configuration value.</param>
-		protected void SetDefaultFlushType(string configurationValue)
+		protected IActiveRecordConfiguration Flush(string configurationValue)
 		{
 			try
 			{
-				SetDefaultFlushType((DefaultFlushType) Enum.Parse(typeof(DefaultFlushType), configurationValue, true));
+				Flush((DefaultFlushType) Enum.Parse(typeof(DefaultFlushType), configurationValue, true));
 			}
 			catch (ArgumentException ex)
 			{
@@ -246,6 +215,7 @@ namespace Castle.ActiveRecord.Config
 
 				throw new ConfigurationErrorsException(msg, ex);
 			}
+			return this;
 		}
 
 		/// <summary>
