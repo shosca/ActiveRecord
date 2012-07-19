@@ -18,6 +18,7 @@ namespace Castle.ActiveRecord.Tests.Event
 	using NHibernate.Event;
 	using System;
 	using System.Collections.Generic;
+	using Castle.ActiveRecord.Config;
 	using Castle.ActiveRecord.Tests.Model;
 	using NHibernate.Cfg;
 

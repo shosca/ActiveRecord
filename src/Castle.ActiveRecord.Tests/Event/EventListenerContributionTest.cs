@@ -12,23 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Linq;
-using Castle.ActiveRecord.Scopes;
-using Castle.ActiveRecord.Tests.Models;
-
 namespace Castle.ActiveRecord.Tests.Event
 {
+	using System.Linq;
 	using NUnit.Framework;
 	using NHibernate.Event;
-	using System;
-	using System.Collections.Generic;
-	using Castle.ActiveRecord.Tests.Model;
-	using NHibernate.Cfg;
+	using Castle.ActiveRecord.Scopes;
+	using Castle.ActiveRecord.Config;
+	using Castle.ActiveRecord.Tests.Models;
 
 	[TestFixture]
 	public class EventListenerContributionTest : AbstractActiveRecordTest
 	{
-		public override ActiveRecord.Config.IActiveRecordConfiguration GetConfigSource()
+		public override IActiveRecordConfiguration GetConfigSource()
 		{
 			var contributor = new NHEventListeners();
 			var listener = new MockListener();

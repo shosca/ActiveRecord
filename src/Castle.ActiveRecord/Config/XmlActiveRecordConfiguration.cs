@@ -42,7 +42,7 @@ namespace Castle.ActiveRecord.Config
 		/// <param name="xmlFileName">Name of the XML file.</param>
 		public XmlActiveRecordConfiguration(String xmlFileName)
 		{
-			XmlDocument doc = new XmlDocument();
+			var doc = new XmlDocument();
 			doc.Load(xmlFileName);
 			PopulateSource(doc.DocumentElement);
 		}
@@ -53,7 +53,7 @@ namespace Castle.ActiveRecord.Config
 		/// <param name="stream">The stream.</param>
 		public XmlActiveRecordConfiguration(Stream stream)
 		{
-			XmlDocument doc = new XmlDocument();
+			var doc = new XmlDocument();
 			doc.Load(stream);
 			PopulateSource(doc.DocumentElement);
 		}
@@ -64,7 +64,7 @@ namespace Castle.ActiveRecord.Config
 		/// <param name="reader">The reader.</param>
 		public XmlActiveRecordConfiguration(TextReader reader)
 		{
-			XmlDocument doc = new XmlDocument();
+			var doc = new XmlDocument();
 			doc.Load(reader);
 			PopulateSource(doc.DocumentElement);
 		}
@@ -92,48 +92,40 @@ namespace Castle.ActiveRecord.Config
 			                              sessionfactoryholdertypeAtt.Value
 			                              	: String.Empty);
 
-			XmlAttribute namingStrategyTypeAtt = section.Attributes["namingstrategytype"];
+			var namingStrategyTypeAtt = section.Attributes["namingstrategytype"];
 
 			SetUpNamingStrategyType(namingStrategyTypeAtt != null ? namingStrategyTypeAtt.Value : String.Empty);
 
-			SetDebugFlag(ConvertBool(isDebug));
-
-			SetAutoImport(autoimportatt == null || ConvertBool(autoimportatt));
-
-			SetLazy(lazyatt == null || ConvertBool(lazyatt));
-
-			if (defaultFlushType == null)
-			{
-				Flush(DefaultFlushType.Classic);
-			}
-			else
-			{
-				Flush(defaultFlushType.Value);
-			}
+			this
+				.Debug(ConvertBool(isDebug))
+				.AutoImport(autoimportatt == null || ConvertBool(autoimportatt))
+				.Lazy(lazyatt == null || ConvertBool(lazyatt))
+				.Flush(defaultFlushType != null ? GetFlushType(defaultFlushType.Value) : DefaultFlushType.Classic)
+				;
 
 			PopulateConfigNodes(section);
 		}
 
 		private void PopulateConfigNodes(XmlNode section)
 		{
-			const string Config_Node_Name = "config";
+			const string configNodeName = "config";
 
 			foreach(XmlNode node in section.ChildNodes)
 			{
 				if (node.NodeType != XmlNodeType.Element) continue;
 
-				if (!Config_Node_Name.Equals(node.Name))
+				if (!configNodeName.Equals(node.Name))
 				{
-					String message = String.Format("Unexpected node. Expect '{0}' found '{1}'",
-					                               Config_Node_Name, node.Name);
+					var message = String.Format("Unexpected node. Expect '{0}' found '{1}'",
+					                               configNodeName, node.Name);
 
 					throw new ConfigurationErrorsException(message);
 				}
 
-				string sfconfigname = string.Empty;
+				var sfconfigname = string.Empty;
 				if (node.Attributes != null && node.Attributes.Count != 0)
 				{
-					XmlAttribute typeNameAtt = node.Attributes["type"];
+					var typeNameAtt = node.Attributes["type"];
 					if (typeNameAtt != null) {
 						if (!string.IsNullOrEmpty(typeNameAtt.Value))
 							sfconfigname = typeNameAtt.Value;
@@ -202,17 +194,17 @@ namespace Castle.ActiveRecord.Config
 		{
 			foreach(XmlNode addNode in node.SelectNodes("add"))
 			{
-				XmlAttribute keyAtt = addNode.Attributes["key"];
-				XmlAttribute valueAtt = addNode.Attributes["value"];
+				var keyAtt = addNode.Attributes["key"];
+				var valueAtt = addNode.Attributes["value"];
 
 				if (keyAtt == null || valueAtt == null)
 				{
-					String message = String.Format("For each 'add' element you must specify 'key' and 'value' attributes");
+					var message = String.Format("For each 'add' element you must specify 'key' and 'value' attributes");
 
 					throw new ConfigurationErrorsException(message);
 				}
-				string name = keyAtt.Value;
-				string value = valueAtt.Value;
+				var name = keyAtt.Value;
+				var value = valueAtt.Value;
 
 				if (name.Equals("assembly")) {
 					config.Assemblies.Add(Assembly.Load(value));
@@ -221,6 +213,97 @@ namespace Castle.ActiveRecord.Config
 				}
 			}
 		}
+
+		protected DefaultFlushType GetFlushType(string configurationValue)
+		{
+			try
+			{
+				return (DefaultFlushType) Enum.Parse(typeof(DefaultFlushType), configurationValue, true);
+			}
+			catch (ArgumentException ex)
+			{
+				string msg = "Problem: The value of the flush-attribute in <activerecord> is not valid. " +
+					"The value was \"" + configurationValue + "\". ActiveRecord expects that value to be one of " +
+					string.Join(", ", Enum.GetNames(typeof(DefaultFlushType))) + ". ";
+
+				throw new ConfigurationErrorsException(msg, ex);
+			}
+		}
+
+
+		/// <summary>
+		/// Sets the type of the naming strategy.
+		/// </summary>
+		/// <param name="customType">Custom implementation type name.</param>
+		protected void SetUpNamingStrategyType(String customType)
+		{
+			if (!string.IsNullOrEmpty(customType))
+			{
+				String typeName = customType;
+
+				Type namingStrategyType = Type.GetType(typeName, false, false);
+
+				if (namingStrategyType == null)
+				{
+					String message = String.Format("The type name {0} could not be found", typeName);
+
+					throw new ActiveRecordException(message);
+				}
+			}
+		}
+
+
+		/// <summary>
+		/// Sets the type of the session factory holder.
+		/// </summary>
+		/// <param name="customType">Custom implementation</param>
+		protected void SetUpSessionFactoryHolderType(String customType)
+		{
+			Type sessionFactoryHolderType = typeof(SessionFactoryHolder);
+
+			if (!string.IsNullOrEmpty(customType))
+			{
+				String typeName = customType;
+
+				sessionFactoryHolderType = Type.GetType(typeName, false, false);
+
+				if (sessionFactoryHolderType == null)
+				{
+					String message = String.Format("The type name {0} could not be found", typeName);
+
+					throw new ActiveRecordException(message);
+				}
+			}
+
+			SessionFactoryHolderImplementation = sessionFactoryHolderType;
+		}
+
+
+		/// <summary>
+		/// Sets the type of the thread info.
+		/// </summary>
+		/// <param name="customType">The type of the custom implementation.</param>
+		protected void SetUpThreadInfoType(string customType)
+		{
+			Type threadInfoType = null;
+
+			if (!string.IsNullOrEmpty(customType))
+			{
+				String typeName = customType;
+
+				threadInfoType = Type.GetType(typeName, false, false);
+
+				if (threadInfoType == null)
+				{
+					String message = String.Format("The type name {0} could not be found", typeName);
+
+					throw new ActiveRecordException(message);
+				}
+			}
+
+			ThreadScopeInfoImplementation = threadInfoType;
+		}
+
 
 		private static bool ConvertBool(XmlNode boolAttrib)
 		{

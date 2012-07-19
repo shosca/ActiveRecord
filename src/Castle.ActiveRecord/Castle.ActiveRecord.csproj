@@ -148,7 +148,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ActiveRecordBase.cs" />
     <Compile Include="ActiveRecordHooksBase.cs" />
-    <Compile Include="Config\DefaultDatabaseConfigurationExtensions.cs" />
+    <Compile Include="Config\ConfigurationExtensions.cs" />
     <Compile Include="Config\DatabaseType.cs" />
     <Compile Include="Config\DefaultFlushType.cs" />
     <Compile Include="StatelessSessionWrapper.cs" />

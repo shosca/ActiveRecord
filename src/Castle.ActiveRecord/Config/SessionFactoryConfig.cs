@@ -39,34 +39,6 @@ namespace Castle.ActiveRecord.Config {
 		public NameValueCollection Properties { get; private set; }
 		public IList<INHContributor> Contributors { get; private set; }
 
-		public SessionFactoryConfig AddAssembly(Assembly assembly) {
-			Assemblies.Add(assembly);
-			return this;
-		}
-
-		public SessionFactoryConfig AddAssemblies(IEnumerable<Assembly> assemblies) {
-			foreach (var asm in assemblies) {
-				Assemblies.Add(asm);
-			}
-			return this;
-		}
-
-		public SessionFactoryConfig Set(string key, string value) {
-			Properties[key] = value;
-			return this;
-		}
-
-		public IActiveRecordConfiguration End() {
-			return Source;
-		}
-
-		public SessionFactoryConfig Set(IDictionary<string, string> properties) {
-			foreach (var property in properties) {
-				Set(property.Key, property.Value);
-			}
-			return this;
-		}
-
 		public IEnumerable<INHContributor> GetContributors() {
 			var contributors = Assemblies.SelectMany(a => a.GetExportedTypes())
 				.Where(t => typeof (INHContributor).IsAssignableFrom(t))
@@ -160,11 +132,6 @@ namespace Castle.ActiveRecord.Config {
 			}
 
 			return contributor;
-		}
-
-		public SessionFactoryConfig AddContributor(INHContributor contributor) {
-			Contributors.Add(contributor);
-			return this;
 		}
 	}
 }

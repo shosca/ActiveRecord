@@ -28,13 +28,13 @@ namespace Castle.ActiveRecord.Config
 		/// Implementors should return the type that implements
 		/// the interface <see cref="IThreadScopeInfo"/>
 		/// </summary>
-		Type ThreadScopeInfoImplementation { get; }
+		Type ThreadScopeInfoImplementation { get; set; }
 
 		/// <summary>
 		/// Implementors should return the type that implements 
 		/// the interface <see cref="ISessionFactoryHolder"/>
 		/// </summary>
-		Type SessionFactoryHolderImplementation { get; }
+		Type SessionFactoryHolderImplementation { get; set; }
 
 		/// <summary>
 		/// Implementors should return an <see cref="IConfiguration"/> 
@@ -61,48 +61,21 @@ namespace Castle.ActiveRecord.Config
 		/// Gets a value indicating whether this <see cref="IActiveRecordConfiguration"/> produce _debug information
 		/// </summary>
 		/// <value><c>true</c> if _debug; otherwise, <c>false</c>.</value>
-		bool Debug { get; }
+		bool Debug { get; set; }
 
 		/// <summary>
 		/// Determines default lazy configuration
 		/// </summary>
-		bool Lazy { get; }
+		bool Lazy { get; set; }
 
 		/// <summary>
 		/// Determines default auto-import configuration
 		/// </summary>
-		bool AutoImport { get; }
+		bool AutoImport { get; set; }
 
 		/// <summary>
 		/// Determines the default flushing behaviour of scopes.
 		/// </summary>
-		DefaultFlushType DefaultFlushType { get; }
-
-		/// <summary>
-		/// Sets the flush behaviour for <see cref="ISessionScope"/> when no
-		/// other behaviour is specified in the scope itself. The default for
-		/// this configuration is <cref>DefaultFlushType.Classic</cref>. See
-		/// <see cref="DefaultFlushType"/> for what the options mean.
-		/// </summary>
-		/// <param name="flushType">The default flushing behaviour to set.</param>
-		/// <returns>The fluent configuration itself.</returns>
-		IActiveRecordConfiguration Flush(DefaultFlushType flushType);
-
-		/// <summary>
-		/// Sets the <see cref="IThreadScopeInfo"/> to use. Normally, this type is
-		/// set when ActiveRecord is used in web application. You should set this
-		/// value only if you need a custom implementation of that interface.
-		/// </summary>
-		/// <typeparam name="T">The implementation to use.</typeparam>
-		/// <returns>The fluent configuration itself.</returns>
-		IActiveRecordConfiguration UseThreadScopeInfo<T>() where T : IThreadScopeInfo;
-
-		/// <summary>
-		/// Sets the <see cref="ISessionFactoryHolder"/> to use. You should set this if you need to
-		/// use a custom implementation of that interface.
-		/// </summary>
-		/// <typeparam name="T">The implementation to use.</typeparam>
-		/// <returns>The fluent configuration itself.</returns>
-		IActiveRecordConfiguration UseSessionFactoryHolder<T>() where T : ISessionFactoryHolder;
+		DefaultFlushType DefaultFlushType { get; set; }
 	}
 }

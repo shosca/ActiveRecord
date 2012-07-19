@@ -112,10 +112,8 @@ namespace Castle.ActiveRecord
 		}
 
 		/// <summary>
-		/// Optimized with reader/writer lock.
+		/// Returns ISessionFactory of a registered type
 		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
 		public ISessionFactory GetSessionFactory(Type type)
 		{
 			if (type == null) throw new ArgumentNullException("type");
@@ -247,9 +245,7 @@ namespace Castle.ActiveRecord
 				return scope.GetSession(sessionFactory);
 			}
 
-			ISession session;
-
-			session = scope.WantsToCreateTheSession
+			var session = scope.WantsToCreateTheSession
 				? OpenSessionWithScope(scope, sessionFactory)
 				: OpenSession(sessionFactory);
 #if DEBUG

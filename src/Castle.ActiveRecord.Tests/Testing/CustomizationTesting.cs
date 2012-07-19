@@ -14,7 +14,6 @@
 
 namespace Castle.ActiveRecord.Tests.Testing
 {
-	using System;
 	using System.Reflection;
 	using NUnit.Framework;
 	using NHibernate;
@@ -27,7 +26,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 	[TestFixture]
 	public class CustomizationTesting : NUnitInMemoryTesting
 	{
-		public override System.Reflection.Assembly[] GetAssemblies()
+		public override Assembly[] GetAssemblies()
 		{
 			return new Assembly[] { typeof(Blog).Assembly };
 		}
