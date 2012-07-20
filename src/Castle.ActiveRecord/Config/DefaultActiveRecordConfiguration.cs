@@ -50,6 +50,12 @@ namespace Castle.ActiveRecord.Config
 		public Type SessionFactoryHolderImplementation { get; set; }
 
 		/// <summary>
+		/// Return a type that implements
+		/// NHibernate.Cfg.INamingStrategy
+		/// </summary>
+		public Type NamingStrategyImplementation { get; set; }
+
+		/// <summary>
 		/// Return an <see cref="IConfiguration"/> for the specified type.
 		/// </summary>
 		/// <param name="key"></param>

@@ -249,6 +249,8 @@ namespace Castle.ActiveRecord.Config
 
 					throw new ActiveRecordException(message);
 				}
+
+				NamingStrategyImplementation = namingStrategyType;
 			}
 		}
 

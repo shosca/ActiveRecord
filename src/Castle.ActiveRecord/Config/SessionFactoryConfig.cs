@@ -75,6 +75,9 @@ namespace Castle.ActiveRecord.Config {
 
 			var cfg = new Configuration();
 
+			if (Source.NamingStrategyImplementation != null)
+				cfg.SetNamingStrategy((INamingStrategy) Activator.CreateInstance(Source.NamingStrategyImplementation));
+
 			foreach(var key in Properties.AllKeys)
 			{
 				cfg.Properties[key] = Properties[key];
