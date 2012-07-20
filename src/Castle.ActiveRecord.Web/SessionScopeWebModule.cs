@@ -36,8 +36,6 @@ namespace Castle.ActiveRecord
 	/// </remarks>
 	public class SessionScopeWebModule : IHttpModule
 	{
-		private static bool _iswebconfigured;
-
 		/// <summary>
 		/// The key used to store the session in the context items
 		/// </summary>
@@ -49,19 +47,8 @@ namespace Castle.ActiveRecord
 		/// <param name="app">The app.</param>
 		public void Init(HttpApplication app)
 		{
-			if (!AR.IsInitialized)
-			{
-				// Not properly initialized, most probably due to a container initialization failure
-				// We cannot throw an exception as it will hide the original error, so we just
-				// skip our process completely
-
-				return;
-			}
-
 			app.BeginRequest += OnBeginRequest;
 			app.EndRequest += OnEndRequest;
-
-			_iswebconfigured = (AR.Holder.ThreadScopeInfo is IWebThreadScopeInfo);
 		}
 
 		/// <summary>
@@ -82,8 +69,10 @@ namespace Castle.ActiveRecord
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		private void OnBeginRequest(object sender, EventArgs e)
 		{
+			if (!AR.IsInitialized) return;
+
 			var app = sender as HttpApplication;
-			if (!_iswebconfigured || app == null)
+			if (app == null || !(AR.Holder.ThreadScopeInfo is IWebThreadScopeInfo))
 				throw new ActiveRecordException(Misconfigerrmessage);
 
 			app.Context.Items.Add(SessionKey, new SessionScope());
@@ -96,8 +85,10 @@ namespace Castle.ActiveRecord
 		/// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
 		private void OnEndRequest(object sender, EventArgs e)
 		{
+			if (!AR.IsInitialized) return;
+
 			var app = sender as HttpApplication;
-			if (app == null)
+			if (app == null || !(AR.Holder.ThreadScopeInfo is IWebThreadScopeInfo))
 				throw new ActiveRecordException(Misconfigerrmessage);
 
 			var session = app.Context.Items[SessionKey] as ISessionScope;

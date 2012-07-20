@@ -123,9 +123,6 @@
     <Compile Include="INHContributor.cs" />
     <Compile Include="ISessionFactoryHolder.cs" />
     <Compile Include="IThreadScopeInfo.cs" />
-    <Compile Include="IWebThreadScopeInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Model.cs" />
     <Compile Include="NHEventListeners.cs" />
     <Compile Include="NotFoundException.cs">

@@ -61,6 +61,9 @@
     <Compile Include="..\..\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="IWebThreadScopeInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Scopes\HybridWebThreadScopeInfo.cs" />
     <Compile Include="Scopes\WebThreadScopeInfo.cs" />
     <Compile Include="SessionScopeWebModule.cs" />
