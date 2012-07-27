@@ -427,7 +427,7 @@ namespace Castle.ActiveRecord
 		/// Returns all instances found for the specified type 
 		/// using sort orders and criteria.
 		/// </summary>
-		/// <param name="order">An <see cref="Order"/> object.</param>
+		/// <param name="order">An <see cref="NHibernate.Criterion.Order"/> object.</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The <see cref="Array"/> of results.</returns>
 		public static IEnumerable<T> FindAll<T>(Order order, params ICriterion[] criteria) where T : class
@@ -513,7 +513,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="firstResult">The number of the first row to retrieve.</param>
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
-		/// <param name="orders">An <see cref="Array"/> of <see cref="Order"/> objects.</param>
+		/// <param name="orders">An <see cref="Array"/> of <see cref="NHibernate.Criterion.Order"/> objects.</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria) where T : class
@@ -538,7 +538,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="firstResult">The number of the first row to retrieve.</param>
 		/// <param name="maxResults">The maximum number of results retrieved.</param>
-		/// <param name="orders">An <see cref="Array"/> of <see cref="Order"/> objects.</param>
+		/// <param name="orders">An <see cref="Array"/> of <see cref="NHibernate.Criterion.Order"/> objects.</param>
 		/// <param name="criteria">The criteria expression</param>
 		/// <returns>The sliced query results.</returns>
 		public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders) where T : class
@@ -681,8 +681,8 @@ namespace Castle.ActiveRecord
 		/// Saves the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
-		/// or <see cref="Update{T}"/> instead.
+		/// If the primary key is assigned, then you must invoke Create
+		/// or Update instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
@@ -695,8 +695,8 @@ namespace Castle.ActiveRecord
 		/// Saves the instance to the database and flushes the session. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
-		/// or <see cref="Update{T}"/> instead.
+		/// If the primary key is assigned, then you must invoke Create
+		/// or Update instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
@@ -709,8 +709,8 @@ namespace Castle.ActiveRecord
 		/// Saves the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
 		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
-		/// or <see cref="Update{T}"/> instead.
+		/// If the primary key is assigned, then you must invoke Create
+		/// or Update instead.
 		/// </para>
 		/// </summary>
 		/// <param name="instance">The ActiveRecord instance to be saved</param>
@@ -731,10 +731,6 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Saves a copy of the instance to the database. If the primary key is uninitialized
 		/// it creates the instance in the database. Otherwise it updates it.
-		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
-		/// or <see cref="Update{T}"/> instead.
-		/// </para>
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <returns>The saved ActiveRecord instance</returns>
@@ -746,10 +742,6 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Saves a copy of the instance to the database and flushes the session. If the primary key is uninitialized
 		/// it creates the instance in the database. Otherwise it updates it.
-		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
-		/// or <see cref="Update{T}"/> instead.
-		/// </para>
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <returns>The saved ActiveRecord instance</returns>
@@ -761,10 +753,6 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Saves a copy of the instance to the database. If the primary key is unitialized
 		/// it creates the instance on the database. Otherwise it updates it.
-		/// <para>
-		/// If the primary key is assigned, then you must invoke <see cref="Create{T}"/>
-		/// or <see cref="Update{T}"/> instead.
-		/// </para>
 		/// </summary>
 		/// <param name="instance">The transient instance to be saved</param>
 		/// <param name="flush">if set to <c>true</c>, the operation will be followed by a session flush.</param>

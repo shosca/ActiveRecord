@@ -18,23 +18,6 @@ namespace Castle.ActiveRecord
 	/// <typeparam name="TValue">
 	/// The type of values in the dictionary.
 	/// </typeparam>
-	/// <remarks>
-	/// <para>
-	/// An instance of the <b>ReadOnlyDictionary</b> generic class is
-	/// always read-only. A dictionary that is read-only is simply a
-	/// dictionary with a wrapper that prevents modifying the
-	/// dictionary; therefore, if changes are made to the underlying
-	/// dictionary, the read-only dictionary reflects those changes. 
-	/// See <see cref="Dictionary{TKey,TValue}"/> for a modifiable version of 
-	/// this class.
-	/// </para>
-	/// <para>
-	/// <b>Notes to Implementers</b> This base class is provided to 
-	/// make it easier for implementers to create a generic read-only
-	/// custom dictionary. Implementers are encouraged to extend this
-	/// base class instead of creating their own. 
-	/// </para>
-	/// </remarks>
 	[Serializable]
 	[DebuggerDisplay("Count = {Count}")]
 	[ComVisible(false)]
@@ -43,16 +26,6 @@ namespace Castle.ActiveRecord
 		readonly IDictionary<TKey, TValue> _source;
 		object _syncRoot;
 
-		/// <summary>
-		/// Initializes a new instance of the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}" /> class that wraps
-		/// the supplied <paramref name="dictionaryToWrap"/>.
-		/// </summary>
-		/// <param name="dictionaryToWrap">The <see cref="IDictionary{T,K}" />
-		/// that will be wrapped.</param>
-		/// <exception cref="T:System.ArgumentNullException">
-		/// Thrown when the dictionary is null.
-		/// </exception>
 		public ReadOnlyDictionary(IDictionary<TKey, TValue> dictionaryToWrap) {
 			if (dictionaryToWrap == null) {
 				throw new ArgumentNullException("dictionaryToWrap");
@@ -61,41 +34,18 @@ namespace Castle.ActiveRecord
 			_source = dictionaryToWrap;
 		}
 
-		/// <summary>
-		/// Gets the number of key/value pairs contained in the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"></see>.
-		/// </summary>
-		/// <value>The number of key/value pairs.</value>
-		/// <returns>The number of key/value pairs contained in the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"></see>.</returns>
 		public int Count {
 			get { return _source.Count; }
 		}
 
-		/// <summary>Gets a collection containing the keys in the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"></see>.</summary>
-		/// <value>A <see cref="Dictionary{TKey,TValue}.KeyCollection"/> 
-		/// containing the keys.</value>
-		/// <returns>A
-		/// <see cref="Dictionary{TKey,TValue}.KeyCollection"/>
-		/// containing the keys in the
-		/// <see cref="Dictionary{TKey,TValue}"></see>.
-		/// </returns>
 		public ICollection<TKey> Keys {
 			get { return _source.Keys; }
 		}
 
-		/// <summary>
-		/// Gets a collection containing the values of the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"/>.
-		/// </summary>
-		/// <value>The collection of values.</value>
 		public ICollection<TValue> Values {
 			get { return _source.Values; }
 		}
 
-		/// <summary>Gets a value indicating whether the dictionary is read-only.
-		/// This value will always be true.</summary>
 		bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly {
 			get { return true; }
 		}
@@ -130,12 +80,6 @@ namespace Castle.ActiveRecord
 		/// <summary>
 		/// Gets or sets the value associated with the specified key.
 		/// </summary>
-		/// <returns>
-		/// The value associated with the specified key. If the specified key
-		/// is not found, a get operation throws a 
-		/// <see cref="T:System.Collections.Generic.KeyNotFoundException" />,
-		/// and a set operation creates a new element with the specified key.
-		/// </returns>
 		/// <param name="key">The key of the value to get or set.</param>
 		/// <exception cref="T:System.ArgumentNullException">
 		/// Thrown when the key is null.
@@ -148,38 +92,20 @@ namespace Castle.ActiveRecord
 			set { ThrowNotSupportedException(); }
 		}
 
-		/// <summary>This method is not supported by the 
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"/>.</summary>
-		/// <param name="key">
-		/// The object to use as the key of the element to add.</param>
-		/// <param name="value">
-		/// The object to use as the value of the element to add.</param>
+		/// <summary>
+		/// This method is not supported
+		/// </summary>
 		void IDictionary<TKey, TValue>.Add(TKey key, TValue value) {
 			ThrowNotSupportedException();
 		}
 
-		/// <summary>Determines whether the <see cref="ReadOnlyDictionary{TKey,TValue}" />
-		/// contains the specified key.</summary>
-		/// <returns>
-		/// True if the <see cref="ReadOnlyDictionary{TKey,TValue}" /> contains
-		/// an element with the specified key; otherwise, false.
-		/// </returns>
-		/// <param name="key">The key to locate in the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"></see>.</param>
-		/// <exception cref="T:System.ArgumentNullException">
-		/// Thrown when the key is null.
-		/// </exception>
 		public bool ContainsKey(TKey key) {
 			return _source.ContainsKey(key);
 		}
 
 		/// <summary>
-		/// This method is not supported by the <see cref="ReadOnlyDictionary{TKey,TValue}"/>.
+		/// This method is not supported
 		/// </summary>
-		/// <param name="key">The key of the element to remove.</param>
-		/// <returns>
-		/// True if the element is successfully removed; otherwise, false.
-		/// </returns>
 		bool IDictionary<TKey, TValue>.Remove(TKey key) {
 			ThrowNotSupportedException();
 			return false;
@@ -194,36 +120,32 @@ namespace Castle.ActiveRecord
 		/// otherwise, the default value for the type of the value parameter.
 		/// This parameter is passed uninitialized.</param>
 		/// <returns>
-		/// <b>true</b> if the <see cref="ReadOnlyDictionary{TKey,TValue}" /> contains
+		/// <b>true</b> if the dictionary contains
 		/// an element with the specified key; otherwise, <b>false</b>.
 		/// </returns>
 		public bool TryGetValue(TKey key, out TValue value) {
 			return _source.TryGetValue(key, out value);
 		}
 
-		/// <summary>This method is not supported by the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"/>.</summary>
-		/// <param name="item">
-		/// The object to add to the <see cref="ICollection{T}"/>.
-		/// </param>
+		/// <summary>
+		/// This method is not supported
+		/// </summary>
 		void ICollection<KeyValuePair<TKey, TValue>>.Add(
 			KeyValuePair<TKey, TValue> item) {
 			ThrowNotSupportedException();
 		}
 
-		/// <summary>This method is not supported by the 
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"/>.</summary>
+		/// <summary>
+		/// This method is not supported by the 
+		/// </summary>
 		void ICollection<KeyValuePair<TKey, TValue>>.Clear() {
 			ThrowNotSupportedException();
 		}
 
 		/// <summary>
-		/// Determines whether the <see cref="ICollection{T}"/> contains a
+		/// Determines whether the dictionary contains a
 		/// specific value.
 		/// </summary>
-		/// <param name="item">
-		/// The object to locate in the <see cref="ICollection{T}"/>.
-		/// </param>
 		/// <returns>
 		/// <b>true</b> if item is found in the <b>ICollection</b>; 
 		/// otherwise, <b>false</b>.
@@ -252,12 +174,9 @@ namespace Castle.ActiveRecord
 			collection.CopyTo(array, arrayIndex);
 		}
 
-		/// <summary>This method is not supported by the
-		/// <see cref="ReadOnlyDictionary{TKey,TValue}"/>.</summary>
-		/// <param name="item">
-		/// The object to remove from the ICollection.
-		/// </param>
-		/// <returns>Will never return a value.</returns>
+		/// <summary>
+		/// This method is not supported
+		/// </summary>
 		bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) {
 			ThrowNotSupportedException();
 			return false;

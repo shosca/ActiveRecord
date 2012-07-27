@@ -185,7 +185,7 @@ namespace Castle.ActiveRecord.Tests
 
 				foreach(var cat in product1.Categories)
 				{
-					object dummy = cat.Name;
+					Assert.AreEqual(1, cat.Name.Length);
 				}
 
 				var product2 = Product.Find(product.Id);
@@ -195,7 +195,7 @@ namespace Castle.ActiveRecord.Tests
 				{
 					foreach(var cat in product2.Categories)
 					{
-						object dummy = cat.Name;
+						Assert.AreEqual(1, cat.Name.Length);
 					}
 				}
 
@@ -206,7 +206,7 @@ namespace Castle.ActiveRecord.Tests
 
 					foreach(var cat in product3.Categories)
 					{
-						object dummy = cat.Name;
+						Assert.AreEqual(1, cat.Name.Length);
 					}
 				}
 			}

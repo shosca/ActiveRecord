@@ -18,9 +18,8 @@ namespace Castle.ActiveRecord
 {
 	/// <summary>
 	/// <para>
-	/// Contributors are an extension point of ActiveRecord. Instances of INHContributor
-	/// are registered at <see cref="ActiveRecord"/> before the framework is
-	/// initialized. They are called before the session factory is created and can therefore
+	/// Contributors are an extension point of ActiveRecord.
+	/// They are called before the session factory is created and can therefore
 	/// contribute to NHibernate's configuration of the session factory.
 	/// </para>
 	/// </summary>

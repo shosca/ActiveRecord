@@ -38,8 +38,6 @@ namespace Castle.ActiveRecord
 			this.statelessSession = statelessSession;
 		}
 
-#pragma warning disable 1591
-
 		#region Supported
 
 		public System.Data.IDbConnection Connection
@@ -581,7 +579,6 @@ namespace Castle.ActiveRecord
 		}
 
 		#endregion
-#pragma warning restore 1591
 	}
 
 	/// <summary>
