@@ -22,7 +22,7 @@ files:
 	echo $(FILES)
 
 $(OUTPUTPATH)/$(CONFIG)/$(FW)/$(PROJ).dll: $(FILES) $(BASEDIR)/CommonAssemblyInfo.cs
-	$(MSBUILD) $(SLN) /p:Configuration=$(CONFIG) /p:OutputPath=$(OUTPUTPATH)/$(CONFIG)/$(FW) /p:TargetFrameworkVersion=$(FW)
+	$(MSBUILD) $(SLN) -p:Configuration=$(CONFIG) -p:OutputPath=$(OUTPUTPATH)/$(CONFIG)/$(FW) -p:TargetFrameworkVersion=$(FW)
 
 $(BASEDIR)/CommonAssemblyInfo.cs:
 	@echo "using System.Reflection; \
@@ -36,7 +36,7 @@ build: $(OUTPUTPATH)/$(CONFIG)/$(FW)/$(PROJ).dll
 
 
 clean:
-	$(MSBUILD) $(SLN) /p:OutputPath=$(OUTPUTPATH)/$(CONFIG)/$(FW) /t:Clean
+	$(MSBUILD) $(SLN) -p:OutputPath=$(OUTPUTPATH)/$(CONFIG)/$(FW) -t:Clean
 	rm -rf $(OUTPUTPATH)
 	find $(BASEDIR)/src -type f -iname CommonAssemblyInfo.cs -prune -exec rm -f {} \;
 	find $(BASEDIR)/src -type d -iname bin -prune -exec rm -rf {} \;
