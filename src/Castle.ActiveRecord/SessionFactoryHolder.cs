@@ -165,96 +165,10 @@ namespace Castle.ActiveRecord
 		}
 
 		/// <summary>
-		/// Creates a session for the associated type
-		/// </summary>
-		[MethodImpl(MethodImplOptions.Synchronized)]
-		public ISession CreateSession(Type type)
-		{
-			if (ThreadScopeInfo.HasInitializedScope)
-			{
-				return CreateScopeSession(type);
-			}
-
-			// Create a sessionscope implicitly
-			new SessionScope();
-
-			return CreateSession(type);
-		}
-
-		private static ISession OpenSession(ISessionFactory sessionFactory)
-		{
-			lock(sessionFactory)
-			{
-				return sessionFactory.OpenSession(InterceptorFactory.Create());
-			}
-		}
-
-		internal static ISession OpenSessionWithScope(ISessionScope scope, ISessionFactory sessionFactory)
-		{
-			lock(sessionFactory)
-			{
-				return scope.OpenSession(sessionFactory, InterceptorFactory.Create());
-			}
-		}
-
-		/// <summary>
-		/// Releases the specified session
-		/// </summary>
-		/// <param name="session"></param>
-		public void ReleaseSession(ISession session)
-		{
-			if (ThreadScopeInfo.HasInitializedScope) return;
-
-			session.Flush();
-			session.Dispose();
-		}
-
-		/// <summary>
-		/// Called if an action on the session fails
-		/// </summary>
-		/// <param name="session"></param>
-		public void FailSession(ISession session)
-		{
-			if (ThreadScopeInfo.HasInitializedScope)
-			{
-				var scope = ThreadScopeInfo.GetRegisteredScope();
-				scope.FailSession(session);
-			}
-			else
-			{
-				session.Clear();
-			}
-		}
-
-		/// <summary>
 		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
 		/// </summary>
 		/// <value></value>
 		public IThreadScopeInfo ThreadScopeInfo { get; set; }
-
-		private ISession CreateScopeSession(Type type)
-		{
-			var scope = ThreadScopeInfo.GetRegisteredScope();
-			var sessionFactory = GetSessionFactory(type);
-#if DEBUG
-			System.Diagnostics.Debug.Assert(scope != null);
-			System.Diagnostics.Debug.Assert(sessionFactory != null);
-#endif
-			if (scope.IsKeyKnown(sessionFactory))
-			{
-				return scope.GetSession(sessionFactory);
-			}
-
-			var session = scope.WantsToCreateTheSession
-				? OpenSessionWithScope(scope, sessionFactory)
-				: OpenSession(sessionFactory);
-#if DEBUG
-			System.Diagnostics.Debug.Assert(session != null);
-#endif
-			scope.RegisterSession(sessionFactory, session);
-
-			return session;
-		}
 
 		public void Dispose() {
 			_type2SessFactory.Values.ForEach(sf => sf.SessionFactory.Dispose());

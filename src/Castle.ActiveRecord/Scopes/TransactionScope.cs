@@ -69,7 +69,7 @@ namespace Castle.ActiveRecord.Scopes
 		private readonly OnDispose onDisposeBehavior;
 		private readonly IDictionary<ISession, ITransaction> transactions = new Dictionary<ISession, ITransaction>();
 		private readonly TransactionScope parentTransactionScope;
-		private readonly AbstractScope parentSimpleScope;
+		private readonly SessionScope parentSimpleScope;
 		private readonly EventHandlerList events = new EventHandlerList();
 		private bool rollbackOnly, setForCommit;
 
@@ -123,7 +123,7 @@ namespace Castle.ActiveRecord.Scopes
 				else
 				{
 					// This is not a safe cast. Reconsider it
-					parentSimpleScope = (AbstractScope)previousScope;
+					parentSimpleScope = (SessionScope)previousScope;
 
 					foreach (ISession session in parentSimpleScope.GetSessions())
 					{
@@ -198,7 +198,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// <param name="sessionFactory">From where to open the session</param>
 		/// <param name="interceptor">the NHibernate interceptor</param>
 		/// <returns>the newly created session</returns>
-		public override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
+		protected override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
 		{
 			ISession session = sessionFactory.OpenSession(interceptor);
 			SetFlushMode(session);
@@ -428,8 +428,9 @@ namespace Castle.ActiveRecord.Scopes
 		/// This is called when a session has a failure
 		/// </summary>
 		/// <param name="session">the session</param>
-		public override void FailSession(ISession session)
+		public override void FailScope()
 		{
+            base.FailScope();
 			VoteRollBack();
 		}
 

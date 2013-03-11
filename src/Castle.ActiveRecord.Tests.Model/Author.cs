@@ -13,29 +13,30 @@
 // limitations under the License.
 
 using System;
+using Castle.ActiveRecord.Scopes;
 using NHibernate;
 using NHibernate.Mapping.ByCode;
 using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Model
 {
-	public class Author
-	{
-		public Author()
-		{
-		}
+    public class Author
+    {
+        public Author()
+        {
+        }
 
-		public Author(int _id)
-		{
-			this.Id = _id;
-		}
+        public Author(int _id)
+        {
+            this.Id = _id;
+        }
 
-		public virtual int Id { get; set; }
+        public virtual int Id { get; set; }
 
-		public virtual string Name { get; set; }
+        public virtual string Name { get; set; }
 
-		public virtual ISession GetCurrentSession() {
-			return AR.Execute<Author, ISession>((session, blog) => { return session; }, null);
-		}
-	}
+        public virtual ISession GetCurrentSession() {
+            return SessionScope.Current().CreateSession<Author>();
+        }
+    }
 }

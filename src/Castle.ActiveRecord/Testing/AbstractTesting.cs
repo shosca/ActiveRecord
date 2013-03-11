@@ -14,70 +14,68 @@
 
 namespace Castle.ActiveRecord.Testing
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Reflection;
-	using Castle.ActiveRecord.Config;
-	using Castle.ActiveRecord.Scopes;
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection;
+    using Castle.ActiveRecord.Config;
+    using Castle.ActiveRecord.Scopes;
 
-	public abstract class AbstractTesting {
-		/// <summary>
-		/// Hook for providing the configuration before initialization
-		/// </summary>
-		public abstract IActiveRecordConfiguration GetConfigSource();
+    public abstract class AbstractTesting {
+        /// <summary>
+        /// Hook for providing the configuration before initialization
+        /// </summary>
+        public abstract IActiveRecordConfiguration GetConfigSource();
 
-		/// <summary>
-		/// Hook to add additional properties for each base class' configuration. As an example, "show_sql" can
-		/// be added to verify the behaviour of NHibernate in specific situations.
-		/// </summary>
-		/// <returns>A dictionary of additional or custom properties.</returns>
-		public virtual IDictionary<string, string> GetProperties()
-		{
-			return new Dictionary<string, string>();
-		}
+        /// <summary>
+        /// Hook to add additional properties for each base class' configuration. As an example, "show_sql" can
+        /// be added to verify the behaviour of NHibernate in specific situations.
+        /// </summary>
+        /// <returns>A dictionary of additional or custom properties.</returns>
+        public virtual IDictionary<string, string> GetProperties()
+        {
+            return new Dictionary<string, string>();
+        }
 
-		/// <summary>
-		/// Method that must be overridden by the test fixtures to return the assemblies
-		/// that should be initialized. The stub returns an empty array.
-		/// </summary>
-		/// <returns></returns>
-		public virtual Assembly[] GetAssemblies()
-		{
-			return new Assembly[0];
-		}
+        /// <summary>
+        /// Method that must be overridden by the test fixtures to return the assemblies
+        /// that should be initialized. The stub returns an empty array.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Assembly[] GetAssemblies()
+        {
+            return new Assembly[0];
+        }
 
 
-		/// <summary>
-		/// The common test setup code. To activate it in a specific test framework,
-		/// it must be called from a framework-specific setup-Method.
-		/// </summary>
-		public virtual void SetUp()
-		{
-			AR.ResetInitialization();
+        /// <summary>
+        /// The common test setup code. To activate it in a specific test framework,
+        /// it must be called from a framework-specific setup-Method.
+        /// </summary>
+        public virtual void SetUp()
+        {
+            AR.ResetInitialization();
 
-			GetConfigSource().Initialize();
+            GetConfigSource().Initialize();
 
-			AR.CreateSchema();
-		}
+            AR.CreateSchema();
+        }
 
-		/// <summary>
-		/// The common test teardown code. To activate it in a specific test framework,
-		/// it must be called from a framework-specific teardown-Method.
-		/// </summary>
-		public virtual void TearDown()
-		{
-			try
-			{
-				if (SessionScope.Current != null)
-					SessionScope.Current.Dispose();
+        /// <summary>
+        /// The common test teardown code. To activate it in a specific test framework,
+        /// it must be called from a framework-specific teardown-Method.
+        /// </summary>
+        public virtual void TearDown()
+        {
+            try
+            {
+                SessionScope.DisposeCurrent();
+                AR.DropSchema();
+                AR.ResetInitialization();
+            }
+            catch {
+                
+            }
+        }
 
-				AR.DropSchema();
-				AR.ResetInitialization();
-			}
-			catch {
-				
-			}
-		}
-
-	}
+    }
 }

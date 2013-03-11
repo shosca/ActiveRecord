@@ -129,7 +129,6 @@
     </Compile>
     <Compile Include="QueryExtensions.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
-    <Compile Include="Scopes\AbstractScope.cs" />
     <Compile Include="Scopes\AbstractThreadScopeInfo.cs" />
     <Compile Include="Scopes\ISessionScope.cs" />
     <Compile Include="Scopes\ScopeMachineryException.cs" />

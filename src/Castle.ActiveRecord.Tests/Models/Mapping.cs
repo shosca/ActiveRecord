@@ -47,6 +47,12 @@ namespace Castle.ActiveRecord.Tests.Models
 		public class MapCompany : ClassMapping<Company> {
 			public MapCompany() {
 				Id(x => x.Id, m => m.Generator(Generators.Native));
+                Set(x => x.People,
+                    cm => {
+                        cm.Table("CompanyPeople");
+                        cm.Key(k => k.Column("CompanyId"));
+                    }
+                    ,t => t.ManyToMany(c => c.Column("PersonId")));
 			}
 		}
 
@@ -63,9 +69,17 @@ namespace Castle.ActiveRecord.Tests.Models
 				OneToOne(x => x.Employee, m => m.Constrained(true));
 			}
 		}
+
 		public class MapPerson : ClassMapping<Person> {
 			public MapPerson() {
 				Id(x => x.Id, m => m.Generator(Generators.Native));
+                Set(x => x.Companies,
+                    cm => {
+                        cm.Table("CompanyPeople");
+                        cm.Inverse(true);
+                        cm.Key(k => k.Column("PersonId"));
+                    }
+                    ,t => t.ManyToMany(c => c.Column("CompanyId")));
 			}
 		}
 		public class MapProduct : ClassMapping<Product> {
@@ -90,13 +104,6 @@ namespace Castle.ActiveRecord.Tests.Models
 			public MapSSAFEntity() {
 				Id(x => x.Id, m => m.Generator(Generators.GuidComb));
 			}
-		}
-
-		public override void Contribute(ModelMapper mapper)
-		{
-			base.Contribute(mapper);
-			mapper
-				.ManyToManySet<Company, Person>(x => x.People, x => x.Companies);
 		}
 	}
 }

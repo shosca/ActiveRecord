@@ -19,154 +19,166 @@ using NHibernate.Linq;
 
 namespace Castle.ActiveRecord.Tests
 {
-	using System.Collections;
-	using System.Collections.Generic;
-	using NUnit.Framework;
-	using Castle.ActiveRecord;
-	using NHibernate;
+    using System.Collections;
+    using System.Collections.Generic;
+    using NUnit.Framework;
+    using Castle.ActiveRecord;
+    using NHibernate;
 
-	[TestFixture]
-	public class SessionScopeAutoflushTestCase : AbstractActiveRecordTest
-	{
-		[Test]
-		public void ActiveRecordUsingSessionScope()
-		{
-			using (new SessionScope())
-			{
-				new SSAFEntity("example").Save();
-				Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-			}
-			Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-		}
+    [TestFixture]
+    public class SessionScopeAutoflushTestCase : AbstractActiveRecordTest
+    {
+        [Test]
+        public void UsingSessionScope()
+        {
+            using (new SessionScope())
+            {
+                new SSAFEntity("example").Save();
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+            }
+            using (new SessionScope())
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+        }
 
-		public void ActiveRecordUsingNoFlushSessionScope()
-		{
-			using (new SessionScope(FlushAction.Never))
-			{
-				new SSAFEntity("example").Save();
-				Assert.AreEqual(0, SSAFEntity.FindAll().Count());
-			}
-			Assert.AreEqual(0, SSAFEntity.FindAll().Count());
-		}
+        public void UsingNoFlushSessionScope()
+        {
+            using (new SessionScope(FlushAction.Never))
+            {
+                new SSAFEntity("example").Save();
+                Assert.AreEqual(0, SSAFEntity.FindAll().Count());
+            }
+            using (new SessionScope())
+                Assert.AreEqual(0, SSAFEntity.FindAll().Count());
+        }
 
-		[Test]
-		public void ActiveRecordUsingSessionScopeUsingExplicitFlush()
-		{
-			using (new SessionScope())
-			{
-				new SSAFEntity("example").Save();
-				SessionScope.Current.Flush();
-				Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-			}
-			Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-		}
+        [Test]
+        public void UsingSessionScopeUsingExplicitFlush()
+        {
+            using (new SessionScope())
+            {
+                new SSAFEntity("example").Save();
+                SessionScope.Current().Flush();
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+            }
+            using (new SessionScope())
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+        }
 
-		[Test]
-		public void ActiveRecordUsingTransactionScope()
-		{
-			using (new TransactionScope())
-			{
-				new SSAFEntity("example").Save();
-				//Assert.AreEqual(1, SSAFEntity.FindAll().Length);
-			}
-			Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-		}
+        [Test]
+        public void UsingTransactionScope()
+        {
+            using (new TransactionScope())
+            {
+                new SSAFEntity("example").Save();
+                //Assert.AreEqual(1, SSAFEntity.FindAll().Length);
+            }
+            using (new SessionScope())
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+        }
 
-		[Test]
-		public void ActiveRecordUsingTransactionScopeWithRollback()
-		{
-			using (TransactionScope scope = new TransactionScope())
-			{
-				new SSAFEntity("example").Save();
-				//Assert.AreEqual(1, SSAFEntity.FindAll().Length);
-				scope.VoteRollBack();
-			}
-			Assert.AreEqual(0, SSAFEntity.FindAll().Count());
-		}
+        [Test]
+        public void UsingTransactionScopeWithRollback()
+        {
+            using (TransactionScope scope = new TransactionScope())
+            {
+                new SSAFEntity("example").Save();
+                //Assert.AreEqual(1, SSAFEntity.FindAll().Length);
+                scope.VoteRollBack();
+            }
+            using (new SessionScope())
+                Assert.AreEqual(0, SSAFEntity.FindAll().Count());
+        }
 
-		[Test][Ignore("Need to clean up scopes.")]
-		public void ActiveRecordUsingTransactionScopeWithRollbackAndInnerSessionScope()
-		{
-			using (TransactionScope scope = new TransactionScope())
-			{
-				using (new SessionScope())
-				{
-					new SSAFEntity("example").SaveAndFlush();
-					Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-				}
-				Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-				scope.VoteRollBack();
-			}
-			Assert.AreEqual(0, SSAFEntity.FindAll().Count());
-		}
+        [Test][Ignore("Need to clean up scopes.")]
+        public void UsingTransactionScopeWithRollbackAndInnerSessionScope()
+        {
+            using (TransactionScope scope = new TransactionScope())
+            {
+                using (new SessionScope())
+                {
+                    new SSAFEntity("example").Save();
+                    Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+                }
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+                scope.VoteRollBack();
+            }
+            using (new SessionScope())
+                Assert.AreEqual(0, SSAFEntity.FindAll().Count());
+        }
 
-		[Test]
-		public void ActiveRecordUsingNestedTransactionScopesWithRollback()
-		{
-			using (TransactionScope scope = new TransactionScope())
-			{
-				using (new TransactionScope(TransactionMode.Inherits))
-				{
-					new SSAFEntity("example").SaveAndFlush();
-					Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-				}
-				Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-				scope.VoteRollBack();
-			}
-			Assert.AreEqual(0, SSAFEntity.FindAll().Count());
-		}
+        [Test]
+        public void UsingNestedTransactionScopesWithRollback()
+        {
+            using (TransactionScope scope = new TransactionScope())
+            {
+                using (new TransactionScope(TransactionMode.Inherits))
+                {
+                    new SSAFEntity("example").Save();
+                    Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+                }
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+                scope.VoteRollBack();
+            }
 
-		[Test]
-		public void ActiveRecordUsingTransactionScopeWithCommitAndInnerSessionScope()
-		{
-			using (TransactionScope scope = new TransactionScope())
-			{
-				using (new SessionScope())
-				{
-					new SSAFEntity("example").SaveAndFlush();
-					Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-				}
-				//Assert.AreEqual(1, SSAFEntity.FindAll().Length);
-				scope.VoteCommit();
-			}
-			Assert.AreEqual(1, SSAFEntity.FindAll().Count());
-		}
+            using (new SessionScope())
+                Assert.AreEqual(0, SSAFEntity.FindAll().Count());
+        }
 
-
-		[Test]
-		public void NHibernateVerification()
-		{
-			AR.Execute<SSAFEntity>(session => {
-				using (session.BeginTransaction())
-				{
-					session.Save(new SSAFEntity("example"));
-					Assert.AreEqual(1, session.CreateQuery("from " + typeof(SSAFEntity).FullName).List<SSAFEntity>().Count);
-				}
-			});
-		}
-
-		[Test]
-		public void SessionTxVerification()
-		{
-			AR.Execute<SSAFEntity>(session => {
-				using (ITransaction tx = session.BeginTransaction())
-				{
-					Assert.AreSame(tx, session.BeginTransaction());
-					Assert.AreSame(tx, session.Transaction);
-				}
-			});
-		}
+        [Test]
+        public void UsingTransactionScopeWithCommitAndInnerSessionScope()
+        {
+            using (TransactionScope scope = new TransactionScope())
+            {
+                using (new SessionScope())
+                {
+                    new SSAFEntity("example").Save();
+                    Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+                }
+                //Assert.AreEqual(1, SSAFEntity.FindAll().Length);
+                scope.VoteCommit();
+            }
+            using (new SessionScope())
+                Assert.AreEqual(1, SSAFEntity.FindAll().Count());
+        }
 
 
-		[Test]
-		public void NHibernateNoTxVerification()
-		{
-			using (ISession session = AR.Holder.GetSessionFactory(typeof(SSAFEntity)).OpenSession())
-			{
-				session.Save(new SSAFEntity("example"));
-				session.Flush();
-				Assert.AreEqual(1, session.Query<SSAFEntity>().ToList<SSAFEntity>().Count);
-			}
-		}
-	}
+        [Test]
+        public void NHibernateVerification()
+        {
+            using (var scope = new SessionScope()) {
+                scope.Execute<SSAFEntity>(session => {
+                    using (session.BeginTransaction())
+                    {
+                        session.Save(new SSAFEntity("example"));
+                        Assert.AreEqual(1, session.CreateQuery("from " + typeof(SSAFEntity).FullName).List<SSAFEntity>().Count);
+                    }
+                });
+            }
+        }
+
+        [Test]
+        public void SessionTxVerification()
+        {
+            using (var scope = new SessionScope()) {
+                scope.Execute<SSAFEntity>(session => {
+                    using (ITransaction tx = session.BeginTransaction())
+                    {
+                        Assert.AreSame(tx, session.BeginTransaction());
+                        Assert.AreSame(tx, session.Transaction);
+                    }
+                });
+            }
+        }
+
+        [Test]
+        public void NHibernateNoTxVerification()
+        {
+            using (ISession session = AR.Holder.GetSessionFactory(typeof(SSAFEntity)).OpenSession())
+            {
+                session.Save(new SSAFEntity("example"));
+                session.Flush();
+                Assert.AreEqual(1, session.Query<SSAFEntity>().ToList<SSAFEntity>().Count);
+            }
+        }
+    }
 }

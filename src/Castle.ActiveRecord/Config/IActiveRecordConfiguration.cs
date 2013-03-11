@@ -19,69 +19,71 @@ using Castle.Core.Configuration;
 
 namespace Castle.ActiveRecord.Config
 {
-	/// <summary>
-	/// Abstracts the source of configuration for the framework.
-	/// </summary>
-	public interface IActiveRecordConfiguration 
-	{
-		/// <summary>
-		/// Implementors should return the type that implements
-		/// the interface <see cref="IThreadScopeInfo"/>
-		/// </summary>
-		Type ThreadScopeInfoImplementation { get; set; }
+    /// <summary>
+    /// Abstracts the source of configuration for the framework.
+    /// </summary>
+    public interface IActiveRecordConfiguration 
+    {
+        /// <summary>
+        /// Implementors should return the type that implements
+        /// the interface <see cref="IThreadScopeInfo"/>
+        /// </summary>
+        Type ThreadScopeInfoImplementation { get; set; }
 
-		/// <summary>
-		/// Implementors should return the type that implements 
-		/// the interface <see cref="ISessionFactoryHolder"/>
-		/// </summary>
-		Type SessionFactoryHolderImplementation { get; set; }
+        /// <summary>
+        /// Implementors should return the type that implements 
+        /// the interface <see cref="ISessionFactoryHolder"/>
+        /// </summary>
+        Type SessionFactoryHolderImplementation { get; set; }
 
-		/// <summary>
-		/// Implementors should return a type that implements
-		/// NHibernate.Cfg.INamingStrategy
-		/// </summary>
-		Type NamingStrategyImplementation { get; set; }
+        /// <summary>
+        /// Implementors should return a type that implements
+        /// NHibernate.Cfg.INamingStrategy
+        /// </summary>
+        Type NamingStrategyImplementation { get; set; }
 
-		/// <summary>
-		/// Implementors should return an <see cref="IConfiguration"/> 
-		/// instance
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		SessionFactoryConfig GetConfiguration(string key);
+        /// <summary>
+        /// Implementors should return an <see cref="IConfiguration"/> 
+        /// instance
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        SessionFactoryConfig GetConfiguration(string key);
 
-		/// <summary>
-		/// Add a config instance
-		/// </summary>
-		/// <param name="config"></param>
-		/// <returns></returns>
-		void Add(SessionFactoryConfig config);
+        /// <summary>
+        /// Add a config instance
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        void Add(SessionFactoryConfig config);
 
-		/// <summary>
-		/// Returns all registered configuration keys
-		/// </summary>
-		/// <returns></returns>
-		IEnumerable<string> GetAllConfigurationKeys();
+        /// <summary>
+        /// Returns all registered configuration keys
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<string> GetAllConfigurationKeys();
 
-		/// <summary>
-		/// Gets a value indicating whether this <see cref="IActiveRecordConfiguration"/> produce _debug information
-		/// </summary>
-		/// <value><c>true</c> if _debug; otherwise, <c>false</c>.</value>
-		bool Debug { get; set; }
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="IActiveRecordConfiguration"/> produce _debug information
+        /// </summary>
+        /// <value><c>true</c> if _debug; otherwise, <c>false</c>.</value>
+        bool Debug { get; set; }
 
-		/// <summary>
-		/// Determines default lazy configuration
-		/// </summary>
-		bool Lazy { get; set; }
+        /// <summary>
+        /// Determines default lazy configuration
+        /// </summary>
+        bool Lazy { get; set; }
 
-		/// <summary>
-		/// Determines default auto-import configuration
-		/// </summary>
-		bool AutoImport { get; set; }
+        /// <summary>
+        /// Determines default auto-import configuration
+        /// </summary>
+        bool AutoImport { get; set; }
 
-		/// <summary>
-		/// Determines the default flushing behaviour of scopes.
-		/// </summary>
-		DefaultFlushType DefaultFlushType { get; set; }
-	}
+        /// <summary>
+        /// Determines the default flushing behaviour of scopes.
+        /// </summary>
+        DefaultFlushType DefaultFlushType { get; set; }
+
+        void ForEachConfiguration(Action<SessionFactoryConfig> action);
+    }
 }

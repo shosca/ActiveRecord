@@ -77,7 +77,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <returns></returns>
 		ISessionFactory[] GetSessionFactories();
-
+/*
 		/// <summary>
 		/// Creates a session for the associated type
 		/// </summary>
@@ -96,7 +96,7 @@ namespace Castle.ActiveRecord
 		/// </summary>
 		/// <param name="session"></param>
 		void FailSession(ISession session);
-
+*/
 		/// <summary>
 		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
 		/// </summary>

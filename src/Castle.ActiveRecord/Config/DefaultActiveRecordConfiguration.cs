@@ -19,88 +19,94 @@ using Castle.Core.Configuration;
 
 namespace Castle.ActiveRecord.Config
 {
-	/// <summary>
-	/// Useful for test cases.
-	/// </summary>
-	public class DefaultActiveRecordConfiguration : IActiveRecordConfiguration
-	{
-		readonly IDictionary<string, SessionFactoryConfig> _configs = new Dictionary<string, SessionFactoryConfig>();
+    /// <summary>
+    /// Useful for test cases.
+    /// </summary>
+    public class DefaultActiveRecordConfiguration : IActiveRecordConfiguration
+    {
+        readonly IDictionary<string, SessionFactoryConfig> _configs = new Dictionary<string, SessionFactoryConfig>();
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DefaultActiveRecordConfiguration"/> class.
-		/// </summary>
-		public DefaultActiveRecordConfiguration() {
-			DefaultFlushType = DefaultFlushType.Classic;
-			AutoImport = true;
-			Lazy = true;
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultActiveRecordConfiguration"/> class.
+        /// </summary>
+        public DefaultActiveRecordConfiguration() {
+            DefaultFlushType = DefaultFlushType.Classic;
+            AutoImport = true;
+            Lazy = true;
+        }
 
-		/// <summary>
-		/// Return a type that implements
-		/// the interface <see cref="IThreadScopeInfo"/>
-		/// </summary>
-		/// <value></value>
-		public Type ThreadScopeInfoImplementation { get; set; }
+        /// <summary>
+        /// Return a type that implements
+        /// the interface <see cref="IThreadScopeInfo"/>
+        /// </summary>
+        /// <value></value>
+        public Type ThreadScopeInfoImplementation { get; set; }
 
-		/// <summary>
-		/// Return a type that implements
-		/// the interface <see cref="ISessionFactoryHolder"/>
-		/// </summary>
-		/// <value></value>
-		public Type SessionFactoryHolderImplementation { get; set; }
+        /// <summary>
+        /// Return a type that implements
+        /// the interface <see cref="ISessionFactoryHolder"/>
+        /// </summary>
+        /// <value></value>
+        public Type SessionFactoryHolderImplementation { get; set; }
 
-		/// <summary>
-		/// Return a type that implements
-		/// NHibernate.Cfg.INamingStrategy
-		/// </summary>
-		public Type NamingStrategyImplementation { get; set; }
+        /// <summary>
+        /// Return a type that implements
+        /// NHibernate.Cfg.INamingStrategy
+        /// </summary>
+        public Type NamingStrategyImplementation { get; set; }
 
-		/// <summary>
-		/// Return an <see cref="IConfiguration"/> for the specified type.
-		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		public SessionFactoryConfig GetConfiguration(string key)
-		{
-			key = string.IsNullOrEmpty(key) ? string.Empty : key;
-			SessionFactoryConfig configuration;
-			_configs.TryGetValue(key, out configuration);
-			return configuration;
-		}
+        /// <summary>
+        /// Return an <see cref="IConfiguration"/> for the specified type.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public SessionFactoryConfig GetConfiguration(string key)
+        {
+            key = string.IsNullOrEmpty(key) ? string.Empty : key;
+            SessionFactoryConfig configuration;
+            _configs.TryGetValue(key, out configuration);
+            return configuration;
+        }
 
-		public IEnumerable<string> GetAllConfigurationKeys() {
-			return _configs.Keys;
-		}
+        public IEnumerable<string> GetAllConfigurationKeys() {
+            return _configs.Keys;
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether this <see cref="IActiveRecordConfiguration"/> produces _debug information.
-		/// </summary>
-		/// <value><c>true</c> if _debug; otherwise, <c>false</c>.</value>
-		public bool Debug { get; set; }
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="IActiveRecordConfiguration"/> produces _debug information.
+        /// </summary>
+        /// <value><c>true</c> if _debug; otherwise, <c>false</c>.</value>
+        public bool Debug { get; set; }
 
-		/// <summary>
-		/// Determines default lazy configuration
-		/// </summary>
-		public bool Lazy { get; set; }
+        /// <summary>
+        /// Determines default lazy configuration
+        /// </summary>
+        public bool Lazy { get; set; }
 
-		/// <summary>
-		/// Determines default auto-import configuration
-		/// </summary>
-		public bool AutoImport { get; set; }
+        /// <summary>
+        /// Determines default auto-import configuration
+        /// </summary>
+        public bool AutoImport { get; set; }
 
-		/// <summary>
-		/// Determines the default flushing behaviour of scopes.
-		/// </summary>
-		public DefaultFlushType DefaultFlushType { get; set; }
+        /// <summary>
+        /// Determines the default flushing behaviour of scopes.
+        /// </summary>
+        public DefaultFlushType DefaultFlushType { get; set; }
 
-		/// <summary>
-		/// Adds the specified type with configuration
-		/// </summary>
-		/// <param name="config">The config.</param>
-		public void Add(SessionFactoryConfig config)
-		{
-			var key = string.IsNullOrEmpty(config.Name) ? string.Empty : config.Name;
-			_configs.Add(key, config);
-		}
-	}
+        public void ForEachConfiguration(Action<SessionFactoryConfig> action) {
+            foreach (var key in GetAllConfigurationKeys()) {
+                action(GetConfiguration(key));
+            }
+        }
+
+        /// <summary>
+        /// Adds the specified type with configuration
+        /// </summary>
+        /// <param name="config">The config.</param>
+        public void Add(SessionFactoryConfig config)
+        {
+            var key = string.IsNullOrEmpty(config.Name) ? string.Empty : config.Name;
+            _configs.Add(key, config);
+        }
+    }
 }

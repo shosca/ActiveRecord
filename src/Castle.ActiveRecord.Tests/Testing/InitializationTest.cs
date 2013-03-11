@@ -12,57 +12,55 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Castle.ActiveRecord.Scopes;
 using Castle.ActiveRecord.Tests.Model;
 using Castle.ActiveRecord.Tests.Models;
 
-namespace Castle.ActiveRecord.Tests.Testing
-{
-	using System;
-	using System.Linq;
+namespace Castle.ActiveRecord.Tests.Testing {
+    using System;
+    using System.Linq;
 
-	using NUnit.Framework;
+    using NUnit.Framework;
 
-	using System.Reflection;
-	using System.Collections.Generic;
+    using System.Reflection;
+    using System.Collections.Generic;
 
 
-	[TestFixture]
-	public class TypeInitializationTesting : NUnitInMemoryTesting
-	{
-		public override Assembly[] GetAssemblies()
-		{
-			return new Assembly[] { typeof(Blog).Assembly };
-		}
+    [TestFixture]
+    public class TypeInitializationTesting : NUnitInMemoryTesting {
+        public override Assembly[] GetAssemblies() {
+            return new Assembly[] {typeof (Blog).Assembly};
+        }
 
-		[Test]
-		public void BasicUsageIsPossible()
-		{
-			new Blog() { Author = "Me", Name = "Titles" }.Save();
-			Assert.AreEqual(1, Blog.FindAll().ToArray().Length);
-		}
-	}
+        [Test]
+        public void BasicUsageIsPossible() {
+            using (new SessionScope()) {
+                new Blog() {Author = "Me", Name = "Titles"}.Save();
+                Assert.AreEqual(1, Blog.FindAll().ToArray().Length);
+            }
+        }
+    }
 
-	[TestFixture]
-	public class AdditionalPropertiesInitializationTesting : NUnitInMemoryTesting
-	{
-		public override Assembly[] GetAssemblies() {
-			return new Assembly[] {typeof (Blog).Assembly};
-		}
+    [TestFixture]
+    public class AdditionalPropertiesInitializationTesting : NUnitInMemoryTesting {
+        public override Assembly[] GetAssemblies() {
+            return new Assembly[] {typeof (Blog).Assembly};
+        }
 
-		public override IDictionary<string, string> GetProperties()
-		{
-			return new Dictionary<string, string> {
-				{NHibernate.Cfg.Environment.ShowSql,"true"}
-			};
-		}
+        public override IDictionary<string, string> GetProperties() {
+            return new Dictionary<string, string> {
+                {NHibernate.Cfg.Environment.ShowSql, "true"}
+            };
+        }
 
-		[Test]
-		public void PropertiesAreCarriesOver()
-		{
-			Blog.FindAll();
-			var cfg = AR.Holder.GetConfiguration(typeof (Blog));
-			Assert.AreEqual("true", cfg.Properties[NHibernate.Cfg.Environment.ShowSql]);
-		}
+        [Test]
+        public void PropertiesAreCarriesOver() {
+            using (new SessionScope()) {
+                Blog.FindAll();
+                var cfg = AR.Holder.GetConfiguration(typeof (Blog));
+                Assert.AreEqual("true", cfg.Properties[NHibernate.Cfg.Environment.ShowSql]);
+            }
+        }
 
-	}
+    }
 }

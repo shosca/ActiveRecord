@@ -32,14 +32,14 @@ namespace Castle.ActiveRecord.Scopes
 		}
 
 		/// <summary>
-		/// If the <see cref="AbstractScope.WantsToCreateTheSession"/> returned
+		/// If the <see cref="SessionScope.WantsToCreateTheSession"/> returned
 		/// <c>true</c> then this method is invoked to allow
 		/// the scope to create a properly configured session
 		/// </summary>
 		/// <param name="sessionFactory">From where to open the session</param>
 		/// <param name="interceptor">the NHibernate interceptor</param>
 		/// <returns>the newly created session</returns>
-		public override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
+		protected override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
 		{
 			ISession session = new StatelessSessionWrapper(sessionFactory.OpenStatelessSession());
 

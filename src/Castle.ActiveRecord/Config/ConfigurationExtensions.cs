@@ -217,6 +217,11 @@ namespace Castle.ActiveRecord.Config
 						.ConnectionDriver<SqlClientDriver>()
 						.Dialect<MsSql2008Dialect>();
 					break;
+				case DatabaseType.MsSqlServer2012:
+					config
+						.ConnectionDriver<SqlClientDriver>()
+						.Dialect<MsSql2012Dialect>();
+					break;
 				case DatabaseType.SQLite:
 					config
 						.ConnectionDriver<SQLite20Driver>()

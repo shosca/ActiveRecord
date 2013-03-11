@@ -364,10 +364,7 @@ namespace Castle.ActiveRecord
 			throw new NotWrappedException();
 		}
 
-		public void Flush()
-		{
-			throw new NotWrappedException();
-		}
+		public void Flush() { }
 
 		public FlushMode FlushMode
 		{

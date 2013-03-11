@@ -39,10 +39,10 @@ namespace Castle.ActiveRecord.Tests.Testing
 		[Test]
 		public void ConfigurationIsCustomizable()
 		{
-			using (new SessionScope())
+			using (var scope = new SessionScope())
 			{
 				Blog.FindAll();
-				Assert.AreEqual(FlushMode.Commit, AR.Holder.CreateSession(typeof(Blog)).FlushMode);
+				Assert.AreEqual(FlushMode.Commit, scope.CreateSession<Blog>().FlushMode);
 			}
 		}
 	}

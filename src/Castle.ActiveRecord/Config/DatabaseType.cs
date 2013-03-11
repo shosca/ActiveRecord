@@ -33,6 +33,10 @@ namespace Castle.ActiveRecord.Config
 		/// </summary>
 		MsSqlServer2008,
 		/// <summary>
+		/// Microsoft SQL Server 2012
+		/// </summary>
+		MsSqlServer2012,
+		/// <summary>
 		/// SQLite
 		/// </summary>
 		SQLite,

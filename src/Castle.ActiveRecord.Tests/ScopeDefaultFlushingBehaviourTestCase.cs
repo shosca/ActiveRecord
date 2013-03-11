@@ -15,57 +15,59 @@
 
 namespace Castle.ActiveRecord.Tests
 {
-	using Castle.ActiveRecord.Config;
-	using Castle.ActiveRecord.Scopes;
-	using Castle.ActiveRecord.Tests.Models;
-	using NHibernate;
-	using NUnit.Framework;
+    using Castle.ActiveRecord.Config;
+    using Castle.ActiveRecord.Scopes;
+    using Castle.ActiveRecord.Tests.Models;
+    using NHibernate;
+    using NUnit.Framework;
 
-	[TestFixture]
-	public class ScopeDefaultFlushingBehaviourTestCase : AbstractActiveRecordTest
-	{
-		[Test] 
-		public void TestClassicBehaviour() {TestBehaviour(DefaultFlushType.Classic, FlushMode.Auto, FlushMode.Commit);}
-		[Test]
-		public void TestAutoBehaviour() { TestBehaviour(DefaultFlushType.Auto, FlushMode.Auto, FlushMode.Auto); }
-		[Test]
-		public void TestLeaveBehaviour() { TestBehaviour(DefaultFlushType.Leave, FlushMode.Commit, FlushMode.Commit); }
-		[Test]
-		public void TestTransactionBehaviour() { TestBehaviour(DefaultFlushType.Transaction, FlushMode.Never, FlushMode.Auto); }
-		
-		private void TestBehaviour(DefaultFlushType flushType, FlushMode sessionScopeMode, FlushMode transactionScopeMode)
-		{
-			Post.DeleteAll();
-			Blog.DeleteAll();
+    [TestFixture]
+    public class ScopeDefaultFlushingBehaviourTestCase : AbstractActiveRecordTest
+    {
+        [Test] 
+        public void TestClassicBehaviour() {TestBehaviour(DefaultFlushType.Classic, FlushMode.Auto, FlushMode.Commit);}
+        [Test]
+        public void TestAutoBehaviour() { TestBehaviour(DefaultFlushType.Auto, FlushMode.Auto, FlushMode.Auto); }
+        [Test]
+        public void TestLeaveBehaviour() { TestBehaviour(DefaultFlushType.Leave, FlushMode.Commit, FlushMode.Commit); }
+        [Test]
+        public void TestTransactionBehaviour() { TestBehaviour(DefaultFlushType.Transaction, FlushMode.Never, FlushMode.Auto); }
+        
+        private void TestBehaviour(DefaultFlushType flushType, FlushMode sessionScopeMode, FlushMode transactionScopeMode)
+        {
+            using (new SessionScope()) {
+                Post.DeleteAll();
+                Blog.DeleteAll();
+            }
 
-			DefaultFlushType originalDefaultFlushType = AR.ConfigurationSource.DefaultFlushType;
-			try
-			{
-				AR.ConfigurationSource.Flush(flushType);
+            DefaultFlushType originalDefaultFlushType = AR.ConfigurationSource.DefaultFlushType;
+            try
+            {
+                AR.ConfigurationSource.Flush(flushType);
 
-				Blog blog = new Blog(); // just for CurrentSession
+                Blog blog = new Blog(); // just for CurrentSession
 
-				using (new SessionScope())
-				{
-					Blog.FindAll();
-					Assert.AreEqual(sessionScopeMode, blog.CurrentSession.FlushMode);
+                using (new SessionScope())
+                {
+                    Blog.FindAll();
+                    Assert.AreEqual(sessionScopeMode, blog.GetCurrentSession().FlushMode);
 
-					using (new TransactionScope())
-					{
-						Blog.FindAll();
-						Assert.AreEqual(transactionScopeMode, blog.CurrentSession.FlushMode);
-					}
+                    using (new TransactionScope())
+                    {
+                        Blog.FindAll();
+                        Assert.AreEqual(transactionScopeMode, blog.GetCurrentSession().FlushMode);
+                    }
 
-					// Properly reset?
-					Blog.FindAll();
-					Assert.AreEqual(sessionScopeMode, blog.CurrentSession.FlushMode);
-				}
-			}
-			finally
-			{
-				// Restore Default Flush type we corrupted before.
-				AR.ConfigurationSource.Flush(originalDefaultFlushType);
-			}
-		}
-	}
+                    // Properly reset?
+                    Blog.FindAll();
+                    Assert.AreEqual(sessionScopeMode, blog.GetCurrentSession().FlushMode);
+                }
+            }
+            finally
+            {
+                // Restore Default Flush type we corrupted before.
+                AR.ConfigurationSource.Flush(originalDefaultFlushType);
+            }
+        }
+    }
 }

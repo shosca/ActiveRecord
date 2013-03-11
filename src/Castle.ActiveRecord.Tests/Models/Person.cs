@@ -19,26 +19,25 @@ using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord.Tests.Models
 {
-	public class Person : ActiveRecordBase<Person>
-	{
+    public class Person : ActiveRecordBase<Person>
+    {
 
-		public virtual int Id { get; set; }
+        public virtual int Id { get; set; }
 
-		public virtual string Name { get; set; }
+        public virtual string Name { get; set; }
 
-		public virtual FullName FullName { get; set; }
+        public virtual FullName FullName { get; set; }
 
-		public virtual string Address { get; set; }
+        public virtual string Address { get; set; }
 
-		public virtual string City { get; set; }
+        public virtual string City { get; set; }
 
-		public virtual Blog Blog { get; set; }
+        public virtual Blog Blog { get; set; }
 
-		ISet<Company> _companies = new HashedSet<Company>();
-		public virtual ISet<Company> Companies
-		{
-			get { return _companies; }
-			set { _companies = value; }
-		}
-	}
+        readonly ISet<Company> _companies = new HashedSet<Company>();
+        public virtual ISet<Company> Companies
+        {
+            get { return _companies; }
+        }
+    }
 }

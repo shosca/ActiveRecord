@@ -17,203 +17,210 @@ using Iesi.Collections.Generic;
 
 namespace Castle.ActiveRecord.Tests
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
-	using Castle.ActiveRecord;
-	using Castle.ActiveRecord.Scopes;
-	using Castle.ActiveRecord.Tests.Models;
-	using NHibernate.Criterion;
-	using NUnit.Framework;
-
-
-	[TestFixture]
-	public class StatelessSessionScopeTestCase : AbstractActiveRecordTest
-	{
-		[Test]
-		public void SessionIsStateless()
-		{
-			using (new StatelessSessionScope())
-			{
-				Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), AR.Holder.CreateSession(typeof(Blog)));
-			}
-		}
-
-		[Test]
-		public void UnsupportedActionsShouldHaveSquatteryExceptions()
-		{
-			using (new StatelessSessionScope())
-			{
-				Assert.Throws<NotWrappedException>(() =>
-					AR.Holder.CreateSession(typeof (Blog)).Merge(null)
-				);
-			}
-		}
-
-		[Test]
-		public void ASimpleObjectCanBeCreated()
-		{
-			using (new StatelessSessionScope())
-				CreateBlog();
-
-			var blogs = Blog.FindAll();
-			Assert.AreEqual(1, blogs.Count());
-			Assert.AreEqual("Mort", blogs.First().Author);
-		}
-
-		[Test]
-		public void ASimpleObjectCanBeRead()
-		{
-			var ship = new Ship() {Name = "Andrea Doria"};
-
-			using (new SessionScope())
-				AR.Create(ship);
-
-			using (new StatelessSessionScope())
-			{
-				Assert.IsTrue(AR.Find<Ship>(ship.Id) != null);
-				Assert.AreEqual("Andrea Doria",AR.Find<Ship>(ship.Id).Name);
-			}
-		}
-
-		[Test]
-		public void GetWithLazyClassesDoesWork()
-		{
-			using (new SessionScope())
-				new Blog { Author = "Mort", Name = "Hourglass" }.Create();
-
-			using (new StatelessSessionScope())
-			{
-				Assert.AreEqual("Mort", Blog.Find(1).Author);
-				// The assert below cannot work, stateless sessions cannot serve proxies.
-				// Assert.AreEqual(0, Blog.Find(1).Posts.Count);
-			}
-		}
-
-		[Test]
-		public void UpdatingStatelessFetchedEntitiesWorks()
-		{
-			using (new SessionScope())
-				CreateLazyBlog();
-
-			using (new StatelessSessionScope())
-			{
-				var blog = Blog.Find(1);
-				Assert.AreEqual("Hourglass", blog.Name);
-				blog.Name = "HOURGLASS";
-				blog.Update();
-			}
-
-			Assert.AreEqual("HOURGLASS", Blog.Find(1).Name);
-		}
-
-		[Test]
-		public void UpdatingDetachedEntitiesWorks()
-		{
-			Blog blog;
-
-			using (new SessionScope())
-			{
-				CreateBlog();
-				blog = Blog.Find(1);
-			}
-
-			using (new StatelessSessionScope())
-			{
-				Assert.AreEqual("Hourglass", blog.Name);
-				blog.Name = "HOURGLASS";
-				blog.Update();
-			}
-
-			Assert.AreEqual("HOURGLASS", Blog.Find(blog.Id).Name);
-		}
-
-		[Test]
-		public void InversivelyAddingToADetachedEntitysCollectionsWorks()
-		{
-			Blog blog;
-
-			using (new SessionScope())
-			{
-				CreateBlog();
-				blog = Blog.Find(1);
-			}
-
-			using (new StatelessSessionScope())
-			{
-				for (int i = 0; i < 10; i++)
-				{
-					var post = new Post() { Blog = blog, Title = "Post" + i, Created = DateTime.Now };
-					post.Create();
-				}
-			}
-
-			Assert.AreEqual(10, Post.FindAll().Count());
-		}
+    using Castle.ActiveRecord;
+    using Castle.ActiveRecord.Scopes;
+    using Castle.ActiveRecord.Tests.Models;
+    using NHibernate.Criterion;
+    using NUnit.Framework;
 
 
-		[Test]
-		public void UpdatingDetachedEntitiesCollectionsDoesNotWork()
-		{
-			Blog blog;
+    [TestFixture]
+    public class StatelessSessionScopeTestCase : AbstractActiveRecordTest
+    {
+        [Test]
+        public void SessionIsStateless()
+        {
+            using (var scope = new StatelessSessionScope())
+            {
+                Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), scope.CreateSession<Blog>());
+            }
+        }
 
-			using (new SessionScope())
-			{
-				CreateBlog();
-				blog = Blog.Find(1);
-			}
+        [Test]
+        public void UnsupportedActionsShouldHaveSquatteryExceptions()
+        {
+            using (var scope = new StatelessSessionScope())
+            {
+                Assert.Throws<NotWrappedException>(() =>
+                    scope.CreateSession<Blog>().Merge(null)
+                );
+            }
+        }
 
-			using (new StatelessSessionScope())
-			{
-				blog.Posts.Clear();
+        [Test]
+        public void ASimpleObjectCanBeCreated()
+        {
+            using (new StatelessSessionScope())
+                CreateBlog();
 
-				for (int i = 0; i < 10; i++)
-				{
-					var post = new Post() { Title = "Post" + i, Created = DateTime.Now};
-					post.Create();
-					blog.Posts.Add(post);
-				}
+            using (new SessionScope()) {
+                var blogs = Blog.FindAll();
+                Assert.AreEqual(1, blogs.Count());
+                Assert.AreEqual("Mort", blogs.First().Author);
+            }
+        }
 
-				blog.Update();
-			}
+        [Test]
+        public void ASimpleObjectCanBeRead()
+        {
+            var ship = new Ship() {Name = "Andrea Doria"};
 
-			Assert.AreEqual(10, Post.FindAll().Count());
-		}
+            using (new SessionScope())
+                AR.Create(ship);
 
-		[Test]
-		public void TransactionsAreSupported()
-		{
-			using (new StatelessSessionScope())
-			using (new TransactionScope())
-			{
-				CreateBlog();
-			}
+            using (new StatelessSessionScope())
+            {
+                Assert.IsTrue(AR.Find<Ship>(ship.Id) != null);
+                Assert.AreEqual("Andrea Doria",AR.Find<Ship>(ship.Id).Name);
+            }
+        }
 
-			Assert.AreEqual("Mort", Blog.Find(1).Author);
-		}
+        [Test]
+        public void GetWithLazyClassesDoesWork()
+        {
+            using (new SessionScope())
+                new Blog { Author = "Mort", Name = "Hourglass" }.Create();
 
-		[Test]
-		public void QueryingWorksWithDetachedCriteria()
-		{
-			using (new SessionScope())
-				CreateLazyBlog();
+            using (new StatelessSessionScope())
+            {
+                Assert.AreEqual("Mort", Blog.Find(1).Author);
+                // The assert below cannot work, stateless sessions cannot serve proxies.
+                // Assert.AreEqual(0, Blog.Find(1).Posts.Count);
+            }
+        }
 
-			var crit = DetachedCriteria.For<Blog>().Add(Expression.Eq("Author", "Mort"));
-			using (new StatelessSessionScope())
-				Assert.AreEqual(1, AR.FindAll<Blog>(crit).Count());
+        [Test]
+        public void UpdatingStatelessFetchedEntitiesWorks()
+        {
+            using (new SessionScope())
+                CreateLazyBlog();
 
-		}
+            using (new StatelessSessionScope())
+            {
+                var blog = Blog.Find(1);
+                Assert.AreEqual("Hourglass", blog.Name);
+                blog.Name = "HOURGLASS";
+                blog.Update();
+            }
 
-		private void CreateBlog()
-		{
-			new Blog { Author = "Mort", Name = "Hourglass" }.Create();
-		}
+            using (new StatelessSessionScope())
+                Assert.AreEqual("HOURGLASS", Blog.Find(1).Name);
+        }
+
+        [Test]
+        public void UpdatingDetachedEntitiesWorks()
+        {
+            Blog blog;
+
+            using (new SessionScope())
+            {
+                CreateBlog();
+                blog = Blog.Find(1);
+            }
+
+            using (new StatelessSessionScope())
+            {
+                Assert.AreEqual("Hourglass", blog.Name);
+                blog.Name = "HOURGLASS";
+                blog.Update();
+            }
+
+            using (new StatelessSessionScope())
+                Assert.AreEqual("HOURGLASS", Blog.Find(blog.Id).Name);
+        }
+
+        [Test]
+        public void InversivelyAddingToADetachedEntitysCollectionsWorks()
+        {
+            Blog blog;
+
+            using (new SessionScope())
+            {
+                CreateBlog();
+                blog = Blog.Find(1);
+            }
+
+            using (new StatelessSessionScope())
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    var post = new Post() { Blog = blog, Title = "Post" + i, Created = DateTime.Now };
+                    post.Create();
+                }
+            }
+
+            using (new StatelessSessionScope())
+                Assert.AreEqual(10, Post.FindAll().Count());
+        }
 
 
-		private void CreateLazyBlog()
-		{
-			new Blog { Author = "Mort", Name = "Hourglass" }.Create();
-		}
-	}
+        [Test]
+        public void UpdatingDetachedEntitiesCollectionsDoesNotWork()
+        {
+            Blog blog;
+
+            using (new SessionScope())
+            {
+                CreateBlog();
+                blog = Blog.Find(1);
+            }
+
+            using (new StatelessSessionScope())
+            {
+                blog.Posts.Clear();
+
+                for (int i = 0; i < 10; i++)
+                {
+                    var post = new Post() { Title = "Post" + i, Created = DateTime.Now};
+                    post.Create();
+                    blog.Posts.Add(post);
+                }
+
+                blog.Update();
+            }
+
+            using (new StatelessSessionScope())
+                Assert.AreEqual(10, Post.FindAll().Count());
+        }
+
+        [Test]
+        public void TransactionsAreSupported()
+        {
+            using (new StatelessSessionScope())
+            using (new TransactionScope())
+            {
+                CreateBlog();
+            }
+
+            using (new StatelessSessionScope())
+                Assert.AreEqual("Mort", Blog.Find(1).Author);
+        }
+
+        [Test]
+        public void QueryingWorksWithDetachedCriteria()
+        {
+            using (new SessionScope())
+                CreateLazyBlog();
+
+            var crit = DetachedCriteria.For<Blog>().Add(Expression.Eq("Author", "Mort"));
+            using (new StatelessSessionScope())
+                Assert.AreEqual(1, AR.FindAll<Blog>(crit).Count());
+
+        }
+
+        private void CreateBlog()
+        {
+            new Blog { Author = "Mort", Name = "Hourglass" }.Create();
+        }
+
+
+        private void CreateLazyBlog()
+        {
+            new Blog { Author = "Mort", Name = "Hourglass" }.Create();
+        }
+    }
 }

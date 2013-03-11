@@ -14,74 +14,77 @@
 
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using Castle.ActiveRecord.Scopes;
 using Castle.ActiveRecord.Tests.Model;
 using Castle.ActiveRecord.Tests.Models;
 
 namespace Castle.ActiveRecord.Tests
 {
-	using NUnit.Framework;
+    using NUnit.Framework;
 
-	[TestFixture]
-	public class MultipleDatabasesTestCase : AbstractActiveRecordTest
-	{
-		[Test]
-		public void OperateOne()
-		{
-			var blogs = Blog.FindAll().ToArray();
+    [TestFixture]
+    public class MultipleDatabasesTestCase : AbstractActiveRecordTest
+    {
+        [Test]
+        public void OperateOne()
+        {
+            using (new SessionScope()) {
+                var blogs = Blog.FindAll().ToArray();
+                Assert.AreEqual(0, blogs.Length);
+                CreateBlog();
+            }
 
-			Assert.AreEqual(0, blogs.Length);
+            using (var scope = new SessionScope()) {
+                Assert.AreEqual(1, scope.Count<Blog>());
+            }
+        }
 
-			CreateBlog();
+        private static void CreateBlog()
+        {
+            var blog = new Blog {Author = "Henry", Name = "Senseless"};
 
-			blogs = Blog.FindAll().ToArray();
-			Assert.AreEqual(1, blogs.Length);
-		}
+            blog.Save();
+        }
 
-		private static void CreateBlog()
-		{
-			var blog = new Blog {Author = "Henry", Name = "Senseless"};
+        [Test]
+        public void OperateTheOtherOne()
+        {
+            using (new SessionScope()) {
+                var hands = Hand.FindAll().ToArray();
+                Assert.AreEqual(0, hands.Length);
+                CreateHand();
+            }
 
-			blog.Save();
-		}
+            using (var scope = new SessionScope()) {
+                Assert.AreEqual(1, scope.Count<Hand>());
+            }
+        }
 
-		[Test]
-		public void OperateTheOtherOne()
-		{
-			var hands = Hand.FindAll().ToArray();
+        private static void CreateHand()
+        {
+            var hand = new Hand {Side = "Right"};
+            hand.Save();
+        }
 
-			Assert.AreEqual(0, hands.Length);
+        [Test]
+        public void OperateBoth()
+        {
+            using (new SessionScope()) {
+                var blogs = Blog.FindAll().ToArray();
+                var hands = Hand.FindAll().ToArray();
 
-			CreateHand();
+                Assert.AreEqual(0, blogs.Length);
+                Assert.AreEqual(0, hands.Length);
 
-			hands = Hand.FindAll().ToArray();
+                CreateBlog();
+                CreateHand();
+            }
 
-			Assert.AreEqual(1, hands.Length);
-		}
-
-		private static void CreateHand()
-		{
-			var hand = new Hand {Side = "Right"};
-			hand.Save();
-		}
-
-		[Test]
-		public void OperateBoth()
-		{
-			var blogs = Blog.FindAll().ToArray();
-			var hands = Hand.FindAll().ToArray();
-
-			Assert.AreEqual(0, blogs.Length);
-			Assert.AreEqual(0, hands.Length);
-
-			CreateBlog();
-			CreateHand();
-
-			blogs = Blog.FindAll().ToArray();
-			hands = Hand.FindAll().ToArray();
-
-			Assert.AreEqual(1, blogs.Length);
-			Assert.AreEqual(1, hands.Length);
-		}
-	}
+            using (var scope = new SessionScope()) {
+                Assert.AreEqual(1, scope.Count<Blog>());
+                Assert.AreEqual(1, scope.Count<Hand>());
+            }
+        }
+    }
 }

@@ -17,326 +17,277 @@ using System;
 
 namespace Castle.ActiveRecord.Tests
 {
-	using System.Linq;
-	using Castle.ActiveRecord;
-	using Castle.ActiveRecord.Config;
-	using Castle.ActiveRecord.Scopes;
-	using Castle.ActiveRecord.Tests.Models;
-	using NHibernate;
-	using NUnit.Framework;
+    using System.Linq;
+    using Castle.ActiveRecord;
+    using Castle.ActiveRecord.Config;
+    using Castle.ActiveRecord.Scopes;
+    using Castle.ActiveRecord.Tests.Models;
+    using NHibernate;
+    using NUnit.Framework;
 
-	[TestFixture]
-	public class SessionScopeTestCase : AbstractActiveRecordTest
-	{
-		/*
-		[Test]
-		[ExpectedException(typeof(ActiveRecordException), ExpectedMessage = "A scope tried to registered itself within the framework, but the Active Record was not initialized")]
-		public void GoodErrorMessageIfTryingToUseScopeWithoutInitializingFramework()
-		{
-			//Need to do this because other tests may have already initialized the framework.
-			var scope = ThreadScopeAccessor.Instance.ScopeInfo;
-			ThreadScopeAccessor.Instance.ScopeInfo = null;
-			try
-			{
-				new SessionScope();
-			}
-			finally
-			{
-				ThreadScopeAccessor.Instance.ScopeInfo = scope;
-			}
-		}*/
+    [TestFixture]
+    public class SessionScopeTestCase : AbstractActiveRecordTest
+    {
+        [Test]
+        public void TwoSessionsOneScope()
+        {
+            using (var scope1 = new SessionScope())
+            using (var scope2 = new SessionScope()) {
+                var session1 = scope1.CreateSession<Blog>();
+                var session2 = scope2.CreateSession<Blog>();
+                Assert.IsNotNull( session1 );
+                Assert.IsNotNull( session2 );
+                Assert.IsTrue( session1 != session2 );
+            }
 
-		[Test, Ignore()]
-		public void OneDatabaseSameSession()
-		{
-			// No scope here
-			// So no optimization, thus different sessions
+            using (var scope = new SessionScope()) {
+                var session1 = scope.CreateSession<Blog>();
+                var session2 = scope.CreateSession<Blog>();
+                Assert.IsNotNull( session1 );
+                Assert.IsNotNull( session2 );
+                Assert.IsTrue( session1 == session2 );
+            }
+        }
 
-			var session1 = AR.Holder.CreateSession( typeof(Blog) );
-			var session2 = AR.Holder.CreateSession( typeof(Blog) );
+        [Test]
+        public void SessionScopeUsage()
+        {
+            using (new SessionScope()) {
+                Post.DeleteAll();
+                Blog.DeleteAll();
+            }
 
-			Assert.IsNotNull( session1 );
-			Assert.IsNotNull( session2 );
-			Assert.IsTrue( session1 != session2 );
+            using(new SessionScope())
+            {
+                var blog = new Blog {Author = "hammett", Name = "some name"};
+                blog.Save();
 
-			AR.Holder.ReleaseSession(session1);
-			AR.Holder.ReleaseSession(session2);
+                var post = new Post(blog, "title", "post contents", "Castle");
+                post.Save();
+            }
 
-			// With scope
+            using (new SessionScope()) {
+                var blogs = Blog.FindAll().ToArray();
+                Assert.AreEqual( 1, blogs.Length );
 
-			using(new SessionScope())
-			{
-				session1 = AR.Holder.CreateSession( typeof(Blog) );
-				session2 = AR.Holder.CreateSession( typeof(Post) );
-				var session3 = AR.Holder.CreateSession( typeof(Blog) );
-				var session4 = AR.Holder.CreateSession( typeof(Post) );
+                var posts = Post.FindAll().ToArray();
+                Assert.AreEqual( 1, posts.Length );
+            }
+        }
 
-				Assert.IsNotNull( session1 );
-				Assert.IsNotNull( session2 );
-				Assert.IsNotNull( session3 );
-				Assert.IsNotNull( session3 );
+        [Test]
+        public void NestedSessionScopeUsage()
+        {
+            using (new SessionScope()) {
+                Post.DeleteAll();
+                Blog.DeleteAll();
+            }
 
-				Assert.IsTrue( session2 == session1 );
-				Assert.IsTrue( session3 == session1 );
-				Assert.IsTrue( session4 == session1 );
+            using(new SessionScope())
+            {
+                var blog = new Blog();
 
-				AR.Holder.ReleaseSession(session1);
-				AR.Holder.ReleaseSession(session2);
-				AR.Holder.ReleaseSession(session3);
-				AR.Holder.ReleaseSession(session4);
+                using(new SessionScope())
+                {
+                    blog.Author = "hammett";
+                    blog.Name = "some name";
+                    blog.Save();
+                }
 
-				session1 = AR.Holder.CreateSession( typeof(Post) );
-				session2 = AR.Holder.CreateSession( typeof(Post) );
-				session3 = AR.Holder.CreateSession( typeof(Blog) );
-				session4 = AR.Holder.CreateSession( typeof(Blog) );
+                using(new SessionScope())
+                {
+                    var post = new Post(blog, "title", "post contents", "Castle");
+                    post.Save();
+                }
+            }
 
-				Assert.IsNotNull( session1 );
-				Assert.IsNotNull( session2 );
-				Assert.IsNotNull( session3 );
-				Assert.IsNotNull( session3 );
+            using (new SessionScope()) {
+                var blogs = Blog.FindAll().ToArray();
+                Assert.AreEqual( 1, blogs.Length );
 
-				Assert.IsTrue( session2 == session1 );
-				Assert.IsTrue( session3 == session1 );
-				Assert.IsTrue( session4 == session1 );
-			}
+                var posts = Post.FindAll().ToArray();
+                Assert.AreEqual( 1, posts.Length );
+            }
+        }
 
-			// Back to the old behavior
+        [Test]
+        public void NestedSessionScopeAndLazyLoad()
+        {
+            var product = new Product();
+            product.Categories.Add( new Category("x") );
+            product.Categories.Add( new Category("y") );
+            product.Categories.Add( new Category("z") ); 
 
-			session1 = AR.Holder.CreateSession( typeof(Blog) );
-			session2 = AR.Holder.CreateSession( typeof(Blog) );
+            using (new SessionScope()) {
+                product.Save();
+            }
 
-			Assert.IsNotNull( session1 );
-			Assert.IsNotNull( session2 );
-			Assert.IsTrue( session1 != session2 );
+            using(new SessionScope())
+            {
+                var product1 = Product.Find(product.Id);
+                Assert.AreEqual( 3, product1.Categories.Count );
 
-			AR.Holder.ReleaseSession(session1);
-			AR.Holder.ReleaseSession(session2);
-		}
+                foreach(var cat in product1.Categories)
+                {
+                    Assert.AreEqual(1, cat.Name.Length);
+                }
 
-		[Test]
-		public void SessionScopeUsage()
-		{
-			Post.DeleteAll();
-			Blog.DeleteAll();
+                var product2 = Product.Find(product.Id);
+                Assert.AreEqual( 3, product2.Categories.Count );
 
-			using(new SessionScope())
-			{
-				var blog = new Blog {Author = "hammett", Name = "some name"};
-				blog.Save();
+                using(new SessionScope())
+                {
+                    foreach(var cat in product2.Categories)
+                    {
+                        Assert.AreEqual(1, cat.Name.Length);
+                    }
+                }
 
-				var post = new Post(blog, "title", "post contents", "Castle");
-				post.Save();
-			}
+                using(new SessionScope())
+                {
+                    var product3 = Product.Find(product.Id);
+                    Assert.AreEqual( 3, product3.Categories.Count );
 
-			var blogs = Blog.FindAll().ToArray();
-			Assert.AreEqual( 1, blogs.Length );
+                    foreach(var cat in product3.Categories)
+                    {
+                        Assert.AreEqual(1, cat.Name.Length);
+                    }
+                }
+            }
+        }
 
-			var posts = Post.FindAll().ToArray();
-			Assert.AreEqual( 1, posts.Length );
-		}
+        [Test]
+        public void AnExceptionInvalidatesTheScopeAndPreventItsFlushing()
+        {
+            using (new SessionScope()) {
+                Post.DeleteAll();
+                Blog.DeleteAll();
+            }
 
-		[Test]
-		public void NestedSessionScopeUsage()
-		{
-			Post.DeleteAll();
-			Blog.DeleteAll();
+            Post post;
 
-			using(new SessionScope())
-			{
-				Blog blog = new Blog();
+            // Prepare
+            using(new SessionScope())
+            {
+                var blog = new Blog {Author = "hammett", Name = "some name"};
+                blog.Save();
 
-				using(new SessionScope())
-				{
-					blog.Author = "hammett";
-					blog.Name = "some name";
-					blog.Save();
-				}
+                post = new Post(blog, "title", "contents", "castle");
+                post.Save();
+            }
 
-				using(new SessionScope())
-				{
-					Post post = new Post(blog, "title", "post contents", "Castle");
-					post.Save();
-				}
-			}
+            using(var session = new SessionScope())
+            {
+                Assert.IsFalse(session.HasSessionError);
 
-			Blog[] blogs = Blog.FindAll().ToArray();
-			Assert.AreEqual( 1, blogs.Length );
+                Assert.Throws<ActiveRecordException>(() => {
+                    post = new Post(new Blog(100), "title", "contents", "castle");
+                    post.Save();
+                    session.Flush();
+                });
 
-			Post[] posts = Post.FindAll().ToArray();
-			Assert.AreEqual( 1, posts.Length );
-		}
+                Assert.IsTrue(session.HasSessionError);
+            }
+        }
 
-		[Test]
-		public void NestedSessionScopeAndLazyLoad()
-		{
-			var product = new Product();
-			product.Categories.Add( new Category("x") );
-			product.Categories.Add( new Category("y") );
-			product.Categories.Add( new Category("z") ); 
+        [Test]
+        public void SessionScopeFlushModeNever()
+        {
+            using (new SessionScope()) {
+                Post.DeleteAll();
+                Blog.DeleteAll();
+            }
 
-			using (new SessionScope()) {
-				product.Save();
-			}
+            using(new SessionScope(FlushAction.Never))
+            {
+                var blog = new Blog {Author = "hammett", Name = "some name"};
 
-			using(new SessionScope())
-			{
-				var product1 = Product.Find(product.Id);
-				Assert.AreEqual( 3, product1.Categories.Count );
+                //This gets flushed automatically because of the identity field
+                blog.Save();
 
-				foreach(var cat in product1.Categories)
-				{
-					Assert.AreEqual(1, cat.Name.Length);
-				}
+                var blogs = Blog.FindAll().ToArray();
+                Assert.AreEqual(1, blogs.Length);
 
-				var product2 = Product.Find(product.Id);
-				Assert.AreEqual( 3, product2.Categories.Count );
+                //This change won't be saved to the db
+                blog.Author = "A New Author";
+                blog.Save(false);
 
-				using(new SessionScope())
-				{
-					foreach(var cat in product2.Categories)
-					{
-						Assert.AreEqual(1, cat.Name.Length);
-					}
-				}
+                //The change should not be in the db
+                blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
+                Assert.AreEqual(0, blogs.Length);
+                                
+                SessionScope.Current().Flush();
 
-				using(new SessionScope())
-				{
-					var product3 = Product.Find(product.Id);
-					Assert.AreEqual( 3, product3.Categories.Count );
+                //The change should now be in the db
+                blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
+                Assert.AreEqual(1, blogs.Length);
 
-					foreach(var cat in product3.Categories)
-					{
-						Assert.AreEqual(1, cat.Name.Length);
-					}
-				}
-			}
-		}
+                //This change will be save to the db
+                blog.Name = "A New Name";
+                blog.Save();
 
-		[Test]
-		public void AnExceptionInvalidatesTheScopeAndPreventItsFlushing()
-		{
-			Post.DeleteAll();
-			Blog.DeleteAll();
+                //The change should now be in the db
+                blogs = Blog.FindAllByProperty("Name", "A New Name").ToArray();
+                Assert.AreEqual(1, blogs.Length);
 
-			Post post;
+                //This deletion should not get to the db
+                blog.Delete(false);
 
-			// Prepare
-			using(new SessionScope())
-			{
-				var blog = new Blog {Author = "hammett", Name = "some name"};
-				blog.Save();
+                blogs = Blog.FindAll().ToArray();
+                Assert.AreEqual(1, blogs.Length);
+                
+                SessionScope.Current().Flush();
 
-				post = new Post(blog, "title", "contents", "castle");
-				post.Save();
-			}
+                //The deletion should now be in the db
+                blogs = Blog.FindAll().ToArray();
+                Assert.AreEqual(0, blogs.Length);
+            }
+        }
 
-			using(var session = new SessionScope())
-			{
-				Assert.IsFalse(session.HasSessionError);
+        [Test]
+        public void DifferentSessionScopesUseDifferentCaches()
+        {
+            using (new SessionScope()) {
+                Post.DeleteAll();
+                Blog.DeleteAll();
+            }
 
-				Assert.Throws<ActiveRecordException>(() => {
-					post = new Post(new Blog(100), "title", "contents", "castle");
-					post.Save();
-					session.Flush();
-				});
+            var blogId = 0;
 
-				Assert.IsTrue(session.HasSessionError);
-			}
-		}
+            using (new SessionScope())
+            {
+                var blog = new Blog {Author = "MZY", Name = "FooBar"};
+                blog.Save(); // Flushes due to IDENTITY
+                blogId = blog.Id;
+            }
 
-		[Test]
-		public void SessionScopeFlushModeNever()
-		{
-			Post.DeleteAll();
-			Blog.DeleteAll();
+            using (new SessionScope())
+            {
+                var blog = Blog.Find(blogId);
+                blog.Name = "FooBarBaz";
 
-			using(new SessionScope(FlushAction.Never))
-			{
-				var blog = new Blog {Author = "hammett", Name = "some name"};
+                //Assert.AreEqual(FlushMode.Auto, blog.CurrentSession.FlushMode);
+                //Assert.IsTrue(blog.CurrentSession.Transaction.IsActive);
+                Assert.AreEqual(DefaultFlushType.Classic, AR.ConfigurationSource.DefaultFlushType);
 
-				//This gets flushed automatically because of the identity field
-				blog.Save();
+                // Flushes automatically
+                Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBarBaz").Count());
+            }
 
-				var blogs = Blog.FindAll().ToArray();
-				Assert.AreEqual(1, blogs.Length);
+            using (new SessionScope())
+            {
+                var blog = Blog.Find(blogId);
+                blog.Name = "FooBar";
 
-				//This change won't be saved to the db
-				blog.Author = "A New Author";
-				blog.Save();
-
-				//The change should not be in the db
-				blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
-				Assert.AreEqual(0, blogs.Length);
-								
-				SessionScope.Current.Flush();
-
-				//The change should now be in the db
-				blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
-				Assert.AreEqual(1, blogs.Length);
-
-				//This change will be save to the db because it uses the SaveNow method
-				blog.Name = "A New Name";
-				blog.SaveAndFlush();
-
-				//The change should now be in the db
-				blogs = Blog.FindAllByProperty("Name", "A New Name").ToArray();
-				Assert.AreEqual(1, blogs.Length);
-
-				//This deletion should not get to the db
-				blog.Delete();
-
-				blogs = Blog.FindAll().ToArray();
-				Assert.AreEqual(1, blogs.Length);
-				
-				SessionScope.Current.Flush();
-
-				//The deletion should now be in the db
-				blogs = Blog.FindAll().ToArray();
-				Assert.AreEqual(0, blogs.Length);
-			}
-		}
-
-		[Test]
-		public void DifferentSessionScopesUseDifferentCaches()
-		{
-			Post.DeleteAll();
-			Blog.DeleteAll();
-
-			var blogId = 0;
-
-			using (new SessionScope())
-			{
-				var blog = new Blog {Author = "MZY", Name = "FooBar"};
-				blog.Save(); // Flushes due to IDENTITY
-				blogId = blog.Id;
-			}
-
-			using (new SessionScope())
-			{
-				var blog = Blog.Find(blogId);
-				blog.Name = "FooBarBaz";
-
-				//Assert.AreEqual(FlushMode.Auto, blog.CurrentSession.FlushMode);
-				//Assert.IsTrue(blog.CurrentSession.Transaction.IsActive);
-				Assert.AreEqual(DefaultFlushType.Classic, AR.ConfigurationSource.DefaultFlushType);
-
-				// Flushes automatically
-				Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBarBaz").Count());
-			}
-
-			using (new SessionScope())
-			{
-				var blog = Blog.Find(blogId);
-				blog.Name = "FooBar";
-
-				using (new SessionScope())
-				{
-					// Not flushed here
-					Assert.AreEqual(0, Blog.FindAllByProperty("Name", "FooBar").Count());
-				}
-			}
-			// Here it is flushed
-			Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBar").Count());
-		}
-	}
+                using (new SessionScope())
+                {
+                    // Not flushed here
+                    Assert.AreEqual(0, Blog.FindAllByProperty("Name", "FooBar").Count());
+                }
+            }
+            // Here it is flushed
+            using (new SessionScope())
+                Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBar").Count());
+        }
+    }
 }

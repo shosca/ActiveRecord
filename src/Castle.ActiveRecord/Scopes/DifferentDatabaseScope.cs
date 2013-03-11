@@ -23,7 +23,7 @@ namespace Castle.ActiveRecord.Scopes
 	/// Still very experimental and it's not bullet proof
 	/// for all situations
 	/// </summary>
-	public class DifferentDatabaseScope : AbstractScope
+	public class DifferentDatabaseScope : SessionScope
 	{
 		private readonly IDbConnection connection;
 		private readonly SessionScope parentSimpleScope;
@@ -67,15 +67,6 @@ namespace Castle.ActiveRecord.Scopes
 					// Not supported?
 				}
 			}
-		}
-
-		/// <summary>
-		/// We want to be in charge of creating the session
-		/// </summary>
-		/// <value></value>
-		public override bool WantsToCreateTheSession
-		{
-			get { return true; }
 		}
 
 		/// <summary>
@@ -181,26 +172,19 @@ namespace Castle.ActiveRecord.Scopes
 		/// <param name="sessionFactory">From where to open the session</param>
 		/// <param name="interceptor">the NHibernate interceptor</param>
 		/// <returns>the newly created session</returns>
-		public override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
+		protected override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
 		{
 			return sessionFactory.OpenSession(connection, interceptor);
 		}
 
 		/// <summary>
-		/// This is called when a session has a failure
+		/// This is called when a scope has a failure
 		/// </summary>
-		/// <param name="session">the session</param>
-		public override void FailSession(ISession session)
+		public override void FailScope()
 		{
-			base.FailSession(session);
-			if (parentTransactionScope != null)
-			{
-				parentTransactionScope.VoteRollBack();
-			}
-			else
-			{
-				session.Clear();
-			}
+			base.FailScope();
+            parentTransactionScope.FailScope();
+            parentSimpleScope.FailScope();
 		}
 
 		private void OnTransactionCompleted(object sender, EventArgs e)
@@ -212,24 +196,24 @@ namespace Castle.ActiveRecord.Scopes
 
 	class KeyHolder
 	{
-		private readonly object inner;
+		private readonly object key;
 		private readonly String connectionString;
 		private readonly int connectionHashCode;
 
-		public KeyHolder(object inner, String connectionString, int connectionHashCode)
+		public KeyHolder(object key, String connectionString, int connectionHashCode)
 		{
-			this.inner = inner;
+			this.key = key;
 			this.connectionHashCode = connectionHashCode;
 			this.connectionString = connectionString;
 		}
 
 		public override bool Equals(object obj)
 		{
-			KeyHolder other = obj as KeyHolder;
+			var other = obj as KeyHolder;
 
 			if (other != null)
 			{
-				return ReferenceEquals(inner, other.inner) && 
+				return ReferenceEquals(key, other.key) && 
 				       connectionString == other.connectionString &&
 					   connectionHashCode == other.connectionHashCode;
 			}
@@ -239,7 +223,7 @@ namespace Castle.ActiveRecord.Scopes
 
 		public override int GetHashCode()
 		{
-			return inner.GetHashCode() ^ connectionString.GetHashCode() ^ connectionHashCode;
+			return key.GetHashCode() ^ connectionString.GetHashCode() ^ connectionHashCode;
 		}
 	}
 }
