@@ -198,7 +198,7 @@ namespace Castle.ActiveRecord.Tests
                 Blog.DeleteAll();
             }
 
-            using(new SessionScope(FlushAction.Never))
+            using(var scope = new SessionScope(FlushAction.Never))
             {
                 var blog = new Blog {Author = "hammett", Name = "some name"};
 
@@ -216,7 +216,7 @@ namespace Castle.ActiveRecord.Tests
                 blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
                 Assert.AreEqual(0, blogs.Length);
                                 
-                SessionScope.Current().Flush();
+                scope.Flush();
 
                 //The change should now be in the db
                 blogs = Blog.FindAllByProperty("Author", "A New Author").ToArray();
@@ -235,8 +235,8 @@ namespace Castle.ActiveRecord.Tests
 
                 blogs = Blog.FindAll().ToArray();
                 Assert.AreEqual(1, blogs.Length);
-                
-                SessionScope.Current().Flush();
+
+                scope.Flush();
 
                 //The deletion should now be in the db
                 blogs = Blog.FindAll().ToArray();
@@ -268,7 +268,7 @@ namespace Castle.ActiveRecord.Tests
 
                 //Assert.AreEqual(FlushMode.Auto, blog.CurrentSession.FlushMode);
                 //Assert.IsTrue(blog.CurrentSession.Transaction.IsActive);
-                Assert.AreEqual(DefaultFlushType.Classic, AR.ConfigurationSource.DefaultFlushType);
+                Assert.AreEqual(DefaultFlushType.Classic, AR.Holder.ConfigurationSource.DefaultFlushType);
 
                 // Flushes automatically
                 Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBarBaz").Count());

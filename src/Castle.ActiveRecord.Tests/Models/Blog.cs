@@ -104,7 +104,7 @@ namespace Castle.ActiveRecord.Tests.Models
         }
 
         public virtual ISession GetCurrentSession() {
-            return SessionScope.Current().CreateSession<Blog>();
+            return AR.CurrentScope().CreateSession<Blog>();
         }
     }
 }

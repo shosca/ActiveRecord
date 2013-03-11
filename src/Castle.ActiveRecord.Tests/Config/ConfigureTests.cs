@@ -42,6 +42,7 @@ namespace Castle.ActiveRecord.Tests.Config
 
 	public class SampleSessionFactoryHolder : SessionFactoryHolder
 	{
+	    public SampleSessionFactoryHolder(IActiveRecordConfiguration source) : base(source) {}
 	}
 
 	public abstract class AuditType

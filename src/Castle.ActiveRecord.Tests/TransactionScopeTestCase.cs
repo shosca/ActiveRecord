@@ -74,7 +74,7 @@ namespace Castle.ActiveRecord.Tests
         [Test]
         public void RollbackOnDispose()
         {
-            using(new TransactionScope(OnDispose.Rollback))
+            using(new TransactionScope(ondispose: OnDispose.Rollback))
             {
                 var blog = new Blog {Author = "hammett", Name = "some name"};
                 blog.Save();
@@ -554,7 +554,7 @@ namespace Castle.ActiveRecord.Tests
             {
                 var blog = new Blog();
 
-                using(var t1 = new TransactionScope(TransactionMode.Inherits, OnDispose.Rollback))
+                using(var t1 = new TransactionScope(mode: TransactionMode.Inherits, ondispose: OnDispose.Rollback))
                 {
                     blog.Author = "hammett";
                     blog.Name = "some name";
@@ -563,7 +563,7 @@ namespace Castle.ActiveRecord.Tests
                     t1.VoteCommit();
                 }
 
-                using(var t2 = new TransactionScope(TransactionMode.Inherits, OnDispose.Rollback))
+                using(var t2 = new TransactionScope(TransactionMode.Inherits, ondispose: OnDispose.Rollback))
                 {
                     var post = new Post(blog, "title", "post contents", "Castle");
 
@@ -615,21 +615,21 @@ namespace Castle.ActiveRecord.Tests
 
             using(new SessionScope(FlushAction.Never))
             {
-                using(var tx = new TransactionScope(OnDispose.Rollback))
+                using(var tx = new TransactionScope(ondispose: OnDispose.Rollback))
                 {
                     var comp2a = Company.Find(comp2.Id);
                     comp2a.Name = "changed";
                     tx.VoteCommit();
                 }
 
-                using(new TransactionScope(OnDispose.Rollback))
+                using(var scope = new TransactionScope(ondispose: OnDispose.Rollback))
                 {
                     var changedCompanies = AR.FindAllByProperty<Company>("Name", "changed");
                     Assert.AreEqual(1, changedCompanies.Count());
                     var e2a = changedCompanies.First();
                     e2a.Delete();
 
-                    SessionScope.Current().Flush();
+                    scope.Flush();
 
                     Assert.AreEqual(0, AR.FindAllByProperty<Company>("Name", "changed").Count());
                 }

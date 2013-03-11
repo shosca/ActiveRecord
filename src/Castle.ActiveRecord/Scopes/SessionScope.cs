@@ -38,23 +38,7 @@ namespace Castle.ActiveRecord.Scopes
 
         private readonly FlushAction flushAction;
 
-        private ISessionFactoryHolder holder;
-
-        /// <summary>
-        /// Gets the current scope
-        /// </summary>
-        /// <value>The current.</value>
-        public static ISessionScope Current() {
-            if (AR.Holder.ThreadScopeInfo.HasInitializedScope)
-                return AR.Holder.ThreadScopeInfo.GetRegisteredScope();
-
-            throw new ActiveRecordException("No scope found for current operation");
-        }
-
-        public static void DisposeCurrent() {
-            if (AR.Holder.ThreadScopeInfo.HasInitializedScope)
-                AR.Holder.ThreadScopeInfo.GetRegisteredScope().Dispose();
-        }
+        protected ISessionFactoryHolder holder;
 
         /// <summary>
         /// Map between a key to its session
@@ -64,20 +48,9 @@ namespace Castle.ActiveRecord.Scopes
         /// <summary>
         /// Initializes a new instance of the <see cref="SessionScope"/> class.
         /// </summary>
-        public SessionScope() : this(FlushAction.Config) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SessionScope"/> class.
-        /// </summary>
-        /// <param name="flushAction">The flush action.</param>
-        public SessionScope(FlushAction flushAction) : this(flushAction, SessionScopeType.Simple) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SessionScope"/> class.
-        /// </summary>
         /// <param name="flushAction">The flush action.</param>
         /// <param name="type">The type.</param>
-        public SessionScope(FlushAction flushAction, SessionScopeType type, ISessionFactoryHolder holder = null)
+        public SessionScope(FlushAction flushAction = FlushAction.Config, SessionScopeType type = SessionScopeType.Simple, ISessionFactoryHolder holder = null)
         {
             this.flushAction = flushAction;
             this.type = type;
@@ -1201,7 +1174,7 @@ namespace Castle.ActiveRecord.Scopes
             }
             else if (FlushAction == FlushAction.Config)
             {
-                DefaultFlushType behaviour = AR.ConfigurationSource.DefaultFlushType;
+                DefaultFlushType behaviour = holder.ConfigurationSource.DefaultFlushType;
                 session.FlushMode = (behaviour == DefaultFlushType.Classic || behaviour == DefaultFlushType.Auto) ?
                     FlushMode.Auto :
                     (behaviour == DefaultFlushType.Leave) ?

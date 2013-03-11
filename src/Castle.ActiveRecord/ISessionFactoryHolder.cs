@@ -32,6 +32,13 @@ namespace Castle.ActiveRecord
 		/// <returns></returns>
 		Configuration[] GetAllConfigurations();
 
+        IActiveRecordConfiguration ConfigurationSource { get; }
+
+		/// <summary>
+		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
+		/// </summary>
+		IThreadScopeInfo ThreadScopeInfo { get; }
+
 		/// <summary>
 		/// Requests the registered types
 		/// </summary>
@@ -97,19 +104,5 @@ namespace Castle.ActiveRecord
 		/// <param name="session"></param>
 		void FailSession(ISession session);
 */
-		/// <summary>
-		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
-		/// </summary>
-		IThreadScopeInfo ThreadScopeInfo { get; set; }
-
-		///<summary>
-		/// This method allows direct registration of Configuration
-		///</summary>
-		void RegisterConfiguration(Configuration cfg, string name);
-
-		///<summary>
-		/// This method allows registration of SessionFactoryConfig 
-		///</summary>
-		void RegisterConfiguration(SessionFactoryConfig config);
 	}
 }

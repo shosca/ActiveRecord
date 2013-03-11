@@ -47,7 +47,7 @@ namespace Castle.ActiveRecord.Tests {
 
         [TearDown]
         public override void TearDown() {
-            SessionScope.DisposeCurrent();
+            AR.DisposeCurrentScope();
             base.TearDown();
         }
 

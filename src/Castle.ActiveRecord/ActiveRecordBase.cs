@@ -41,7 +41,7 @@ namespace Castle.ActiveRecord
         /// <param name="id">Identifier value</param>
         public static T Find(object id)
         {
-            return SessionScope.Current().Find<T>(id);
+            return AR.CurrentScope().Find<T>(id);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Castle.ActiveRecord
         /// <param name="id">Identifier value</param>
         public static T Peek(object id)
         {
-            return SessionScope.Current().Peek<T>(id);
+            return AR.CurrentScope().Peek<T>(id);
         }
 
         #endregion
@@ -65,7 +65,7 @@ namespace Castle.ActiveRecord
         /// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
         public static bool Exists(IDetachedQuery detachedQuery)
         {
-            return SessionScope.Current().Exists<T>(detachedQuery);
+            return AR.CurrentScope().Exists<T>(detachedQuery);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Castle.ActiveRecord
         /// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
         public static bool Exists(params ICriterion[] criterias)
         {
-            return SessionScope.Current().Exists<T>(criterias);
+            return AR.CurrentScope().Exists<T>(criterias);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Castle.ActiveRecord
         /// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
         public static bool Exists(Expression<Func<T, bool>> expression)
         {
-            return SessionScope.Current().Exists<T>(expression);
+            return AR.CurrentScope().Exists<T>(expression);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Castle.ActiveRecord
         /// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
         public static bool Exists(QueryOver<T, T> queryover)
         {
-            return SessionScope.Current().Exists<T>(queryover);
+            return AR.CurrentScope().Exists<T>(queryover);
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Castle.ActiveRecord
         /// <returns><c>true</c> if an instance is found; otherwise <c>false</c>.</returns>
         public static bool Exists(DetachedCriteria detachedCriteria)
         {
-            return SessionScope.Current().Exists<T>(detachedCriteria);
+            return AR.CurrentScope().Exists<T>(detachedCriteria);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Castle.ActiveRecord
         /// <returns>The count result</returns>
         public static int Count(params ICriterion[] criteria)
         {
-            return SessionScope.Current().Count<T>(criteria);
+            return AR.CurrentScope().Count<T>(criteria);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Castle.ActiveRecord
         /// <returns>The count result</returns>
         public static int Count(Expression<Func<T, bool>> expression)
         {
-            return SessionScope.Current().Count<T>(expression);
+            return AR.CurrentScope().Count<T>(expression);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Castle.ActiveRecord
         /// <returns>The count result</returns>
         public static int Count(QueryOver<T, T> queryover)
         {
-            return SessionScope.Current().Count<T>(queryover);
+            return AR.CurrentScope().Count<T>(queryover);
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace Castle.ActiveRecord
         /// <returns>The count result</returns>
         public static int Count(DetachedCriteria detachedCriteria)
         {
-            return SessionScope.Current().Count<T>(detachedCriteria);
+            return AR.CurrentScope().Count<T>(detachedCriteria);
         }
 
         #endregion
@@ -163,7 +163,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public static T FindFirst(Order order, params ICriterion[] criteria)
         {
-            return SessionScope.Current().FindFirst<T>(order, criteria);
+            return AR.CurrentScope().FindFirst<T>(order, criteria);
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public static T FindFirst(Order[] orders, params ICriterion[] criteria)
         {
-            return SessionScope.Current().FindFirst<T>(orders, criteria);
+            return AR.CurrentScope().FindFirst<T>(orders, criteria);
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public static T FindFirst(params ICriterion[] criteria)
         {
-            return SessionScope.Current().FindFirst<T>(criteria);
+            return AR.CurrentScope().FindFirst<T>(criteria);
         }
 
 
@@ -196,7 +196,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c>.</returns>
         public static T FindFirst(DetachedCriteria criteria, params Order[] orders)
         {
-            return SessionScope.Current().FindFirst<T>(criteria, orders);
+            return AR.CurrentScope().FindFirst<T>(criteria, orders);
         }
         /// <summary>
         /// Searches and returns the first row. 
@@ -205,7 +205,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null.</c></returns>
         public static T FindFirst(IDetachedQuery detachedQuery) 
         {
-            return SessionScope.Current().FindFirst<T>(detachedQuery);
+            return AR.CurrentScope().FindFirst<T>(detachedQuery);
         }
 
         #endregion
@@ -220,7 +220,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public static T FindOne(params ICriterion[] criteria)
         {
-            return SessionScope.Current().FindOne<T>(criteria);
+            return AR.CurrentScope().FindOne<T>(criteria);
         }
         /// <summary>
         /// Searches and returns a row. If more than one is found, 
@@ -230,7 +230,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public static T FindOne(QueryOver<T,T> queryover)
         {
-            return SessionScope.Current().FindOne<T>(queryover);
+            return AR.CurrentScope().FindOne<T>(queryover);
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public static T FindOne(DetachedCriteria criteria)
         {
-            return SessionScope.Current().FindOne<T>(criteria);
+            return AR.CurrentScope().FindOne<T>(criteria);
         }
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace Castle.ActiveRecord
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public static T FindOne(IDetachedQuery detachedQuery) 
         {
-            return SessionScope.Current().FindOne<T>(detachedQuery);
+            return AR.CurrentScope().FindOne<T>(detachedQuery);
         }
 
         #endregion
@@ -267,7 +267,7 @@ namespace Castle.ActiveRecord
         /// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
         public static IEnumerable<T> FindAllByProperty(string property, object value)
         {
-            return SessionScope.Current().FindAllByProperty<T>(property, value);
+            return AR.CurrentScope().FindAllByProperty<T>(property, value);
         }
 
         /// <summary>
@@ -279,7 +279,7 @@ namespace Castle.ActiveRecord
         /// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
         public static IEnumerable<T> FindAllByProperty(string orderByColumn, string property, object value)
         {
-            return SessionScope.Current().FindAllByProperty<T>(orderByColumn, property, value);
+            return AR.CurrentScope().FindAllByProperty<T>(orderByColumn, property, value);
         }
 
         #endregion
@@ -295,7 +295,7 @@ namespace Castle.ActiveRecord
         /// <returns>The <see cref="Array"/> of results.</returns>
         public static IEnumerable<T> FindAll(Order order, params ICriterion[] criteria)
         {
-            return SessionScope.Current().FindAll<T>(order, criteria);
+            return AR.CurrentScope().FindAll<T>(order, criteria);
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace Castle.ActiveRecord
         /// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
         public static IEnumerable<T> FindAll(Order[] orders, params ICriterion[] criteria)
         {
-            return SessionScope.Current().FindAll<T>(orders, criteria);
+            return AR.CurrentScope().FindAll<T>(orders, criteria);
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace Castle.ActiveRecord
         /// <returns>An <see cref="Array"/> of <typeparamref name="T"/></returns>
         public static IEnumerable<T> FindAll(params ICriterion[] criteria)
         {
-            return SessionScope.Current().FindAll<T>(criteria);
+            return AR.CurrentScope().FindAll<T>(criteria);
         }
 
         /// <summary>
@@ -328,7 +328,7 @@ namespace Castle.ActiveRecord
         /// <returns>All entities that match the criteria</returns>
         public static IEnumerable<T> FindAll(QueryOver<T, T> queryover)
         {
-            return SessionScope.Current().FindAll<T>(queryover);
+            return AR.CurrentScope().FindAll<T>(queryover);
         }
 
         /// <summary>
@@ -339,7 +339,7 @@ namespace Castle.ActiveRecord
         /// <returns>All entities that match the criteria</returns>
         public static IEnumerable<T> FindAll(DetachedCriteria criteria, params Order[] orders)
         {
-            return SessionScope.Current().FindAll<T>(criteria, orders);
+            return AR.CurrentScope().FindAll<T>(criteria, orders);
         }
 
         /// <summary>
@@ -349,7 +349,7 @@ namespace Castle.ActiveRecord
         /// <returns>All entities that match the query</returns>
         public static IEnumerable<T> FindAll(IDetachedQuery detachedQuery)
         {
-            return SessionScope.Current().FindAll<T>(detachedQuery);
+            return AR.CurrentScope().FindAll<T>(detachedQuery);
         }
 
         #endregion
@@ -366,7 +366,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order order, params ICriterion[] criteria)
         {
-            return SessionScope.Current().SlicedFindAll<T>(firstResult, maxResults, order, criteria);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, order, criteria);
         }
 
         /// <summary>
@@ -379,7 +379,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria)
         {
-            return SessionScope.Current().SlicedFindAll<T>(firstResult, maxResults, orders, criteria);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, orders, criteria);
         }
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, params ICriterion[] criteria)
         {
-            return SessionScope.Current().SlicedFindAll<T>(firstResult, maxResults, criteria);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, criteria);
         }
 
         /// <summary>
@@ -404,7 +404,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders)
         {
-            return SessionScope.Current().SlicedFindAll<T>(firstResult, maxResults, criteria, orders);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, criteria, orders);
         }
 
         /// <summary>
@@ -416,7 +416,7 @@ namespace Castle.ActiveRecord
         /// <param name="detachedQuery">The query expression</param>
         public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, IDetachedQuery detachedQuery)
         {
-            return SessionScope.Current().SlicedFindAll<T>(firstResult, maxResults, detachedQuery);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, detachedQuery);
         }
 
         /// <summary>
@@ -428,7 +428,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll(int firstResult, int maxResults, QueryOver<T, T> queryover)
         {
-            return SessionScope.Current().SlicedFindAll<T>(firstResult, maxResults, queryover);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, queryover);
         }
 
         #endregion
@@ -441,7 +441,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public static void DeleteAll(DetachedCriteria criteria)
         {
-            SessionScope.Current().DeleteAll<T>(criteria);
+            AR.CurrentScope().DeleteAll<T>(criteria);
         }
 
         /// <summary>
@@ -450,7 +450,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public static void DeleteAll(params ICriterion[] criteria)
         {
-            SessionScope.Current().DeleteAll<T>(criteria);
+            AR.CurrentScope().DeleteAll<T>(criteria);
         }
 
         /// <summary>
@@ -459,7 +459,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public static void DeleteAll(Expression<Func<T, bool>> expression)
         {
-            SessionScope.Current().DeleteAll<T>(expression);
+            AR.CurrentScope().DeleteAll<T>(expression);
         }
 
         /// <summary>
@@ -468,7 +468,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public static void DeleteAll(QueryOver<T, T> queryover)
         {
-            SessionScope.Current().DeleteAll<T>(queryover);
+            AR.CurrentScope().DeleteAll<T>(queryover);
         }
 
         /// <summary>
@@ -478,7 +478,7 @@ namespace Castle.ActiveRecord
         /// <param name="where">HQL condition to select the rows to be deleted</param>
         public static void DeleteAll(string where)
         {
-            SessionScope.Current().DeleteAll<T>(where);
+            AR.CurrentScope().DeleteAll<T>(where);
         }
 
         /// <summary>
@@ -488,7 +488,7 @@ namespace Castle.ActiveRecord
         /// <returns>The number of objects deleted</returns>
         public static void DeleteAll(IEnumerable<object> pkValues)
         {
-            SessionScope.Current().DeleteAll<T>(pkValues);
+            AR.CurrentScope().DeleteAll<T>(pkValues);
         }
 
         #endregion
@@ -504,7 +504,7 @@ namespace Castle.ActiveRecord
         /// </para>
         /// </summary>
         public virtual void Save(bool flush = true) {
-            SessionScope.Current().Save(this as T, flush);
+            AR.CurrentScope().Save(this as T, flush);
         }
 
         /// <summary>
@@ -518,14 +518,14 @@ namespace Castle.ActiveRecord
         /// <returns>The saved ActiveRecord instance</returns>
         public virtual T SaveCopy(bool flush = true)
         {
-            return SessionScope.Current().SaveCopy(this as T, flush);
+            return AR.CurrentScope().SaveCopy(this as T, flush);
         }
 
         /// <summary>
         /// Creates (Saves) a new instance to the database.
         /// </summary>
         public virtual object Create(bool flush = true) {
-            return SessionScope.Current().Create(this as T, flush);
+            return AR.CurrentScope().Create(this as T, flush);
         }
 
         /// <summary>
@@ -533,21 +533,21 @@ namespace Castle.ActiveRecord
         /// state to the database.
         /// </summary>
         public virtual void Update(bool flush = true) {
-            SessionScope.Current().Update(this as T, flush);
+            AR.CurrentScope().Update(this as T, flush);
         }
 
         /// <summary>
         /// Deletes the instance from the database.
         /// </summary>
         public virtual void Delete(bool flush = true) {
-            SessionScope.Current().Delete(this as T, flush);
+            AR.CurrentScope().Delete(this as T, flush);
         }
 
         /// <summary>
         /// Refresh the instance from the database.
         /// </summary>
         public virtual void Refresh() {
-            SessionScope.Current().Refresh(this as T);
+            AR.CurrentScope().Refresh(this as T);
         }
 
         /// <summary>
@@ -555,7 +555,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public virtual void Merge()
         {
-            SessionScope.Current().Merge(this as T);
+            AR.CurrentScope().Merge(this as T);
         }
 
         /// <summary>
@@ -563,7 +563,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public virtual void Evict()
         {
-            SessionScope.Current().Evict<T>(this as T);
+            AR.CurrentScope().Evict<T>(this as T);
         }
 
         /// <summary>
@@ -574,7 +574,7 @@ namespace Castle.ActiveRecord
         /// <param name="replicationMode">The replication mode.</param>
         public virtual void Replicate(ReplicationMode replicationMode)
         {
-            SessionScope.Current().Replicate<T>(this as T, replicationMode);
+            AR.CurrentScope().Replicate<T>(this as T, replicationMode);
         }
 
         #endregion
@@ -586,7 +586,7 @@ namespace Castle.ActiveRecord
         /// Make sure we are in a scope
         /// </summary>
         public static IQueryable<T> All {
-            get { return SessionScope.Current().All<T>(); }
+            get { return AR.CurrentScope().All<T>(); }
         }
 
         /// <summary>
@@ -595,7 +595,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
         public static IQueryOver<T> QueryOver() {
-            return SessionScope.Current().QueryOver<T>();
+            return AR.CurrentScope().QueryOver<T>();
         }
 
         /// <summary>
@@ -604,7 +604,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
         public static IQueryOver<T> QueryOver(Expression<Func<T>> alias) {
-            return SessionScope.Current().QueryOver<T>(alias);
+            return AR.CurrentScope().QueryOver<T>(alias);
         }
 
         /// <summary>
@@ -613,7 +613,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
         public static IQueryOver<T> QueryOver(string entityname) {
-            return SessionScope.Current().QueryOver<T>(entityname);
+            return AR.CurrentScope().QueryOver<T>(entityname);
         }
 
         /// <summary>
@@ -622,7 +622,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
         public static IQueryOver<T> QueryOver(string entityname, Expression<Func<T>> alias) {
-            return SessionScope.Current().QueryOver<T>(entityname, alias);
+            return AR.CurrentScope().QueryOver<T>(entityname, alias);
         }
 
         #endregion

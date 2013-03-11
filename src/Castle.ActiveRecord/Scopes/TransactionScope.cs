@@ -76,39 +76,15 @@ namespace Castle.ActiveRecord.Scopes
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
 		/// </summary>
-		public TransactionScope() : this(TransactionMode.New) { }
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
-		/// </summary>
-		/// <param name="onDisposeBehavior">The on dispose behavior.</param>
-		public TransactionScope(OnDispose onDisposeBehavior) : this(TransactionMode.New, onDisposeBehavior) { }
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
-		/// </summary>
-		/// <param name="mode">Whatever to create a new transaction or inherits an existing one</param>
-		public TransactionScope(TransactionMode mode) : this(mode, IsolationLevel.Unspecified, OnDispose.Commit) { }
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
-		/// </summary>
-		/// <param name="mode">Whatever to create a new transaction or inherits an existing one</param>
-		/// <param name="onDisposeBehavior">The on dispose behavior.</param>
-		public TransactionScope(TransactionMode mode, OnDispose onDisposeBehavior) : this(mode, IsolationLevel.Unspecified, onDisposeBehavior) { }
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
-		/// </summary>
-		/// <param name="mode">Whatever to create a new transaction or inherits an existing one</param>
-		/// <param name="isolationLevel">The transaction isolation level.</param>
-		/// <param name="onDisposeBehavior">The on dispose behavior.</param>
-		public TransactionScope(TransactionMode mode, IsolationLevel isolationLevel, OnDispose onDisposeBehavior)
-			: base(FlushAction.Config, SessionScopeType.Transactional)
+		public TransactionScope(TransactionMode mode = TransactionMode.New,
+            IsolationLevel isolation = IsolationLevel.Unspecified,
+            OnDispose ondispose = OnDispose.Commit,
+            ISessionFactoryHolder holder = null
+            ) : base(FlushAction.Config, SessionScopeType.Transactional, holder)
 		{
 			this.mode = mode;
-			this.isolationLevel = isolationLevel;
-			this.onDisposeBehavior = onDisposeBehavior;
+			this.isolationLevel = isolation;
+			this.onDisposeBehavior = ondispose;
 
 			bool preferenceForTransactionScope = mode == TransactionMode.Inherits ? true : false;
 
@@ -316,7 +292,7 @@ namespace Castle.ActiveRecord.Scopes
 		{
 			if (!transactions.ContainsKey(session))
 			{
-				DefaultFlushType mode = AR.ConfigurationSource.DefaultFlushType;
+				DefaultFlushType mode = AR.Holder.ConfigurationSource.DefaultFlushType;
 				session.FlushMode = (mode == DefaultFlushType.Auto || mode == DefaultFlushType.Transaction) ?
 					FlushMode.Auto :
 					FlushMode.Commit;

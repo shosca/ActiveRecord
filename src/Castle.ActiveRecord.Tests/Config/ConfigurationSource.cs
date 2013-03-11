@@ -174,5 +174,6 @@ namespace Castle.ActiveRecord.Tests.Config
 
 	public class MySessionFactoryHolder : SessionFactoryHolder
 	{
+	    public MySessionFactoryHolder(IActiveRecordConfiguration source) : base(source) {}
 	}
 }

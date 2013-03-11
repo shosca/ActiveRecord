@@ -40,10 +40,7 @@ namespace Castle.ActiveRecord {
     {
         #region Configuration/Registeration
 
-        private static readonly ISet<Assembly> RegisteredAssemblies = new HashSet<Assembly>();
         private static readonly Object LockConfig = new object();
-
-        public static IActiveRecordConfiguration ConfigurationSource { get; private set; }
 
         /// <summary>
         /// The global holder for the session factories.
@@ -116,25 +113,8 @@ namespace Castle.ActiveRecord {
                 if (Holder == null) {
                     // First initialization
                     Holder = CreateSessionFactoryHolderImplementation(source);
-                    Holder.ThreadScopeInfo = CreateThreadScopeInfoImplementation(source);
                     RaiseSessionFactoryHolderCreated(Holder);
                 }
-
-                ConfigurationSource = source;
-
-                foreach (var key in source.GetAllConfigurationKeys()) {
-
-                    var config = source.GetConfiguration(key);
-
-                    foreach (var asm in config.Assemblies) {
-                        if (RegisteredAssemblies.Contains(asm))
-                            throw new ActiveRecordException(string.Format("Assembly {0} has already been registered.", asm));
-
-                    }
-
-                    Holder.RegisterConfiguration(config);
-                }
-
             }
         }
 
@@ -439,7 +419,7 @@ namespace Castle.ActiveRecord {
         private static ISessionFactoryHolder CreateSessionFactoryHolderImplementation(IActiveRecordConfiguration source)
         {
             if (source.SessionFactoryHolderImplementation == null)
-                return new SessionFactoryHolder();
+                return new SessionFactoryHolder(source);
 
             var sessionFactoryHolderType = source.SessionFactoryHolderImplementation;
 
@@ -452,26 +432,16 @@ namespace Castle.ActiveRecord {
                 throw new ActiveRecordException(message);
             }
 
-            return (ISessionFactoryHolder) Activator.CreateInstance(sessionFactoryHolderType);
-        }
+            try {
+                return (ISessionFactoryHolder) Activator.CreateInstance(sessionFactoryHolderType, new object[] {source});
+            } catch (Exception e) {
+                var message =
+                    String.Format("The specified type {0} does " + "not implement a constructor that accepts an IActiveRecordCConfiguration",
+                                  sessionFactoryHolderType.FullName);
 
-        private static IThreadScopeInfo CreateThreadScopeInfoImplementation(IActiveRecordConfiguration source)
-        {
-            if (source.ThreadScopeInfoImplementation == null)
-                return new ThreadScopeInfo();
-
-            var threadScopeType = source.ThreadScopeInfoImplementation;
-
-            if (!typeof(IThreadScopeInfo).IsAssignableFrom(threadScopeType))
-            {
-                var message = String.Format("The specified type {0} does " + "not implement the interface IThreadScopeInfo", threadScopeType.FullName);
-
-                throw new ActiveRecordInitializationException(message);
+                throw new ActiveRecordException(message, e);
             }
-
-            return (IThreadScopeInfo) Activator.CreateInstance(threadScopeType);
         }
-
 
         /// <summary>
         /// Generate a file name based on the original file name specified, using the 
@@ -517,6 +487,22 @@ namespace Castle.ActiveRecord {
 
         #endregion
 
+        /// <summary>
+        /// Gets the current scope
+        /// </summary>
+        /// <value>The current.</value>
+        public static ISessionScope CurrentScope() {
+            if (AR.Holder.ThreadScopeInfo.HasInitializedScope)
+                return AR.Holder.ThreadScopeInfo.GetRegisteredScope();
+
+            throw new ActiveRecordException("No scope found for current operation");
+        }
+
+        public static void DisposeCurrentScope() {
+            if (AR.Holder.ThreadScopeInfo.HasInitializedScope)
+                AR.Holder.ThreadScopeInfo.GetRegisteredScope().Dispose();
+        }
+
         #region Find/Peek
 
         /// <summary>
@@ -528,7 +514,7 @@ namespace Castle.ActiveRecord {
         public static object Find(Type type, object id)
         {
             return id == null ? null :
-                SessionScope.Current().Execute<object>(type, session => session.Get(type, ConvertId(type, id)));
+                AR.CurrentScope().Execute<object>(type, session => session.Get(type, ConvertId(type, id)));
         }
 
         /// <summary>
@@ -539,7 +525,7 @@ namespace Castle.ActiveRecord {
         /// <param name="id">Identifier value</param>
         public static object Peek(Type type, object id)
         {
-            return SessionScope.Current().Execute<object>(type, session => session.Load(type, ConvertId(type, id)));
+            return AR.CurrentScope().Execute<object>(type, session => session.Load(type, ConvertId(type, id)));
         }
 
         #endregion

@@ -16,6 +16,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Collections;
 using System.Runtime.CompilerServices;
@@ -37,7 +38,7 @@ namespace Castle.ActiveRecord
 	/// This class is thread safe
 	/// </remarks>
 	public class SessionFactoryHolder : MarshalByRefObject, ISessionFactoryHolder {
-		internal class SfHolder {
+	    public class SfHolder {
 			public SfHolder(Configuration config, ISessionFactory sf) {
 				if(config == null || sf == null)
 					throw new InvalidOperationException();
@@ -49,45 +50,72 @@ namespace Castle.ActiveRecord
 			public ISessionFactory SessionFactory { get; private set; }
 		}
 
-		readonly ConcurrentDictionary<Type, Model> _type2Model = new ConcurrentDictionary<Type, Model>();
-		readonly IDictionary<Type, SfHolder> _type2SessFactory = new ConcurrentDictionary<Type, SfHolder>();
 
 		/// <summary>
+		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
+		/// </summary>
+		/// <value></value>
+		public virtual IThreadScopeInfo ThreadScopeInfo { get; private set; }
+        public IActiveRecordConfiguration ConfigurationSource { get; protected set; }
+
+        protected readonly ISet<Assembly> RegisteredAssemblies = new HashSet<Assembly>();
+		protected readonly ConcurrentDictionary <Type, Model> Type2Model = new ConcurrentDictionary<Type, Model>();
+		protected readonly IDictionary<Type, SfHolder> Type2SessFactory = new ConcurrentDictionary<Type, SfHolder>();
+
+	    public SessionFactoryHolder(IActiveRecordConfiguration source) {
+	        ConfigurationSource = source;
+	        ThreadScopeInfo = CreateThreadScopeInfoImplementation(source);
+
+            foreach (var key in source.GetAllConfigurationKeys()) {
+
+                var config = source.GetConfiguration(key);
+
+                foreach (var asm in config.Assemblies) {
+                    if (RegisteredAssemblies.Contains(asm))
+                        throw new ActiveRecordException(string.Format("Assembly {0} has already been registered.", asm));
+
+                }
+
+                RegisterConfiguration(config);
+            }
+	    }
+
+	    /// <summary>
 		/// Requests the Configuration associated to the type.
 		/// </summary>
-		public Configuration GetConfiguration(Type type)
+		public virtual Configuration GetConfiguration(Type type)
 		{
-			return _type2SessFactory.ContainsKey(type) ? _type2SessFactory[type].Configuration : GetConfiguration(type.BaseType);
+			return Type2SessFactory.ContainsKey(type) ? Type2SessFactory[type].Configuration : GetConfiguration(type.BaseType);
 		}
 
 		/// <summary>
 		/// Pendent
 		/// </summary>
-		public Configuration[] GetAllConfigurations()
+		public virtual Configuration[] GetAllConfigurations()
 		{
-			return _type2SessFactory.Values.Select(s => s.Configuration).Distinct().ToArray();
+			return Type2SessFactory.Values.Select(s => s.Configuration).Distinct().ToArray();
 		}
 
 		/// <summary>
 		/// Requests the registered types
 		/// </summary>
-		public Type[] GetRegisteredTypes()
+		public virtual Type[] GetRegisteredTypes()
 		{
-			return _type2SessFactory.Keys.ToArray();
+			return Type2SessFactory.Keys.ToArray();
 		}
 
-		public bool IsInitialized(Type type)
+		public virtual bool IsInitialized(Type type)
 		{
 			type = GetNonProxyType(type);
-			return _type2SessFactory.ContainsKey(type);
+			return Type2SessFactory.ContainsKey(type);
 		}
 
-		public Model GetModel(Type type)
+		public virtual Model GetModel(Type type)
 		{
 			type = GetNonProxyType(type);
 
-			return _type2SessFactory.ContainsKey(type)
-				? _type2Model.GetOrAdd(type, t => {
+			return Type2SessFactory.ContainsKey(type)
+				? Type2Model.GetOrAdd(type, t => {
 					var sf = GetSessionFactory(t);
 					var model = new Model(sf, type);
 					return model;
@@ -95,10 +123,10 @@ namespace Castle.ActiveRecord
 				: null;
 		}
 
-		public IClassMetadata GetClassMetadata(Type type) {
+		public virtual IClassMetadata GetClassMetadata(Type type) {
 			type = GetNonProxyType(type);
-			return _type2SessFactory.ContainsKey(type) 
-				? _type2SessFactory[type].SessionFactory.GetClassMetadata(type)
+			return Type2SessFactory.ContainsKey(type) 
+				? Type2SessFactory[type].SessionFactory.GetClassMetadata(type)
 				: null;
 		}
 
@@ -106,25 +134,25 @@ namespace Castle.ActiveRecord
 		/// Gets the all the session factories.
 		/// </summary>
 		/// <returns></returns>
-		public ISessionFactory[] GetSessionFactories()
+		public virtual ISessionFactory[] GetSessionFactories()
 		{
-			return _type2SessFactory.Values.Select(sf => sf.SessionFactory).Distinct().ToArray();
+			return Type2SessFactory.Values.Select(sf => sf.SessionFactory).Distinct().ToArray();
 		}
 
 		/// <summary>
 		/// Returns ISessionFactory of a registered type
 		/// </summary>
-		public ISessionFactory GetSessionFactory(Type type)
+		public virtual ISessionFactory GetSessionFactory(Type type)
 		{
 			if (type == null) throw new ArgumentNullException("type");
 
 			type = GetNonProxyType(type);
-			if (!_type2SessFactory.ContainsKey(type))
+			if (!Type2SessFactory.ContainsKey(type))
 			{
 				throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
 			}
 
-			var sessFactory = _type2SessFactory[type].SessionFactory;
+			var sessFactory = Type2SessFactory[type].SessionFactory;
 
 			if (sessFactory != null)
 			{
@@ -135,7 +163,7 @@ namespace Castle.ActiveRecord
 
 			sessFactory = cfg.BuildSessionFactory();
 
-			_type2SessFactory[type] = new SfHolder(cfg, sessFactory);
+			Type2SessFactory[type] = new SfHolder(cfg, sessFactory);
 
 			return sessFactory;
 		}
@@ -143,7 +171,7 @@ namespace Castle.ActiveRecord
 		///<summary>
 		/// This method allows direct registration of Configuration
 		///</summary>
-		public void RegisterConfiguration(Configuration cfg, string name)
+		public virtual void RegisterConfiguration(Configuration cfg, string name)
 		{
 			var sf = cfg.BuildSessionFactory();
 			var sfholder = new SfHolder(cfg, sf);
@@ -151,34 +179,45 @@ namespace Castle.ActiveRecord
 			foreach (var classMetadata in sf.GetAllClassMetadata()) {
 				var entitytype = classMetadata.Value.GetMappedClass(EntityMode.Poco);
 
-				if (_type2SessFactory.ContainsKey(entitytype))
+				if (Type2SessFactory.ContainsKey(entitytype))
 					throw new ActiveRecordException("Type has already been registered -> " + entitytype.FullName);
 				
-				_type2SessFactory.Add(entitytype, sfholder);
+				Type2SessFactory.Add(entitytype, sfholder);
 			}
 			AR.RaiseSessionFactoryCreated(sf, cfg, name);
 		}
 
-		public void RegisterConfiguration(SessionFactoryConfig config) {
+		protected void RegisterConfiguration(SessionFactoryConfig config) {
 			var cfg = config.BuildConfiguration();
 			RegisterConfiguration(cfg, config.Name);
 		}
 
-		/// <summary>
-		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
-		/// </summary>
-		/// <value></value>
-		public IThreadScopeInfo ThreadScopeInfo { get; set; }
-
-		public void Dispose() {
-			_type2SessFactory.Values.ForEach(sf => sf.SessionFactory.Dispose());
-			_type2SessFactory.Clear();
+		public virtual void Dispose() {
+			Type2SessFactory.Values.ForEach(sf => sf.SessionFactory.Dispose());
+			Type2SessFactory.Clear();
 		}
 
-		public Type GetNonProxyType(Type type) {
+		public virtual Type GetNonProxyType(Type type) {
 			return typeof(INHibernateProxy).IsAssignableFrom(type)
 				? GetNonProxyType(type.BaseType)
 				: type;
 		}
+
+        IThreadScopeInfo CreateThreadScopeInfoImplementation(IActiveRecordConfiguration source)
+        {
+            if (source.ThreadScopeInfoImplementation == null)
+                return new ThreadScopeInfo();
+
+            var threadScopeType = source.ThreadScopeInfoImplementation;
+
+            if (!typeof(IThreadScopeInfo).IsAssignableFrom(threadScopeType))
+            {
+                var message = String.Format("The specified type {0} does " + "not implement the interface IThreadScopeInfo", threadScopeType.FullName);
+
+                throw new ActiveRecordInitializationException(message);
+            }
+
+            return (IThreadScopeInfo) Activator.CreateInstance(threadScopeType);
+        }
 	}
 }

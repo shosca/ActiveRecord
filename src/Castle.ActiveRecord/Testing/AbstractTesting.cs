@@ -68,7 +68,7 @@ namespace Castle.ActiveRecord.Testing
         {
             try
             {
-                SessionScope.DisposeCurrent();
+                AR.DisposeCurrentScope();
                 AR.DropSchema();
                 AR.ResetInitialization();
             }

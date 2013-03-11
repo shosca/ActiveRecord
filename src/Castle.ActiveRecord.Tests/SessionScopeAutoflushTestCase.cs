@@ -54,10 +54,10 @@ namespace Castle.ActiveRecord.Tests
         [Test]
         public void UsingSessionScopeUsingExplicitFlush()
         {
-            using (new SessionScope())
+            using (var scope = new SessionScope())
             {
                 new SSAFEntity("example").Save();
-                SessionScope.Current().Flush();
+                scope.Flush();
                 Assert.AreEqual(1, SSAFEntity.FindAll().Count());
             }
             using (new SessionScope())
