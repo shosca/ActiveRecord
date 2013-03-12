@@ -154,7 +154,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// Performs the disposal.
 		/// </summary>
 		/// <param name="sessions">The sessions.</param>
-		protected override void PerformDisposal(ICollection<ISession> sessions)
+		protected override void PerformDisposal(IEnumerable<ISession> sessions)
 		{
 		    bool flush = !HasSessionError && this.FlushAction != FlushAction.Never;
 

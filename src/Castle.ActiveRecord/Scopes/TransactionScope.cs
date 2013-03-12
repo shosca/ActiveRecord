@@ -65,7 +65,6 @@ namespace Castle.ActiveRecord.Scopes
 		private static readonly object CompletedEvent = new object();
 
 		private readonly TransactionMode mode;
-		private readonly IsolationLevel isolationLevel;
 		private readonly OnDispose onDisposeBehavior;
 		private readonly IDictionary<ISession, ITransaction> transactions = new Dictionary<ISession, ITransaction>();
 		private readonly TransactionScope parentTransactionScope;
@@ -76,14 +75,14 @@ namespace Castle.ActiveRecord.Scopes
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
 		/// </summary>
-		public TransactionScope(TransactionMode mode = TransactionMode.New,
+		public TransactionScope(
+            TransactionMode mode = TransactionMode.New,
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
             ISessionFactoryHolder holder = null
-            ) : base(FlushAction.Config, SessionScopeType.Transactional, holder)
+            ) : base(FlushAction.Config, SessionScopeType.Transactional, isolation, holder)
 		{
 			this.mode = mode;
-			this.isolationLevel = isolation;
 			this.onDisposeBehavior = ondispose;
 
 			bool preferenceForTransactionScope = mode == TransactionMode.Inherits ? true : false;
@@ -176,7 +175,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// <returns>the newly created session</returns>
 		protected override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
 		{
-			ISession session = sessionFactory.OpenSession(interceptor);
+			var session = sessionFactory.OpenSession(interceptor);
 			SetFlushMode(session);
 			session.BeginTransaction(isolationLevel);
 
@@ -331,7 +330,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// Dispose of this scope
 		/// </summary>
 		/// <param name="sessions">The sessions.</param>
-		protected override void PerformDisposal(ICollection<ISession> sessions)
+		protected override void PerformDisposal(IEnumerable<ISession> sessions)
 		{
 			if (!setForCommit && !rollbackOnly) // Neither VoteCommit or VoteRollback were called
 			{
@@ -410,11 +409,11 @@ namespace Castle.ActiveRecord.Scopes
 			VoteRollBack();
 		}
 
-		/// <summary>
-		/// Discards the sessions.
-		/// </summary>
-		/// <param name="sessions">The sessions.</param>
-		protected internal override void DiscardSessions(ICollection<ISession> sessions)
+	    /// <summary>
+	    /// Discards the sessions.
+	    /// </summary>
+	    /// <param name="sessions">The sessions.</param>
+	    protected internal override void DiscardSessions(IEnumerable<ISession> sessions)
 		{
 			if (parentSimpleScope != null)
 			{

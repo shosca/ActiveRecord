@@ -514,7 +514,7 @@ namespace Castle.ActiveRecord {
         public static object Find(Type type, object id)
         {
             return id == null ? null :
-                AR.CurrentScope().Execute<object>(type, session => session.Get(type, ConvertId(type, id)));
+                AR.CurrentScope().Execute(type, session => session.Get(type, ConvertId(type, id)));
         }
 
         /// <summary>
