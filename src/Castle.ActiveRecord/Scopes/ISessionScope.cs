@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -21,32 +20,7 @@ using System.Linq.Expressions;
 using NHibernate;
 using NHibernate.Criterion;
 
-namespace Castle.ActiveRecord.Scopes
-{
-    /// <summary>
-    /// Define session scope types
-    /// </summary>
-    public enum SessionScopeType
-    {
-        /// <summary>
-        /// Undefined type of session scope.
-        /// This value probably should never exist
-        /// </summary>
-        Undefined,
-        /// <summary>
-        /// Simple - non transactional session scope
-        /// </summary>
-        Simple,
-        /// <summary>
-        /// Transactional session scope
-        /// </summary>
-        Transactional,
-        /// <summary>
-        /// Custom implementation of session scope.
-        /// </summary>
-        Custom
-    }
-
+namespace Castle.ActiveRecord.Scopes {
     /// <summary>
     /// Contract for implementation of scopes.
     /// </summary>
@@ -55,25 +29,13 @@ namespace Castle.ActiveRecord.Scopes
     /// AR for the scope lifetime. Session cache and
     /// transaction are the best examples, but you 
     /// can create new scopes adding new semantics.
-    /// <para>
-    /// The methods on this interface are mostly invoked
-    /// by the <see cref="ISessionFactoryHolder"/>
-    /// implementation
-    /// </para>
     /// </remarks>
-    public interface ISessionScope : IDisposable
-    {
+    public interface ISessionScope : IDisposable {
         /// <summary>
         /// Returns the <see cref="FlushAction"/> defined 
         /// for this scope
         /// </summary>
         FlushAction FlushAction { get; }
-        
-        /// <summary>
-        /// Returns the <see cref="SessionScopeType"/> defined 
-        /// for this scope
-        /// </summary>
-        SessionScopeType ScopeType { get; }
 
         /// <summary>
         /// Returns the isolation level defined 
@@ -87,14 +49,16 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         void Flush();
 
-//        void RegisterSession(ISessionFactory key, ISession session);
-
         /// <summary>
         /// This method will be called if a scope action fails. 
         /// The scope may then decide to use an different approach to flush/dispose it.
         /// </summary>
         void FailScope();
 
+        /// <summary>
+        /// Creates a session for the associated type
+        /// or returns an existing session if the scope already has one
+        /// </summary>
         ISession OpenSession<T>();
 
         /// <summary>
@@ -510,16 +474,86 @@ namespace Castle.ActiveRecord.Scopes
         /// <remarks>You must have an open Session Scope.</remarks>
         IQueryOver<T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class;
 
+        /// <summary>
+        /// Invokes the specified delegate passing a valid 
+        /// NHibernate session. Used for custom NHibernate queries.
+        /// </summary>
+        /// <returns>Whatever is returned by the delegate invocation</returns>
         TK Execute<T, TK>(Type type, Func<ISession, T, TK> func, T instance);
+
+        /// <summary>
+        /// Invokes the specified delegate passing a valid 
+        /// NHibernate session. Used for custom NHibernate queries.
+        /// </summary>
         void Execute(Type type, Action<ISession> action);
+
+        /// <summary>
+        /// Invokes the specified delegate passing a valid 
+        /// NHibernate session. Used for custom NHibernate queries.
+        /// </summary>
+        /// <returns>Whatever is returned by the delegate invocation</returns>
         TK Execute<TK>(Type type, Func<ISession, TK> func);
+
+        /// <summary>
+        /// Invokes the specified delegate passing a valid 
+        /// NHibernate session. Used for custom NHibernate queries.
+        /// </summary>
+        /// <returns>Whatever is returned by the delegate invocation</returns>
         TK Execute<T, TK>(Func<ISession, T, TK> func, T instance) where T : class;
+
+        /// <summary>
+        /// Invokes the specified delegate passing a valid 
+        /// NHibernate session. Used for custom NHibernate queries.
+        /// </summary>
+        /// <returns>Whatever is returned by the delegate invocation</returns>
         void Execute<T>(Action<ISession> action) where T : class;
+
+        /// <summary>
+        /// Invokes the specified delegate passing a valid 
+        /// NHibernate session. Used for custom NHibernate queries.
+        /// </summary>
+        /// <returns>Whatever is returned by the delegate invocation</returns>
         TK Execute<T, TK>(Func<ISession, TK> func) where T : class;
+
+        /// <summary>
+        /// This method is invoked when no session was available
+        /// at and the current scope just created one. So it
+        /// registers the session created within this scope 
+        /// using a key. The scope implementation shouldn't make 
+        /// any assumption on what the key actually is as we 
+        /// reserve the right to change it
+        /// <seealso cref="IsKeyKnown"/>
+        /// </summary>
+        /// <param name="key">an object instance</param>
+        /// <param name="session">An instance of <c>ISession</c></param>
         void RegisterSession(object key, ISession session);
+
+        /// <summary>
+        /// This method should return the session instance associated with the key.
+        /// </summary>
+        /// <param name="key">an object instance</param>
+        /// <returns>
+        /// the session instance or null if none was found
+        /// </returns>
         ISession GetSession(object key);
-        IEnumerable<ISession> GetSessions();
+
+        /// <summary>
+        /// Notifies the scope that an inner scope that changed the flush mode, was
+        /// disposed. The scope should reset the flush mode to its default.
+        /// </summary>
         void ResetFlushMode();
+
+        /// <summary>
+        /// This method is invoked when the scope instance needs a session 
+        /// instance. Instead of creating one it interrogates
+        /// the active scope for one. The scope implementation must check if it
+        /// has a session registered for the given key.
+        /// <seealso cref="RegisterSession"/>
+        /// </summary>
+        /// <param name="key">an object instance</param>
+        /// <returns>
+        ///     <c>true</c> if the key exists within this scope instance
+        /// </returns>
         bool IsKeyKnown(object key);
     }
 }

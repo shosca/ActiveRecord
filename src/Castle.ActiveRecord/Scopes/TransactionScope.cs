@@ -20,49 +20,12 @@ using Castle.ActiveRecord.Config;
 using Castle.Core.Internal;
 using NHibernate;
 
-namespace Castle.ActiveRecord.Scopes
-{
-    /// <summary>
-    /// Defines the transaction scope behavior
-    /// </summary>
-    public enum TransactionMode
-    {
-        /// <summary>
-        /// Inherits a transaction previously create on 
-        /// the current context.
-        /// </summary>
-        Inherits,
-        /// <summary>
-        /// Always create an isolated transaction context.
-        /// </summary>
-        New
-    }
-
-    /// <summary>
-    /// Governs the <see cref="TransactionScope"/> behavior 
-    /// on dispose if neither <see cref="TransactionScope.VoteCommit"/>
-    /// nor <see cref="TransactionScope.VoteRollBack"/> was called
-    /// </summary>
-    public enum OnDispose
-    {
-        /// <summary>
-        /// Should commit the transaction, unless <see cref="TransactionScope.VoteRollBack"/>
-        /// was called before the disposing the scope (this is the default behavior)
-        /// </summary>
-        Commit,
-        /// <summary>
-        /// Should rollback the transaction, unless <see cref="TransactionScope.VoteCommit"/>
-        /// was called before the disposing the scope
-        /// </summary>
-        Rollback
-    }
-
+namespace Castle.ActiveRecord.Scopes {
     /// <summary>
     /// Implementation of <see cref="ISessionScope"/> to 
     /// provide transaction semantics
     /// </summary>
-    public class TransactionScope : SessionScope
-    {
+    public class TransactionScope : SessionScope {
         private static readonly object CompletedEvent = new object();
 
         private readonly TransactionMode mode;
@@ -77,8 +40,8 @@ namespace Castle.ActiveRecord.Scopes
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
             ISessionFactoryHolder holder = null
-            ) : base(FlushAction.Config, SessionScopeType.Transactional, isolation, ondispose, holder)
-        {
+            )
+            : base(FlushAction.Config, isolation, ondispose, holder) {
             this.mode = mode;
 
             parentTransactionScope = ParentScope as TransactionScope;
@@ -130,8 +93,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <summary>
         /// Votes to commit the transaction
         /// </summary>
-        public override void VoteCommit()
-        {
+        public override void VoteCommit() {
             if (Rollback) {
                 throw new TransactionException("The transaction was marked as rollback only" +
                                                " - by itself or one of the nested transactions");
@@ -151,8 +113,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>
         ///     <c>true</c> if the key exists within this scope instance
         /// </returns>
-        public override bool IsKeyKnown(object key)
-        {
+        public override bool IsKeyKnown(object key) {
             if (parentTransactionScope != null) {
                 return parentTransactionScope.IsKeyKnown(key);
             }
@@ -180,8 +141,8 @@ namespace Castle.ActiveRecord.Scopes
             }
 
             var session = ParentScope == null
-                       ? Key2Session[key]
-                       : ParentScope.GetSession(key);
+                              ? Key2Session[key]
+                              : ParentScope.GetSession(key);
 
             if (!Key2Session.ContainsKey(key))
                 Key2Session.Add(key, session);

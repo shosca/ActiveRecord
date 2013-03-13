@@ -498,6 +498,10 @@ namespace Castle.ActiveRecord {
             throw new ActiveRecordException("No scope found for current operation");
         }
 
+        /// <summary>
+        /// Disposes the current scope
+        /// </summary>
+        /// <value>The current.</value>
         public static void DisposeCurrentScope() {
             if (AR.Holder.ThreadScopeInfo.HasInitializedScope)
                 AR.Holder.ThreadScopeInfo.GetRegisteredScope().Dispose();

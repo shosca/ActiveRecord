@@ -131,9 +131,11 @@
     <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="Scopes\AbstractThreadScopeInfo.cs" />
     <Compile Include="Scopes\ISessionScope.cs" />
+    <Compile Include="Scopes\OnDispose.cs" />
     <Compile Include="Scopes\ScopeMachineryException.cs" />
     <Compile Include="Scopes\SessionScope.cs" />
     <Compile Include="Scopes\ThreadScopeInfo.cs" />
+    <Compile Include="Scopes\TransactionMode.cs" />
     <Compile Include="Scopes\TransactionScope.cs" />
     <Compile Include="SessionFactoryHolder.cs" />
     <Compile Include="Testing\AbstractTesting.cs" />

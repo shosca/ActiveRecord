@@ -15,37 +15,33 @@
 using System.Collections.Generic;
 using NHibernate;
 
-namespace Castle.ActiveRecord.Scopes
-{
-	/// <summary>
-	/// Implementation of <see cref="ISessionScope"/> with
-	/// an IStatelessSession to improve performance 
-	/// by caching a session without a first-level-cache.
-	/// </summary>
-	public class StatelessSessionScope : SessionScope
-	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="StatelessSessionScope"/> class.
-		/// </summary>
-		public StatelessSessionScope() : base(FlushAction.Never, SessionScopeType.Simple) { }
+namespace Castle.ActiveRecord.Scopes {
+    /// <summary>
+    /// Implementation of <see cref="ISessionScope"/> with
+    /// an IStatelessSession to improve performance 
+    /// by caching a session without a first-level-cache.
+    /// </summary>
+    public class StatelessSessionScope : SessionScope {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StatelessSessionScope"/> class.
+        /// </summary>
+        public StatelessSessionScope() : base(FlushAction.Never) {}
 
-        protected override void SetFlushMode(ISession session) { }
+        protected override void SetFlushMode(ISession session) {}
 
-		/// <summary>
-		/// If the <see cref="SessionScope.WantsToCreateTheSession"/> returned
-		/// <c>true</c> then this method is invoked to allow
-		/// the scope to create a properly configured session
-		/// </summary>
-		/// <param name="sessionFactory">From where to open the session</param>
-		/// <param name="interceptor">the NHibernate interceptor</param>
-		/// <returns>the newly created session</returns>
-		protected override ISession CreateSession(ISessionFactory sessionFactory, IInterceptor interceptor)
-		{
-			ISession session = new StatelessSessionWrapper(sessionFactory.OpenStatelessSession());
+        /// <summary>
+        /// This method is invoked to allow
+        /// the scope to create a properly configured session
+        /// </summary>
+        /// <param name="sessionFactory">From where to open the session</param>
+        /// <param name="interceptor">the NHibernate interceptor</param>
+        /// <returns>the newly created session</returns>
+        protected override ISession CreateSession(ISessionFactory sessionFactory, IInterceptor interceptor) {
+            ISession session = new StatelessSessionWrapper(sessionFactory.OpenStatelessSession());
 
-			session.BeginTransaction();
+            session.BeginTransaction();
 
-			return session;
-		}
-	}
+            return session;
+        }
+    }
 }

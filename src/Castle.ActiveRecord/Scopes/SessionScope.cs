@@ -49,13 +49,11 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         public SessionScope(
             FlushAction flushAction = FlushAction.Config,
-            SessionScopeType type = SessionScopeType.Simple,
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
             ISessionFactoryHolder holder = null ) {
 
             FlushAction = flushAction;
-            ScopeType = type;
             IsolationLevel = isolation;
             HasSessionError = false;
             OnDisposeBehavior = ondispose;
@@ -67,12 +65,6 @@ namespace Castle.ActiveRecord.Scopes
 
             Holder.ThreadScopeInfo.RegisterScope(this);
         }
-
-        /// <summary>
-        /// Returns the <see cref="SessionScopeType"/> defined 
-        /// for this scope
-        /// </summary>
-        public SessionScopeType ScopeType { get; protected set; }
 
         /// <summary>
         /// Returns the <see cref="ISessionScope.FlushAction"/> defined 
@@ -87,15 +79,12 @@ namespace Castle.ActiveRecord.Scopes
         /// is maintaining
         /// </summary>
         public virtual void Flush() {
-            foreach (var session in GetSessions()) {
-                session.Flush();
-            }
+            Key2Session.Values.ForEach(s => s.Flush());
         }
 
         /// <summary>
-        /// This method is invoked when the
-        /// <see cref="ISessionFactoryHolder"/>
-        /// instance needs a session instance. Instead of creating one it interrogates
+        /// This method is invoked when the scope instance needs a session 
+        /// instance. Instead of creating one it interrogates
         /// the active scope for one. The scope implementation must check if it
         /// has a session registered for the given key.
         /// <seealso cref="RegisterSession"/>
@@ -190,18 +179,7 @@ namespace Castle.ActiveRecord.Scopes
         /// disposed. The scope should reset the flush mode to its default.
         /// </summary>
         public virtual void ResetFlushMode() {
-            foreach (ISession session in GetSessions()) {
-                SetFlushMode(session);
-            }
-        }
-
-        /// <summary>
-        /// Gets the sessions.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ISession> GetSessions()
-        {
-            return Key2Session.Values;
+            Key2Session.Values.ForEach(SetFlushMode);
         }
 
         /// <summary>
@@ -1109,7 +1087,7 @@ namespace Castle.ActiveRecord.Scopes
         public TK Execute<T, TK>(Type type, Func<ISession, T, TK> func, T instance) {
             if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
 
-            AR.EnsureInitialized(type);
+            EnsureInitialized(type);
 
             try {
                 return func(OpenSession(type), instance);
@@ -1160,7 +1138,7 @@ namespace Castle.ActiveRecord.Scopes
         public TK Execute<T, TK>(Func<ISession, T, TK> func, T instance) where T : class {
             if (func == null) throw new ArgumentNullException("func", "Delegate must be passed");
 
-            AR.EnsureInitialized(typeof(T));
+            EnsureInitialized(typeof(T));
 
             try {
                 return func(OpenSession<T>(), instance);
@@ -1221,6 +1199,14 @@ namespace Castle.ActiveRecord.Scopes
             }
 
             return id;
+        }
+
+        internal void EnsureInitialized(Type type)
+        {
+            if (!Holder.IsInitialized(type))
+            {
+                throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
+            }
         }
     }
 }

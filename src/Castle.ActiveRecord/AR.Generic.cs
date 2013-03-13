@@ -698,21 +698,6 @@ namespace Castle.ActiveRecord
 
         #endregion
 
-        internal static void EnsureInitialized(Type type)
-        {
-            if (!IsInitialized)
-            {
-                var message = string.Format("An ActiveRecord class ({0}) was used but the framework seems not " +
-                                               "properly initialized. Did you forget about ActiveRecordStarter.Initialize() ?",
-                                               type.FullName);
-                throw new ActiveRecordException(message);
-            }
-
-            if (!Holder.IsInitialized(type))
-            {
-                throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
-            }
-        }
 
     }
 }

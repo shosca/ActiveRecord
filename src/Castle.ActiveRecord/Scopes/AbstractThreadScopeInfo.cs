@@ -12,19 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Castle.ActiveRecord.Scopes
-{
+namespace Castle.ActiveRecord.Scopes {
     /// <summary>
     /// Base <see cref="IThreadScopeInfo"/> implementation. It's up 
     /// to derived classes to provide a correct implementation 
     /// of <c>CurrentStack</c> only
     /// </summary>
-    public abstract class AbstractThreadScopeInfo : IThreadScopeInfo
-    {
+    public abstract class AbstractThreadScopeInfo : IThreadScopeInfo {
         /// <summary>
         /// Gets the current stack.
         /// </summary>
@@ -35,8 +31,7 @@ namespace Castle.ActiveRecord.Scopes
         /// Registers the scope.
         /// </summary>
         /// <param name="scope">The scope.</param>
-        public void RegisterScope(ISessionScope scope)
-        {
+        public void RegisterScope(ISessionScope scope) {
             CurrentStack.Push(scope);
         }
 
@@ -44,8 +39,7 @@ namespace Castle.ActiveRecord.Scopes
         /// Gets the registered scope.
         /// </summary>
         /// <returns></returns>
-        public ISessionScope GetRegisteredScope()
-        {
+        public ISessionScope GetRegisteredScope() {
             if (CurrentStack.Count > 0)
                 return CurrentStack.Peek();
 
@@ -56,10 +50,8 @@ namespace Castle.ActiveRecord.Scopes
         /// Unregister the scope.
         /// </summary>
         /// <param name="scope">The scope.</param>
-        public void UnRegisterScope(ISessionScope scope)
-        {
-            if (GetRegisteredScope() != scope)
-            {
+        public void UnRegisterScope(ISessionScope scope) {
+            if (GetRegisteredScope() != scope) {
                 throw new ScopeMachineryException("Tried to unregister a scope that is not the active one");
             }
 
@@ -72,8 +64,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <value>
         ///     <c>true</c> if this instance has initialized scope; otherwise, <c>false</c>.
         /// </value>
-        public bool HasInitializedScope
-        {
+        public bool HasInitializedScope {
             get { return CurrentStack.Count > 0; }
         }
     }

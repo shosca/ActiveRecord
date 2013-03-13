@@ -13,19 +13,16 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using NHibernate;
 
-namespace Castle.ActiveRecord.Scopes
-{
+namespace Castle.ActiveRecord.Scopes {
     /// <summary>
     /// Still very experimental and it's not bullet proof
     /// for all situations
     /// </summary>
-    public class DifferentDatabaseScope : SessionScope
-    {
-        private readonly IDbConnection connection;
+    public class DifferentDatabaseScope : SessionScope {
+        private readonly IDbConnection _connection;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DifferentDatabaseScope"/> class.
@@ -34,11 +31,11 @@ namespace Castle.ActiveRecord.Scopes
             IDbConnection connection,
             FlushAction flushAction = FlushAction.Auto,
             ISessionFactoryHolder holder = null
-            ) : base(flushAction, holder: holder)
-        {
+            )
+            : base(flushAction, holder: holder) {
             if (connection == null) throw new ArgumentNullException("connection");
 
-            this.connection = connection;
+            _connection = connection;
 
         }
 
@@ -53,11 +50,9 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         /// <param name="key">an object instance</param>
         /// <param name="session">An instance of <c>ISession</c></param>
-        public override void RegisterSession(object key, ISession session)
-        {
-            if (ParentScope != null)
-            {
-                ParentScope.RegisterSession(new KeyHolder(key, connection.ConnectionString, connection.GetHashCode()), session);
+        public override void RegisterSession(object key, ISession session) {
+            if (ParentScope != null) {
+                ParentScope.RegisterSession(new KeyHolder(key, _connection.ConnectionString, _connection.GetHashCode()), session);
                 return;
             }
 
@@ -76,11 +71,9 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>
         ///     <c>true</c> if the key exists within this scope instance
         /// </returns>
-        public override bool IsKeyKnown(object key)
-        {
-            if (ParentScope != null)
-            {
-                return ParentScope.IsKeyKnown(new KeyHolder(key, connection.ConnectionString, connection.GetHashCode()));
+        public override bool IsKeyKnown(object key) {
+            if (ParentScope != null) {
+                return ParentScope.IsKeyKnown(new KeyHolder(key, _connection.ConnectionString, _connection.GetHashCode()));
             }
 
             return base.IsKeyKnown(key);
@@ -93,22 +86,18 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>
         /// the session instance or null if none was found
         /// </returns>
-        public override ISession GetSession(object key)
-        {
-            if (ParentScope != null)
-            {
-                return ParentScope.GetSession(new KeyHolder(key, connection.ConnectionString, connection.GetHashCode()));
+        public override ISession GetSession(object key) {
+            if (ParentScope != null) {
+                return ParentScope.GetSession(new KeyHolder(key, _connection.ConnectionString, _connection.GetHashCode()));
             }
 
             return base.GetSession(key);
         }
 
-        public override void Dispose()
-        {
+        public override void Dispose() {
             bool flush = !HasSessionError && this.FlushAction != FlushAction.Never;
 
-            if (ParentScope == null)
-            {
+            if (ParentScope == null) {
                 PerformDisposal(flush);
             }
 
@@ -125,16 +114,14 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="sessionFactory">From where to open the session</param>
         /// <param name="interceptor">the NHibernate interceptor</param>
         /// <returns>the newly created session</returns>
-        protected override ISession CreateSession(ISessionFactory sessionFactory, IInterceptor interceptor)
-        {
-            return sessionFactory.OpenSession(connection, interceptor);
+        protected override ISession CreateSession(ISessionFactory sessionFactory, IInterceptor interceptor) {
+            return sessionFactory.OpenSession(_connection, interceptor);
         }
 
         /// <summary>
         /// This is called when a scope has a failure
         /// </summary>
-        public override void FailScope()
-        {
+        public override void FailScope() {
             if (ParentScope != null) {
                 ParentScope.FailScope();
             }
@@ -142,36 +129,31 @@ namespace Castle.ActiveRecord.Scopes
         }
     }
 
-    class KeyHolder
-    {
-        private readonly object key;
-        private readonly String connectionString;
-        private readonly int connectionHashCode;
+    internal class KeyHolder {
+        private readonly object _key;
+        private readonly String _connectionString;
+        private readonly int _connectionHashCode;
 
-        public KeyHolder(object key, String connectionString, int connectionHashCode)
-        {
-            this.key = key;
-            this.connectionHashCode = connectionHashCode;
-            this.connectionString = connectionString;
+        public KeyHolder(object key, String connectionString, int connectionHashCode) {
+            this._key = key;
+            this._connectionHashCode = connectionHashCode;
+            this._connectionString = connectionString;
         }
 
-        public override bool Equals(object obj)
-        {
+        public override bool Equals(object obj) {
             var other = obj as KeyHolder;
 
-            if (other != null)
-            {
-                return ReferenceEquals(key, other.key) && 
-                       connectionString == other.connectionString &&
-                       connectionHashCode == other.connectionHashCode;
+            if (other != null) {
+                return ReferenceEquals(_key, other._key) &&
+                       _connectionString == other._connectionString &&
+                       _connectionHashCode == other._connectionHashCode;
             }
 
             return false;
         }
 
-        public override int GetHashCode()
-        {
-            return key.GetHashCode() ^ connectionString.GetHashCode() ^ connectionHashCode;
+        public override int GetHashCode() {
+            return _key.GetHashCode() ^ _connectionString.GetHashCode() ^ _connectionHashCode;
         }
     }
 }
