@@ -197,6 +197,9 @@ namespace Castle.ActiveRecord.Scopes
             PerformDisposal(ParentScope == null, parentTransactionScope == null);
 
             RaiseOnCompleted();
+#if DEBUG
+            System.Diagnostics.Debug.Assert(Key2Session.Count == 0);
+#endif
         }
 
         public override void Flush() {

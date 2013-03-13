@@ -27,9 +27,9 @@ namespace Castle.ActiveRecord.Scopes
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StatelessSessionScope"/> class.
 		/// </summary>
-		public StatelessSessionScope() : base(FlushAction.Never, SessionScopeType.Simple)
-		{
-		}
+		public StatelessSessionScope() : base(FlushAction.Never, SessionScopeType.Simple) { }
+
+        protected override void SetFlushMode(ISession session) { }
 
 		/// <summary>
 		/// If the <see cref="SessionScope.WantsToCreateTheSession"/> returned

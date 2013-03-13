@@ -503,51 +503,5 @@ namespace Castle.ActiveRecord {
                 AR.Holder.ThreadScopeInfo.GetRegisteredScope().Dispose();
         }
 
-        #region Find/Peek
-
-        /// <summary>
-        /// Finds an object instance by its primary key
-        /// returns null if not found
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="id">Identifier value</param>
-        public static object Find(Type type, object id)
-        {
-            return id == null ? null :
-                AR.CurrentScope().Execute(type, session => session.Get(type, ConvertId(type, id)));
-        }
-
-        /// <summary>
-        /// Peeks for an object instance by its primary key,
-        /// never returns null
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="id">Identifier value</param>
-        public static object Peek(Type type, object id)
-        {
-            return AR.CurrentScope().Execute<object>(type, session => session.Load(type, ConvertId(type, id)));
-        }
-
-        #endregion
-
-        public static object ConvertId<T>(object id) {
-            return ConvertId(typeof (T), id);
-        }
-
-        private static object ConvertId(Type type, object id) {
-            if (type == null) throw new ArgumentEmptyException("type");
-            if (id == null) throw new ArgumentEmptyException("id");
-
-            var pktype = Holder.GetModel(type).PrimaryKey.Value;
-            if (pktype.ReturnedClass == id.GetType()) {
-                return id;
-            }
-
-            if (typeof(ValueType).IsAssignableFrom(pktype.ReturnedClass)) {
-                return Convert.ChangeType(id, pktype.ReturnedClass);
-            }
-
-            return id;
-        }
     }
 }

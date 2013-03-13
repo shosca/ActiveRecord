@@ -67,29 +67,25 @@ namespace Castle.ActiveRecord.Tests
         {
             ISession session1, session2;
 
-            using(new SessionScope())
-            {
-                Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
-                blog.Save();
+            using (var conn = CreateSqlConnection2()) {
+                conn.Open();
 
-                session1 = blog.GetCurrentSession();
-                Assert.IsNotNull(session1);
-                blog.Evict();
+                using (new SessionScope()) {
+                    Blog blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+                    blog.Save();
 
-                SqlConnection conn = CreateSqlConnection2();
+                    session1 = blog.GetCurrentSession();
+                    Assert.IsNotNull(session1);
+                    blog.Evict();
 
-                using(conn)
-                {
-                    conn.Open();
 
-                    using(new DifferentDatabaseScope(conn))
-                    {
+                    using (new DifferentDatabaseScope(conn)) {
                         blog.Create();
 
                         session2 = blog.GetCurrentSession();
                         Assert.IsNotNull(session2);
 
-                        Assert.IsFalse( Object.ReferenceEquals(session1, session2) );
+                        Assert.IsFalse(Object.ReferenceEquals(session1, session2));
                     }
                 }
             }
@@ -254,50 +250,47 @@ namespace Castle.ActiveRecord.Tests
         [Test]
         public void UsingSessionAndTransactionScope()
         {
-            SqlConnection conn = CreateSqlConnection2();
             ISession session1, session2;
-            using(new SessionScope())
-            {
-                using(new TransactionScope())
-                {
-                    var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
-                    blog.Save();
-                    
-                    session1 = blog.GetCurrentSession();
-                    Assert.IsNotNull(session1);
-                    Assert.IsNotNull(session1.Transaction);
-                    Assert.IsFalse(session1.Transaction.WasCommitted);
-                    Assert.IsFalse(session1.Transaction.WasRolledBack);
-
-                    conn.Open();
-
-                    using(new DifferentDatabaseScope(conn))
-                    {
-                        blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+            using (var conn = CreateSqlConnection2()) {
+                conn.Open();
+                using (new SessionScope()) {
+                    using (new TransactionScope()) {
+                        var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
                         blog.Save();
 
-                        session2 = blog.GetCurrentSession();
-                        Assert.IsNotNull(session2);
-                        Assert.IsFalse( Object.ReferenceEquals(session1, session2) );
+                        session1 = blog.GetCurrentSession();
+                        Assert.IsNotNull(session1);
+                        Assert.IsNotNull(session1.Transaction);
+                        Assert.IsFalse(session1.Transaction.WasCommitted);
+                        Assert.IsFalse(session1.Transaction.WasRolledBack);
 
-                        Assert.IsNotNull(session2.Transaction);
-                        Assert.IsFalse(session2.Transaction.WasCommitted);
-                        Assert.IsFalse(session2.Transaction.WasRolledBack);
-                    }
 
-                    using(new DifferentDatabaseScope(conn))
-                    {
-                        blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
-                        blog.Save();
+                        using (new DifferentDatabaseScope(conn)) {
+                            blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+                            blog.Save();
 
-                        session2 = blog.GetCurrentSession();
-                        Assert.IsNotNull(session2);
+                            session2 = blog.GetCurrentSession();
+                            Assert.IsNotNull(session2);
+                            Assert.IsFalse(Object.ReferenceEquals(session1, session2));
 
-                        Assert.IsFalse( Object.ReferenceEquals(session1, session2) );
+                            Assert.IsNotNull(session2.Transaction);
+                            Assert.IsFalse(session2.Transaction.WasCommitted);
+                            Assert.IsFalse(session2.Transaction.WasRolledBack);
+                        }
 
-                        Assert.IsNotNull(session2.Transaction);
-                        Assert.IsFalse(session2.Transaction.WasCommitted);
-                        Assert.IsFalse(session2.Transaction.WasRolledBack);
+                        using (new DifferentDatabaseScope(conn)) {
+                            blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
+                            blog.Save();
+
+                            session2 = blog.GetCurrentSession();
+                            Assert.IsNotNull(session2);
+
+                            Assert.IsFalse(Object.ReferenceEquals(session1, session2));
+
+                            Assert.IsNotNull(session2.Transaction);
+                            Assert.IsFalse(session2.Transaction.WasCommitted);
+                            Assert.IsFalse(session2.Transaction.WasRolledBack);
+                        }
                     }
                 }
             }
@@ -305,10 +298,8 @@ namespace Castle.ActiveRecord.Tests
             Assert.IsFalse(session1.IsOpen);
             Assert.IsFalse(session2.IsOpen);
 
-            Assert.IsTrue(session2.Transaction.WasCommitted);
-            Assert.IsFalse(session2.Transaction.WasRolledBack);
-            Assert.IsTrue(session1.Transaction.WasCommitted);
-            Assert.IsFalse(session1.Transaction.WasRolledBack);
+            Assert.IsFalse(session1.Transaction.IsActive);
+            Assert.IsFalse(session2.Transaction.IsActive);
 
             using (new SessionScope()) {
                 var blogs = Blog.FindAll().ToArray();

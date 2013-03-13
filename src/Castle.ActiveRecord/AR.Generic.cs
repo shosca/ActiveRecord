@@ -15,6 +15,7 @@
 
 using System.Linq.Expressions;
 using Castle.ActiveRecord.Scopes;
+using Remotion.Linq.Utilities;
 
 namespace Castle.ActiveRecord
 {
@@ -62,6 +63,27 @@ namespace Castle.ActiveRecord
         #endregion
 
         #region Find/Peek
+
+        /// <summary>
+        /// Finds an object instance by its primary key
+        /// returns null if not found
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="id">Identifier value</param>
+        public static object Find(Type type, object id) {
+            return AR.CurrentScope().Find(type, id);
+        }
+
+        /// <summary>
+        /// Peeks for an object instance by its primary key,
+        /// never returns null
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="id">Identifier value</param>
+        public static object Peek(Type type, object id)
+        {
+            return AR.CurrentScope().Peek(type, id);
+        }
 
         /// <summary>
         /// Finds an object instance by its primary key
@@ -676,11 +698,6 @@ namespace Castle.ActiveRecord
 
         #endregion
 
-        internal static void EnsureScopeInitialized()
-        {
-            if (!Holder.ThreadScopeInfo.HasInitializedScope)
-                throw new ActiveRecordException("No session scope found for current operation");
-        }
         internal static void EnsureInitialized(Type type)
         {
             if (!IsInitialized)
@@ -696,5 +713,6 @@ namespace Castle.ActiveRecord
                 throw new ActiveRecordException("No configuration for ActiveRecord found in the type hierarchy -> " + type.FullName);
             }
         }
+
     }
 }

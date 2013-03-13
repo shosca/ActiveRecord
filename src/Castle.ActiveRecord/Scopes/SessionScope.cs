@@ -24,6 +24,7 @@ using NHibernate;
 using NHibernate.Criterion;
 using NHibernate.Linq;
 using NHibernate.Transform;
+using Remotion.Linq.Utilities;
 
 namespace Castle.ActiveRecord.Scopes
 {
@@ -112,6 +113,9 @@ namespace Castle.ActiveRecord.Scopes
             Holder.ThreadScopeInfo.UnRegisterScope(this);
 
             PerformDisposal();
+#if DEBUG
+            System.Diagnostics.Debug.Assert(Key2Session.Count == 0);
+#endif
         }
 
         protected readonly OnDispose OnDisposeBehavior;
@@ -185,7 +189,7 @@ namespace Castle.ActiveRecord.Scopes
         /// Notifies the scope that an inner scope that changed the flush mode, was
         /// disposed. The scope should reset the flush mode to its default.
         /// </summary>
-        public void ResetFlushMode() {
+        public virtual void ResetFlushMode() {
             foreach (ISession session in GetSessions()) {
                 SetFlushMode(session);
             }
@@ -355,10 +359,32 @@ namespace Castle.ActiveRecord.Scopes
         /// Finds an object instance by its primary key
         /// returns null if not found
         /// </summary>
+        /// <param name="type"></param>
+        /// <param name="id">Identifier value</param>
+        public object Find(Type type, object id)
+        {
+            return id == null ? null :
+                Execute(type, session => session.Get(type, ConvertId(type, id)));
+        }
+
+        /// <summary>
+        /// Peeks for an object instance by its primary key,
+        /// never returns null
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="id">Identifier value</param>
+        public  object Peek(Type type, object id) {
+            return Execute(type, session => session.Load(type, ConvertId(type, id)));
+        }
+
+        /// <summary>
+        /// Finds an object instance by its primary key
+        /// returns null if not found
+        /// </summary>
         /// <param name="id">Identifier value</param>
         public T Find<T>(object id) where T : class
         {
-            return id == null ? null : Execute<T, T>(session => session.Get<T>(AR.ConvertId<T>(id)));
+            return id == null ? null : Execute<T, T>(session => session.Get<T>(ConvertId<T>(id)));
         }
 
         /// <summary>
@@ -368,7 +394,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="id">Identifier value</param>
         public T Peek<T>(object id) where T : class
         {
-            return Execute<T, T>(session => session.Load<T>(AR.ConvertId<T>(id)));
+            return Execute<T, T>(session => session.Load<T>(ConvertId<T>(id)));
         }
 
         #endregion
@@ -1140,11 +1166,13 @@ namespace Castle.ActiveRecord.Scopes
                 return func(OpenSession<T>(), instance);
 
             } catch (ObjectNotFoundException ex) {
+                HasSessionError = true;
                 FailScope();
                 var message = string.Format("Could not find {0} with id {1}", ex.EntityName, ex.Identifier);
                 throw new NotFoundException(message, ex);
 
             } catch (Exception ex) {
+                HasSessionError = true;
                 FailScope();
                 throw new ActiveRecordException("Error performing Execute for " + typeof (T).Name, ex);
 
@@ -1174,5 +1202,25 @@ namespace Castle.ActiveRecord.Scopes
         }
 
         #endregion
+
+        internal object ConvertId<T>(object id) {
+            return ConvertId(typeof (T), id);
+        }
+
+        internal object ConvertId(Type type, object id) {
+            if (type == null) throw new ArgumentEmptyException("type");
+            if (id == null) throw new ArgumentEmptyException("id");
+
+            var pktype = Holder.GetModel(type).PrimaryKey.Value;
+            if (pktype.ReturnedClass == id.GetType()) {
+                return id;
+            }
+
+            if (typeof(ValueType).IsAssignableFrom(pktype.ReturnedClass)) {
+                return Convert.ChangeType(id, pktype.ReturnedClass);
+            }
+
+            return id;
+        }
     }
 }

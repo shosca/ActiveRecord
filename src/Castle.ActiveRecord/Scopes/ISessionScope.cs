@@ -101,6 +101,22 @@ namespace Castle.ActiveRecord.Scopes
         /// Finds an object instance by its primary key
         /// returns null if not found
         /// </summary>
+        /// <param name="type"></param>
+        /// <param name="id">Identifier value</param>
+        object Find(Type type, object id);
+
+        /// <summary>
+        /// Peeks for an object instance by its primary key,
+        /// never returns null
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="id">Identifier value</param>
+        object Peek(Type type, object id);
+
+        /// <summary>
+        /// Finds an object instance by its primary key
+        /// returns null if not found
+        /// </summary>
         /// <param name="id">Identifier value</param>
         T Find<T>(object id) where T : class;
 

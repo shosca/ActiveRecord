@@ -227,9 +227,8 @@ namespace Castle.ActiveRecord
 			get { throw new NotWrappedException(); }
 		}
 
-		public ITransaction BeginTransaction(System.Data.IsolationLevel isolationLevel)
-		{
-			throw new NotWrappedException();
+		public ITransaction BeginTransaction(System.Data.IsolationLevel isolationLevel) {
+		    return statelessSession.BeginTransaction(isolationLevel);
 		}
 
 		public CacheMode CacheMode

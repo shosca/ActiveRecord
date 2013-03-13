@@ -113,6 +113,9 @@ namespace Castle.ActiveRecord.Scopes
             }
 
             base.Dispose();
+#if DEBUG
+            System.Diagnostics.Debug.Assert(Key2Session.Count == 0);
+#endif
         }
 
         /// <summary>
