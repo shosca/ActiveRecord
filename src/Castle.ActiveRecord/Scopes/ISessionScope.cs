@@ -13,7 +13,9 @@
 // limitations under the License.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using NHibernate;
@@ -72,7 +74,13 @@ namespace Castle.ActiveRecord.Scopes
         /// for this scope
         /// </summary>
         SessionScopeType ScopeType { get; }
-        
+
+        /// <summary>
+        /// Returns the isolation level defined 
+        /// for this scope
+        /// </summary>
+        IsolationLevel IsolationLevel { get; }
+
         /// <summary>
         /// Flushes the sessions that this scope 
         /// is maintaining
@@ -87,7 +95,7 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         void FailScope();
 
-        ISession CreateSession<T>();
+        ISession OpenSession<T>();
 
         /// <summary>
         /// Finds an object instance by its primary key
@@ -486,15 +494,16 @@ namespace Castle.ActiveRecord.Scopes
         /// <remarks>You must have an open Session Scope.</remarks>
         IQueryOver<T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class;
 
-
-
-
-
         TK Execute<T, TK>(Type type, Func<ISession, T, TK> func, T instance);
         void Execute(Type type, Action<ISession> action);
         TK Execute<TK>(Type type, Func<ISession, TK> func);
         TK Execute<T, TK>(Func<ISession, T, TK> func, T instance) where T : class;
         void Execute<T>(Action<ISession> action) where T : class;
         TK Execute<T, TK>(Func<ISession, TK> func) where T : class;
+        void RegisterSession(object key, ISession session);
+        ISession GetSession(object key);
+        IEnumerable<ISession> GetSessions();
+        void ResetFlushMode();
+        bool IsKeyKnown(object key);
     }
 }

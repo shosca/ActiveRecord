@@ -100,7 +100,7 @@ namespace Castle.ActiveRecord.Config
 				.Debug(ConvertBool(isDebug))
 				.AutoImport(autoimportatt == null || ConvertBool(autoimportatt))
 				.Lazy(lazyatt == null || ConvertBool(lazyatt))
-				.Flush(defaultFlushType != null ? GetFlushType(defaultFlushType.Value) : DefaultFlushType.Classic)
+				.Flush(defaultFlushType != null ? GetFlushType(defaultFlushType.Value) : DefaultFlushType.Auto)
 				;
 
 			PopulateConfigNodes(section);

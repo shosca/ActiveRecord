@@ -78,12 +78,12 @@ namespace Castle.ActiveRecord.Tests.Config
 			xmlConfig = @"<activerecord>"
 						+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, false, DefaultFlushType.Classic);
+			AssertConfig(xmlConfig, null, null, false, DefaultFlushType.Auto);
 
-			xmlConfig = @"<activerecord flush=""classic"">"
+			xmlConfig = @"<activerecord flush=""auto"">"
 			+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
 
-			AssertConfig(xmlConfig, null, null, false,DefaultFlushType.Classic);
+			AssertConfig(xmlConfig, null, null, false,DefaultFlushType.Auto);
 
 			xmlConfig = @"<activerecord flush=""auto"">"
 			+ GetDefaultHibernateConfigAndCloseActiveRecordSection();
@@ -111,7 +111,6 @@ namespace Castle.ActiveRecord.Tests.Config
 				Assert.IsInstanceOf(typeof(ConfigurationErrorsException), ex);
 				Assert.IsTrue(ex.Message.ToLower().Contains("flush"));
 				Assert.IsTrue(ex.Message.ToLower().Contains("foo"));
-				Assert.IsTrue(ex.Message.ToLower().Contains("classic"));
 				Assert.IsTrue(ex.Message.ToLower().Contains("auto"));
 				Assert.IsTrue(ex.Message.ToLower().Contains("leave"));
 				Assert.IsTrue(ex.Message.ToLower().Contains("transaction"));
@@ -126,7 +125,7 @@ namespace Castle.ActiveRecord.Tests.Config
 		private static void AssertConfig(string xmlConfig, Type webinfotype, Type sessionFactoryHolderType, bool isDebug,
 										 bool pluralize)
 		{
-			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, isDebug, pluralize, DefaultFlushType.Classic);
+			AssertConfig(xmlConfig, webinfotype, sessionFactoryHolderType, isDebug, pluralize, DefaultFlushType.Auto);
 		}
 
 		private static void AssertConfig(string xmlConfig, Type webinfotype, Type sessionFactoryHolderType, bool isDebug,

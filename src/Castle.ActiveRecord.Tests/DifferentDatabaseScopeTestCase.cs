@@ -256,8 +256,6 @@ namespace Castle.ActiveRecord.Tests
         {
             SqlConnection conn = CreateSqlConnection2();
             ISession session1, session2;
-
-            ITransaction trans1, trans2;
             using(new SessionScope())
             {
                 using(new TransactionScope())
@@ -267,10 +265,9 @@ namespace Castle.ActiveRecord.Tests
                     
                     session1 = blog.GetCurrentSession();
                     Assert.IsNotNull(session1);
-                    trans1 = session1.Transaction;
-                    Assert.IsNotNull(trans1);
-                    Assert.IsFalse(trans1.WasCommitted);
-                    Assert.IsFalse(trans1.WasRolledBack);
+                    Assert.IsNotNull(session1.Transaction);
+                    Assert.IsFalse(session1.Transaction.WasCommitted);
+                    Assert.IsFalse(session1.Transaction.WasRolledBack);
 
                     conn.Open();
 
@@ -281,7 +278,6 @@ namespace Castle.ActiveRecord.Tests
 
                         session2 = blog.GetCurrentSession();
                         Assert.IsNotNull(session2);
-                        trans2 = session2.Transaction;
                         Assert.IsFalse( Object.ReferenceEquals(session1, session2) );
 
                         Assert.IsNotNull(session2.Transaction);
@@ -308,10 +304,11 @@ namespace Castle.ActiveRecord.Tests
 
             Assert.IsFalse(session1.IsOpen);
             Assert.IsFalse(session2.IsOpen);
-            Assert.IsTrue(trans1.WasCommitted);
-            Assert.IsFalse(trans1.WasRolledBack);
-            Assert.IsTrue(trans2.WasCommitted);
+
+            Assert.IsTrue(session2.Transaction.WasCommitted);
             Assert.IsFalse(session2.Transaction.WasRolledBack);
+            Assert.IsTrue(session1.Transaction.WasCommitted);
+            Assert.IsFalse(session1.Transaction.WasRolledBack);
 
             using (new SessionScope()) {
                 var blogs = Blog.FindAll().ToArray();

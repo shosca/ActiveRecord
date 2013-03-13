@@ -36,7 +36,7 @@ namespace Castle.ActiveRecord.Tests.Model
         public virtual string Name { get; set; }
 
         public virtual ISession GetCurrentSession() {
-            return AR.CurrentScope().CreateSession<Author>();
+            return AR.CurrentScope().OpenSession<Author>();
         }
     }
 }

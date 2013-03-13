@@ -30,10 +30,10 @@ namespace Castle.ActiveRecord.Tests
         {
             using(var scope = new TransactionScope())
             {
-                var session1 = scope.CreateSession<Blog>();
-                var session2 = scope.CreateSession<Post>();
-                var session3 = scope.CreateSession<Blog>();
-                var session4 = scope.CreateSession<Post>();
+                var session1 = scope.OpenSession<Blog>();
+                var session2 = scope.OpenSession<Post>();
+                var session3 = scope.OpenSession<Blog>();
+                var session4 = scope.OpenSession<Post>();
 
                 Assert.IsNotNull(session1);
                 Assert.IsNotNull(session2);
@@ -207,7 +207,7 @@ namespace Castle.ActiveRecord.Tests
                     Assert.AreNotSame(tx1, tx2);
                     
                     // TransactionScope uses a new session!
-                    // Assert.AreSame(s1, s2);
+                    Assert.AreNotSame(s1, s2);
                 }
 
                 using (new TransactionScope(TransactionMode.Inherits))
@@ -554,7 +554,7 @@ namespace Castle.ActiveRecord.Tests
             {
                 var blog = new Blog();
 
-                using(var t1 = new TransactionScope(mode: TransactionMode.Inherits, ondispose: OnDispose.Rollback))
+                using(var t1 = new TransactionScope(TransactionMode.Inherits, ondispose: OnDispose.Rollback))
                 {
                     blog.Author = "hammett";
                     blog.Name = "some name";

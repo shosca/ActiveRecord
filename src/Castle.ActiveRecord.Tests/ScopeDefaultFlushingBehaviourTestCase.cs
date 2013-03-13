@@ -24,15 +24,13 @@ namespace Castle.ActiveRecord.Tests
     [TestFixture]
     public class ScopeDefaultFlushingBehaviourTestCase : AbstractActiveRecordTest
     {
-        [Test] 
-        public void TestClassicBehaviour() {TestBehaviour(DefaultFlushType.Classic, FlushMode.Auto, FlushMode.Commit);}
         [Test]
         public void TestAutoBehaviour() { TestBehaviour(DefaultFlushType.Auto, FlushMode.Auto, FlushMode.Auto); }
         [Test]
         public void TestLeaveBehaviour() { TestBehaviour(DefaultFlushType.Leave, FlushMode.Commit, FlushMode.Commit); }
         [Test]
-        public void TestTransactionBehaviour() { TestBehaviour(DefaultFlushType.Transaction, FlushMode.Never, FlushMode.Auto); }
-        
+        public void TestTransactionBehaviour() { TestBehaviour(DefaultFlushType.Transaction, FlushMode.Commit, FlushMode.Commit); }
+
         private void TestBehaviour(DefaultFlushType flushType, FlushMode sessionScopeMode, FlushMode transactionScopeMode)
         {
             using (new SessionScope()) {
@@ -40,12 +38,12 @@ namespace Castle.ActiveRecord.Tests
                 Blog.DeleteAll();
             }
 
-            DefaultFlushType originalDefaultFlushType = AR.Holder.ConfigurationSource.DefaultFlushType;
+            var originalDefaultFlushType = AR.Holder.ConfigurationSource.DefaultFlushType;
             try
             {
                 AR.Holder.ConfigurationSource.Flush(flushType);
 
-                Blog blog = new Blog(); // just for CurrentSession
+                var blog = new Blog(); // just for CurrentSession
 
                 using (new SessionScope())
                 {

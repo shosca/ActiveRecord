@@ -34,16 +34,15 @@ namespace Castle.ActiveRecord.Scopes
     /// </summary>
     public class SessionScope : MarshalByRefObject, ISessionScope
     {
-        protected readonly SessionScopeType type;
-        protected readonly IsolationLevel isolationLevel;
-
-        protected ISessionFactoryHolder holder;
+        protected ISessionFactoryHolder Holder;
 
         /// <summary>
         /// Map between a key to its session
         /// </summary>
-        protected IDictionary<object, ISession> key2Session = new Dictionary<object, ISession>();
+        protected readonly IDictionary<object, ISession> Key2Session = new Dictionary<object, ISession>();
 
+        protected ISessionScope ParentScope = null;
+        protected bool Rollback, SetForCommit;
         /// <summary>
         /// Initializes a new instance of the <see cref="SessionScope"/> class.
         /// </summary>
@@ -51,29 +50,36 @@ namespace Castle.ActiveRecord.Scopes
             FlushAction flushAction = FlushAction.Config,
             SessionScopeType type = SessionScopeType.Simple,
             IsolationLevel isolation = IsolationLevel.Unspecified,
-            ISessionFactoryHolder holder = null
-            ) {
+            OnDispose ondispose = OnDispose.Commit,
+            ISessionFactoryHolder holder = null ) {
+
             FlushAction = flushAction;
-            this.type = type;
-			this.isolationLevel = isolation;
+            ScopeType = type;
+            IsolationLevel = isolation;
             HasSessionError = false;
+            OnDisposeBehavior = ondispose;
 
-            this.holder = holder ?? AR.Holder;
+            Holder = holder ?? AR.Holder;
 
-            this.holder.ThreadScopeInfo.RegisterScope(this);
+            if (Holder.ThreadScopeInfo.HasInitializedScope)
+                ParentScope = Holder.ThreadScopeInfo.GetRegisteredScope();
+
+            Holder.ThreadScopeInfo.RegisterScope(this);
         }
 
         /// <summary>
         /// Returns the <see cref="SessionScopeType"/> defined 
         /// for this scope
         /// </summary>
-        public SessionScopeType ScopeType { get { return type; } }
+        public SessionScopeType ScopeType { get; protected set; }
 
         /// <summary>
         /// Returns the <see cref="ISessionScope.FlushAction"/> defined 
         /// for this scope
         /// </summary>
         public FlushAction FlushAction { get; protected set; }
+
+        public IsolationLevel IsolationLevel { get; protected set; }
 
         /// <summary>
         /// Flushes the sessions that this scope 
@@ -97,7 +103,156 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>
         ///     <c>true</c> if the key exists within this scope instance
         /// </returns>
-        public virtual bool IsKeyKnown(object key) { return key2Session.ContainsKey(key); }
+        public virtual bool IsKeyKnown(object key) { return Key2Session.ContainsKey(key); }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public virtual void Dispose() {
+            Holder.ThreadScopeInfo.UnRegisterScope(this);
+
+            PerformDisposal();
+        }
+
+        protected readonly OnDispose OnDisposeBehavior;
+        /// <summary>
+        /// Votes to roll back the transaction
+        /// </summary>
+        public virtual void VoteRollBack()
+        {
+            Rollback = true;
+        }
+
+        /// <summary>
+        /// Votes to commit the transaction
+        /// </summary>
+        public virtual void VoteCommit()
+        {
+            if (Rollback)
+            {
+                throw new NHibernate.TransactionException("The transaction was marked as rollback " +
+                                                          "only - by itself or one of the nested transactions");
+            }
+            SetForCommit = true;
+        }
+
+        /// <summary>
+        /// Gets or sets a flag indicating whether this instance has session error.
+        /// </summary>
+        /// <value>
+        ///     <c>true</c> if this instance has session error; otherwise, <c>false</c>.
+        /// </value>
+        public bool HasSessionError { get; private set; }
+
+        /// <summary>
+        /// This method will be called if a scope action fails. 
+        /// The scope may then decide to use an different approach to flush/dispose it.
+        /// </summary>
+        public virtual void FailScope() {
+            VoteRollBack();
+        }
+
+        /// <summary>
+        /// Sets the flush mode.
+        /// </summary>
+        /// <param name="session">The session.</param>
+        protected virtual void SetFlushMode(ISession session) {
+            switch (FlushAction) {
+                case FlushAction.Auto:
+                    session.FlushMode = FlushMode.Auto;
+                    break;
+                case FlushAction.Never:
+                    session.FlushMode = FlushMode.Never;
+                    break;
+                default:
+                    switch (Holder.ConfigurationSource.DefaultFlushType) {
+                            case DefaultFlushType.Auto:
+                                session.FlushMode = FlushMode.Auto;
+                                break;
+                            case DefaultFlushType.Leave:
+                            case DefaultFlushType.Transaction:
+                                session.FlushMode = FlushMode.Commit;
+                                break;
+                            default:
+                                session.FlushMode = FlushMode.Auto;
+                                break;
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Notifies the scope that an inner scope that changed the flush mode, was
+        /// disposed. The scope should reset the flush mode to its default.
+        /// </summary>
+        public void ResetFlushMode() {
+            foreach (ISession session in GetSessions()) {
+                SetFlushMode(session);
+            }
+        }
+
+        /// <summary>
+        /// Gets the sessions.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ISession> GetSessions()
+        {
+            return Key2Session.Values;
+        }
+
+        /// <summary>
+        /// Removes the session.
+        /// </summary>
+        /// <param name="session">The session.</param>
+        protected virtual void RemoveSession(ISession session)
+        {
+            var exceptions = new List<Exception>();
+            foreach (var key in Key2Session.Keys.ToArray())
+            {
+                if (ReferenceEquals(Key2Session[key], session))
+                {
+                    try {
+                        session.Close();
+                        Key2Session.Remove(key);
+                    } catch (Exception e) {
+                        exceptions.Add(e);
+                    }
+                }
+            }
+            if (exceptions.Count > 0) {
+                throw new AggregateException(exceptions);
+            }
+        }
+
+        /// <summary>
+        /// Creates a session for the associated type
+        /// </summary>
+        public virtual ISession OpenSession<T>() {
+            return OpenSession(typeof(T));
+        }
+
+        protected virtual ISession OpenSession(Type type) {
+            var sessionFactory = Holder.GetSessionFactory(type);
+            lock(sessionFactory)
+            {
+#if DEBUG
+                System.Diagnostics.Debug.Assert(sessionFactory != null);
+#endif
+                if (IsKeyKnown(sessionFactory))
+                {
+                    return GetSession(sessionFactory);
+                }
+
+                var session = CreateSession(sessionFactory, InterceptorFactory.Create());
+#if DEBUG
+                System.Diagnostics.Debug.Assert(session != null);
+#endif
+                RegisterSession(sessionFactory, session);
+                Initialize(session);
+
+                return session;
+            }
+        }
 
         /// <summary>
         /// This method is invoked when no session was available
@@ -110,10 +265,8 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         /// <param name="key">an object instance</param>
         /// <param name="session">An instance of <c>ISession</c></param>
-        public virtual void RegisterSession(object key, ISession session)
-        {
-            key2Session.Add(key, session);
-            Initialize(session);
+        public virtual void RegisterSession(object key, ISession session) {
+            Key2Session.Add(key, session);
         }
 
         /// <summary>
@@ -123,13 +276,8 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>
         /// the session instance or null if none was found
         /// </returns>
-        public virtual ISession GetSession(object key)
-        {
-            var session = key2Session[key];
-            if (session != null && FlushAction != FlushAction.Never)
-                if (session.Transaction == null || !session.Transaction.IsActive)
-                    session.BeginTransaction();
-            return key2Session[key];
+        public virtual ISession GetSession(object key) {
+            return Key2Session[key];
         }
 
         /// <summary>
@@ -138,242 +286,68 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="sessionFactory">From where to open the session</param>
         /// <param name="interceptor">the NHibernate interceptor</param>
         /// <returns>the newly created session</returns>
-        protected virtual ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
+        protected virtual ISession CreateSession(ISessionFactory sessionFactory, IInterceptor interceptor)
         {
-            var session = sessionFactory.OpenSession(interceptor);
-            SetFlushMode(session);
-            session.BeginTransaction(isolationLevel);
-
-            return session;
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            holder.ThreadScopeInfo.UnRegisterScope(this);
-
-            PerformDisposal(key2Session.Values);
+            return sessionFactory.OpenSession(interceptor);
         }
 
         /// <summary>
         /// Initializes the specified session.
         /// </summary>
         /// <param name="session">The session.</param>
-        protected virtual void Initialize(ISession session) { }
-
-        /// <summary>
-        /// Performs the disposal.
-        /// </summary>
-        /// <param name="sessions">The sessions.</param>
-        protected virtual void PerformDisposal(IEnumerable<ISession> sessions) {
-            if (HasSessionError || FlushAction == FlushAction.Never) {
-                PerformDisposal(sessions, false, true);
-            } else {
-                PerformDisposal(sessions, true, true);
-            }
+        protected virtual void Initialize(ISession session) {
+            SetFlushMode(session);
+            session.BeginTransaction(IsolationLevel);
         }
-
         /// <summary>
         /// Performs the disposal.
         /// </summary>
-        /// <param name="sessions">The sessions.</param>
-        /// <param name="flush">if set to <c>true</c> [flush].</param>
-        /// <param name="close">if set to <c>true</c> [close].</param>
-        protected internal void PerformDisposal(IEnumerable<ISession> sessions, bool flush, bool close) {
-            foreach (var session in sessions) {
-                var commit = true;
+        protected internal void PerformDisposal(bool dispose = true, bool commit = true) {
+            if (!SetForCommit && !Rollback) {
+                // Neither VoteCommit or VoteRollback were called
+                // and roll back on dispose
+                if (OnDisposeBehavior == OnDispose.Rollback)
+                    VoteRollBack();
+            }
+
+            var exceptions = new List<Exception>();
+            foreach (var key in Key2Session.Keys.ToArray()) {
+                var session = Key2Session[key];
                 try {
-                    if (flush) {
+                    if ((Rollback || !HasSessionError) && FlushAction != FlushAction.Never) {
                         session.Flush();
                     }
-                } catch {
-                    commit = false;
-                    throw;
-                } finally {
-                    var tx = session.Transaction;
-                    if (session.IsConnected &&
-                        session.Connection.State == ConnectionState.Open &&
-                        tx != null &&
-                        tx.IsActive &&
-                        !(tx.WasCommitted || tx.WasRolledBack)) {
-                        if (commit && !HasSessionError) {
-                            tx.Commit();
-                        } else {
-                            tx.Rollback();
-                        }
-                        tx.Dispose();
-                    }
+                } catch (Exception e) {
+                    exceptions.Add(e);
+                }
+            }
+            HasSessionError = HasSessionError && exceptions.Count > 0;
 
-                    if (close) session.Dispose();
+            if (commit) {
+                foreach (var key in Key2Session.Keys.ToArray()) {
+                    var s = Key2Session[key];
+                    CommitOrRollback(s);
+                    if (dispose)
+                        s.Dispose();
+                    Key2Session.Remove(key);
                 }
             }
         }
 
-        /// <summary>
-        /// Gets or sets a flag indicating whether this instance has session error.
-        /// </summary>
-        /// <value>
-        ///     <c>true</c> if this instance has session error; otherwise, <c>false</c>.
-        /// </value>
-        public bool HasSessionError { get; private set; }
-
-        /// <summary>
-        /// Discards the sessions.
-        /// </summary>
-        /// <param name="sessions">The sessions.</param>
-        protected internal virtual void DiscardSessions(IEnumerable<ISession> sessions)
-        {
-            foreach (ISession session in sessions)
-            {
-                RemoveSession(session);
-            }
-        }
-
-        /// <summary>
-        /// This method will be called if a scope action fails. 
-        /// The scope may then decide to use an different approach to flush/dispose it.
-        /// </summary>
-        public virtual void FailScope() {
-            HasSessionError = true;
-        }
-
-        /// <summary>
-        /// Sets the flush mode.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        protected void SetFlushMode(ISession session)
-        {
-            switch (FlushAction) {
-                case FlushAction.Auto:
-                    session.FlushMode = FlushMode.Auto;
-                    break;
-                case FlushAction.Never:
-                    session.FlushMode = FlushMode.Never;
-                    break;
-                default:
-                    var behaviour = holder.ConfigurationSource.DefaultFlushType;
-                    session.FlushMode = (behaviour == DefaultFlushType.Classic || behaviour == DefaultFlushType.Auto) ?
-                        FlushMode.Auto :
-                        (behaviour == DefaultFlushType.Leave) ?
-                        FlushMode.Commit :
-                        FlushMode.Never;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Notifies the scope that an inner scope that changed the flush mode, was
-        /// disposed. The scope should reset the flush mode to its default.
-        /// </summary>
-        protected internal void ResetFlushMode()
-        {
-            foreach (ISession session in GetSessions())
-            {
-                SetFlushMode(session);
-            }
-        }
-
-        /// <summary>
-        /// Gets the sessions.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ISession> GetSessions()
-        {
-            return key2Session.Values;
-        }
-
-        /// <summary>
-        /// Removes the session.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        protected virtual void RemoveSession(ISession session)
-        {
-            var exceptions = new List<Exception>();
-            foreach (var key in key2Session.Keys.ToArray())
-            {
-                if (ReferenceEquals(key2Session[key], session))
-                {
-                    try {
-                        session.Close();
-                        key2Session.Remove(key);
-                    } catch (Exception e) {
-                        exceptions.Add(e);
-                    }
-                }
-            }
-            if (exceptions.Count > 0) {
-                throw new AggregateException(exceptions);
-            }
-        }
-
-        protected ISessionScope FindPreviousScope(bool preferenceForTransactional)
-        {
-            return FindPreviousScope(preferenceForTransactional, false);
-        }
-
-        protected ISessionScope FindPreviousScope(bool preferenceForTransactional, bool doNotReturnSessionScope)
-        {
-            object[] items = holder.ThreadScopeInfo.CurrentStack.ToArray();
-
-            ISessionScope first = null;
-
-            for (int i = 0; i < items.Length; i++)
-            {
-                ISessionScope scope = items[i] as ISessionScope;
-
-                if (scope == this) continue;
-
-                if (first == null) first = scope;
-
-                if (!preferenceForTransactional) break;
-
-                if (scope.ScopeType == SessionScopeType.Transactional)
-                {
-                    return scope;
-                }
+        private void CommitOrRollback(ISession s) {
+            var tx = s.Transaction;
+            if (!s.IsConnected || s.Connection.State != ConnectionState.Open || 
+                tx == null || !tx.IsActive || (tx.WasCommitted || tx.WasRolledBack)) {
+                return;
             }
 
-            return doNotReturnSessionScope ? null : first;
-        }
-
-        /// <summary>
-        /// Creates a session for the associated type
-        /// </summary>
-        public virtual ISession CreateSession<T>()
-        {
-            return CreateScopeSession(typeof(T));
-        }
-
-        protected virtual ISession OpenSessionWithScope(ISessionFactory sessionFactory)
-        {
-            lock(sessionFactory)
-            {
-                return OpenSession(sessionFactory, InterceptorFactory.Create());
+            if (!Rollback && !HasSessionError) {
+                tx.Commit();
+            } else {
+                tx.Rollback();
             }
+            tx.Dispose();
         }
-
-        protected virtual ISession CreateScopeSession(Type type)
-        {
-            var sessionFactory = holder.GetSessionFactory(type);
-#if DEBUG
-            System.Diagnostics.Debug.Assert(sessionFactory != null);
-#endif
-            if (IsKeyKnown(sessionFactory))
-            {
-                return GetSession(sessionFactory);
-            }
-
-            var session = OpenSessionWithScope(sessionFactory);
-#if DEBUG
-            System.Diagnostics.Debug.Assert(session != null);
-#endif
-            RegisterSession(sessionFactory, session);
-
-            return session;
-        }
-
 
         #region Find/Peek
 
@@ -811,7 +785,6 @@ namespace Castle.ActiveRecord.Scopes
 
         #endregion
 
-
         #region DeleteAll
 
         /// <summary>
@@ -878,7 +851,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="pkvalues">A list of primary keys</param>
         public void DeleteAll<T>(IEnumerable<object> pkvalues) where T : class
         {
-            var cm = holder.GetSessionFactory(typeof (T)).GetClassMetadata(typeof (T));
+            var cm = Holder.GetSessionFactory(typeof (T)).GetClassMetadata(typeof (T));
             var pkname = cm.IdentifierPropertyName;
             var pktype = cm.IdentifierType.ReturnedClass;
 
@@ -1113,7 +1086,7 @@ namespace Castle.ActiveRecord.Scopes
             AR.EnsureInitialized(type);
 
             try {
-                return func(CreateScopeSession(type), instance);
+                return func(OpenSession(type), instance);
 
             } catch (ObjectNotFoundException ex) {
                 FailScope();
@@ -1135,7 +1108,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="action">The delegate instance</param>
         public void Execute(Type type, Action<ISession> action) {
             Execute(type, session => {
-                action(CreateScopeSession(type));
+                action(OpenSession(type));
                 return string.Empty;
             });
         }
@@ -1148,7 +1121,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="func">The delegate instance</param>
         /// <returns>Whatever is returned by the delegate invocation</returns>
         public TK Execute<TK>(Type type, Func<ISession, TK> func) {
-            return Execute<object, TK>(type, (session, arg2) => func(CreateScopeSession(type)), null);
+            return Execute<object, TK>(type, (session, arg2) => func(OpenSession(type)), null);
         }
 
         /// <summary>
@@ -1164,7 +1137,7 @@ namespace Castle.ActiveRecord.Scopes
             AR.EnsureInitialized(typeof(T));
 
             try {
-                return func(CreateSession<T>(), instance);
+                return func(OpenSession<T>(), instance);
 
             } catch (ObjectNotFoundException ex) {
                 FailScope();
@@ -1199,8 +1172,6 @@ namespace Castle.ActiveRecord.Scopes
         public TK Execute<T, TK>(Func<ISession, TK> func) where T : class {
             return Execute<T, TK>((session, arg2) => func(session), null);
         }
-
-
 
         #endregion
     }

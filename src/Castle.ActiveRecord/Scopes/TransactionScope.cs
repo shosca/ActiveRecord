@@ -17,421 +17,215 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using Castle.ActiveRecord.Config;
+using Castle.Core.Internal;
 using NHibernate;
 
 namespace Castle.ActiveRecord.Scopes
 {
-	/// <summary>
-	/// Defines the transaction scope behavior
-	/// </summary>
-	public enum TransactionMode
-	{
-		/// <summary>
-		/// Inherits a transaction previously create on 
-		/// the current context.
-		/// </summary>
-		Inherits,
-		/// <summary>
-		/// Always create an isolated transaction context.
-		/// </summary>
-		New
-	}
+    /// <summary>
+    /// Defines the transaction scope behavior
+    /// </summary>
+    public enum TransactionMode
+    {
+        /// <summary>
+        /// Inherits a transaction previously create on 
+        /// the current context.
+        /// </summary>
+        Inherits,
+        /// <summary>
+        /// Always create an isolated transaction context.
+        /// </summary>
+        New
+    }
 
-	/// <summary>
-	/// Governs the <see cref="TransactionScope"/> behavior 
-	/// on dispose if neither <see cref="TransactionScope.VoteCommit"/>
-	/// nor <see cref="TransactionScope.VoteRollBack"/> was called
-	/// </summary>
-	public enum OnDispose
-	{
-		/// <summary>
-		/// Should commit the transaction, unless <see cref="TransactionScope.VoteRollBack"/>
-		/// was called before the disposing the scope (this is the default behavior)
-		/// </summary>
-		Commit,
-		/// <summary>
-		/// Should rollback the transaction, unless <see cref="TransactionScope.VoteCommit"/>
-		/// was called before the disposing the scope
-		/// </summary>
-		Rollback
-	}
+    /// <summary>
+    /// Governs the <see cref="TransactionScope"/> behavior 
+    /// on dispose if neither <see cref="TransactionScope.VoteCommit"/>
+    /// nor <see cref="TransactionScope.VoteRollBack"/> was called
+    /// </summary>
+    public enum OnDispose
+    {
+        /// <summary>
+        /// Should commit the transaction, unless <see cref="TransactionScope.VoteRollBack"/>
+        /// was called before the disposing the scope (this is the default behavior)
+        /// </summary>
+        Commit,
+        /// <summary>
+        /// Should rollback the transaction, unless <see cref="TransactionScope.VoteCommit"/>
+        /// was called before the disposing the scope
+        /// </summary>
+        Rollback
+    }
 
-	/// <summary>
-	/// Implementation of <see cref="ISessionScope"/> to 
-	/// provide transaction semantics
-	/// </summary>
-	public class TransactionScope : SessionScope
-	{
-		private static readonly object CompletedEvent = new object();
+    /// <summary>
+    /// Implementation of <see cref="ISessionScope"/> to 
+    /// provide transaction semantics
+    /// </summary>
+    public class TransactionScope : SessionScope
+    {
+        private static readonly object CompletedEvent = new object();
 
-		private readonly TransactionMode mode;
-		private readonly OnDispose onDisposeBehavior;
-		private readonly IDictionary<ISession, ITransaction> transactions = new Dictionary<ISession, ITransaction>();
-		private readonly TransactionScope parentTransactionScope;
-		private readonly SessionScope parentSimpleScope;
-		private readonly EventHandlerList events = new EventHandlerList();
-		private bool rollbackOnly, setForCommit;
+        private readonly TransactionMode mode;
+        private readonly TransactionScope parentTransactionScope;
+        private readonly EventHandlerList events = new EventHandlerList();
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TransactionScope"/> class.
-		/// </summary>
-		public TransactionScope(
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionScope"/> class.
+        /// </summary>
+        public TransactionScope(
             TransactionMode mode = TransactionMode.New,
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
             ISessionFactoryHolder holder = null
-            ) : base(FlushAction.Config, SessionScopeType.Transactional, isolation, holder)
-		{
-			this.mode = mode;
-			this.onDisposeBehavior = ondispose;
+            ) : base(FlushAction.Config, SessionScopeType.Transactional, isolation, ondispose, holder)
+        {
+            this.mode = mode;
 
-			bool preferenceForTransactionScope = mode == TransactionMode.Inherits ? true : false;
+            parentTransactionScope = ParentScope as TransactionScope;
 
-			ISessionScope previousScope = FindPreviousScope(preferenceForTransactionScope);
+            if (mode == TransactionMode.New) {
+                if (parentTransactionScope != null) {
+                    parentTransactionScope = null;
+                    ParentScope = null;
+                } else {
+                    parentTransactionScope = null;
+                }
+            }
+        }
 
-			if (previousScope != null)
-			{
-				if (previousScope.ScopeType == SessionScopeType.Transactional)
-				{
-					parentTransactionScope = previousScope as TransactionScope;
-				}
-				else
-				{
-					// This is not a safe cast. Reconsider it
-					parentSimpleScope = (SessionScope)previousScope;
+        #region OnTransactionCompleted event
 
-					foreach (ISession session in parentSimpleScope.GetSessions())
-					{
-						EnsureHasTransaction(session);
-					}
-				}
-			}
-		}
+        /// <summary>
+        /// This event is raised when a transaction is completed
+        /// </summary>
+        public event EventHandler OnTransactionCompleted {
+            add {
+                if (parentTransactionScope != null) {
+                    parentTransactionScope.OnTransactionCompleted += value;
+                } else {
+                    events.AddHandler(CompletedEvent, value);
+                }
+            }
+            remove {
+                if (parentTransactionScope != null) {
+                    parentTransactionScope.OnTransactionCompleted -= value;
+                } else {
+                    events.RemoveHandler(CompletedEvent, value);
+                }
+            }
+        }
 
-		#region OnTransactionCompleted event
+        #endregion
 
-		/// <summary>
-		/// This event is raised when a transaction is completed
-		/// </summary>
-		public event EventHandler OnTransactionCompleted
-		{
-			add
-			{
-				if (parentTransactionScope != null)
-				{
-					parentTransactionScope.OnTransactionCompleted += value;
-				}
-				else
-				{
-					events.AddHandler(CompletedEvent, value);
-				}
-			}
-			remove
-			{
-				if (parentTransactionScope != null)
-				{
-					parentTransactionScope.OnTransactionCompleted -= value;
-				}
-				else
-				{
-					events.RemoveHandler(CompletedEvent, value);
-				}
-			}
-		}
+        /// <summary>
+        /// Votes to roll back the transaction
+        /// </summary>
+        public override void VoteRollBack() {
+            if (mode == TransactionMode.Inherits && parentTransactionScope != null) {
+                parentTransactionScope.VoteRollBack();
+            }
+            Rollback = true;
+        }
 
-		#endregion
+        /// <summary>
+        /// Votes to commit the transaction
+        /// </summary>
+        public override void VoteCommit()
+        {
+            if (Rollback) {
+                throw new TransactionException("The transaction was marked as rollback only" +
+                                               " - by itself or one of the nested transactions");
+            }
+            SetForCommit = true;
+        }
 
-		/// <summary>
-		/// Votes to roll back the transaction
-		/// </summary>
-		public void VoteRollBack()
-		{
-			if (mode == TransactionMode.Inherits && parentTransactionScope != null)
-			{
-				parentTransactionScope.VoteRollBack();
-			}
-			rollbackOnly = true;
-		}
+        /// <summary>
+        /// This method is invoked when the
+        /// <see cref="ISessionFactoryHolder"/>
+        /// instance needs a session instance. Instead of creating one it interrogates
+        /// the active scope for one. The scope implementation must check if it
+        /// has a session registered for the given key.
+        /// <seealso cref="RegisterSession"/>
+        /// </summary>
+        /// <param name="key">an object instance</param>
+        /// <returns>
+        ///     <c>true</c> if the key exists within this scope instance
+        /// </returns>
+        public override bool IsKeyKnown(object key)
+        {
+            if (parentTransactionScope != null) {
+                return parentTransactionScope.IsKeyKnown(key);
+            }
+            if (ParentScope != null) {
+                return ParentScope.IsKeyKnown(key);
+            }
+            return Key2Session.ContainsKey(key);
+        }
 
-		/// <summary>
-		/// Votes to commit the transaction
-		/// </summary>
-		public void VoteCommit()
-		{
-			if (rollbackOnly)
-			{
-				throw new NHibernate.TransactionException("The transaction was marked as rollback " + "only - by itself or one of the nested transactions");
-			}
-			setForCommit = true;
-		}
+        public override void RegisterSession(object key, ISession session) {
+            if (parentTransactionScope != null) {
+                parentTransactionScope.RegisterSession(key, session);
+                return;
+            }
+            if (ParentScope != null) {
+                ParentScope.RegisterSession(key, session);
+            }
+            if (!Key2Session.ContainsKey(key))
+                Key2Session.Add(key, session);
+        }
 
-		/// <summary>
-		/// If the <see cref="AbstractScope.WantsToCreateTheSession"/> returned
-		/// <c>true</c> then this method is invoked to allow
-		/// the scope to create a properly configured session
-		/// </summary>
-		/// <param name="sessionFactory">From where to open the session</param>
-		/// <param name="interceptor">the NHibernate interceptor</param>
-		/// <returns>the newly created session</returns>
-		protected override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
-		{
-			var session = sessionFactory.OpenSession(interceptor);
-			SetFlushMode(session);
-			session.BeginTransaction(isolationLevel);
+        public override ISession GetSession(object key) {
+            if (parentTransactionScope != null) {
+                return parentTransactionScope.GetSession(key);
+            }
 
-			return session;	
-		}
+            var session = ParentScope == null
+                       ? Key2Session[key]
+                       : ParentScope.GetSession(key);
 
-		/// <summary>
-		/// This method is invoked when the
-		/// <see cref="ISessionFactoryHolder"/>
-		/// instance needs a session instance. Instead of creating one it interrogates
-		/// the active scope for one. The scope implementation must check if it
-		/// has a session registered for the given key.
-		/// <seealso cref="RegisterSession"/>
-		/// </summary>
-		/// <param name="key">an object instance</param>
-		/// <returns>
-		/// 	<c>true</c> if the key exists within this scope instance
-		/// </returns>
-		public override bool IsKeyKnown(object key)
-		{
-			if (mode == TransactionMode.Inherits && parentTransactionScope != null)
-			{
-				return parentTransactionScope.IsKeyKnown(key);
-			}
+            if (!Key2Session.ContainsKey(key))
+                Key2Session.Add(key, session);
 
-			bool keyKnown = false;
+            Initialize(session);
+            return session;
+        }
 
-			if (parentSimpleScope != null)
-			{
-				keyKnown = parentSimpleScope.IsKeyKnown(key);
-			}
 
-			return keyKnown ? true : base.IsKeyKnown(key);
-		}
+        public override void Dispose() {
+            Holder.ThreadScopeInfo.UnRegisterScope(this);
 
-		/// <summary>
-		/// This method is invoked when no session was available
-		/// at and the <see cref="ISessionFactoryHolder"/>
-		/// just created one. So it registers the session created
-		/// within this scope using a key. The scope implementation
-		/// shouldn't make any assumption on what the key
-		/// actually is as we reserve the right to change it
-		/// <seealso cref="IsKeyKnown"/>
-		/// </summary>
-		/// <param name="key">an object instance</param>
-		/// <param name="session">An instance of <c>ISession</c></param>
-		public override void RegisterSession(object key, ISession session)
-		{
-			if (mode == TransactionMode.Inherits && parentTransactionScope != null)
-			{
-				parentTransactionScope.RegisterSession(key, session);
-			}
-			else if (parentSimpleScope != null)
-			{
-				parentSimpleScope.RegisterSession(key, session);
-			}
+            PerformDisposal(ParentScope == null, parentTransactionScope == null);
 
-			base.RegisterSession(key, session);
-		}
+            RaiseOnCompleted();
+        }
 
-		/// <summary>
-		/// This method should return the session instance associated with the key.
-		/// </summary>
-		/// <param name="key">an object instance</param>
-		/// <returns>
-		/// the session instance or null if none was found
-		/// </returns>
-		public override ISession GetSession(object key)
-		{
-			if (mode == TransactionMode.Inherits && parentTransactionScope != null)
-			{
-				return parentTransactionScope.GetSession(key);
-			}
+        public override void Flush() {
+            if (ParentScope != null) {
+                ParentScope.Flush();
+            }
 
-			ISession session = null;
+            base.Flush();
+        }
 
-			if (parentSimpleScope != null)
-			{
-				session = parentSimpleScope.GetSession(key);
-			}
-
-			session = session ?? base.GetSession(key);
-
-			EnsureHasTransaction(session);
-
-			return session;
-		}
-
-		/// <summary>
-		/// Flushes the sessions that this scope 
-		/// or its parents are maintaining
-		/// </summary>
-		public override void Flush()
-		{
-			if (mode == TransactionMode.Inherits && parentTransactionScope != null)
-			{
-				parentTransactionScope.Flush();
-			}
-
-			if (parentSimpleScope != null)
-			{
-				parentSimpleScope.Flush();
-			}
-
-			base.Flush();
-		}
-
-		/// <summary>
-		/// Ensures that a transaction exist, creating one if neccecary
-		/// </summary>
-		/// <param name="session">The session.</param>
-		protected internal void EnsureHasTransaction(ISession session)
-		{
-			if (!transactions.ContainsKey(session))
-			{
-				DefaultFlushType mode = AR.Holder.ConfigurationSource.DefaultFlushType;
-				session.FlushMode = (mode == DefaultFlushType.Auto || mode == DefaultFlushType.Transaction) ?
-					FlushMode.Auto :
-					FlushMode.Commit;
-
-				ITransaction transaction;
-
-				if (isolationLevel == IsolationLevel.Unspecified)
-				{
-					transaction = session.BeginTransaction();
-				}
-				else
-				{
-					transaction = session.BeginTransaction(isolationLevel);
-				}
-
-				transactions.Add(session, transaction);
-			}
-		}
-
-		/// <summary>
-		/// Initializes the current transaction scope using the session
-		/// </summary>
-		/// <param name="session">The session.</param>
-		protected override void Initialize(ISession session)
-		{
-			if (mode == TransactionMode.Inherits && parentTransactionScope != null)
-			{
-				parentTransactionScope.EnsureHasTransaction(session);
-				return;
-			}
-
-			EnsureHasTransaction(session);
-		}
-
-		/// <summary>
-		/// Dispose of this scope
-		/// </summary>
-		/// <param name="sessions">The sessions.</param>
-		protected override void PerformDisposal(IEnumerable<ISession> sessions)
-		{
-			if (!setForCommit && !rollbackOnly) // Neither VoteCommit or VoteRollback were called
-			{
-				if (onDisposeBehavior == OnDispose.Rollback)
-				{
-					VoteRollBack();
-				}
-			}
-
-			if (mode == TransactionMode.Inherits && parentTransactionScope != null)
-			{
-				// In this case it's not up to this instance to perform the clean up
-				return;
-			}
-
-			Exception transactionError = null;
-
-			foreach (ITransaction transaction in transactions.Values)
-			{
-				try
-				{
-					if (rollbackOnly)
-					{
-						transaction.Rollback();
-					}
-					else
-					{
-						transaction.Commit();
-					}
-				}
-				catch (Exception ex)
-				{
-					transactionError = ex;
-
-					transaction.Dispose();
-				}
-			}
-
-			if (parentSimpleScope == null)
-			{
-				// No flush necessary, but we should close the session
-
-				PerformDisposal(sessions, false, true);
-			}
-			else
-			{
-				if (rollbackOnly)
-				{
-					// Cancel all pending changes 
-					// (not sure whether this is a good idea, it should be scoped
-
-					foreach (ISession session in parentSimpleScope.GetSessions())
-					{
-						session.Clear();
-					}
-				}
-
-				parentSimpleScope.ResetFlushMode();
-			}
-
-			RaiseOnCompleted();
-
-			if (transactionError != null)
-			{
-				throw new NHibernate.TransactionException("An error occured when trying to dispose the transaction", transactionError);
-			}
-		}
-
-		/// <summary>
-		/// This is called when a session has a failure
-		/// </summary>
-		/// <param name="session">the session</param>
-		public override void FailScope()
-		{
+        /// <summary>
+        /// This is called when a session has a failure
+        /// </summary>
+        public override void FailScope() {
+            if (ParentScope != null) {
+                ParentScope.FailScope();
+            }
             base.FailScope();
-			VoteRollBack();
-		}
+        }
 
-	    /// <summary>
-	    /// Discards the sessions.
-	    /// </summary>
-	    /// <param name="sessions">The sessions.</param>
-	    protected internal override void DiscardSessions(IEnumerable<ISession> sessions)
-		{
-			if (parentSimpleScope != null)
-			{
-				parentSimpleScope.DiscardSessions(sessions);
-			}
-		}
+        /// <summary>
+        /// Raises the on completed event
+        /// </summary>
+        private void RaiseOnCompleted() {
+            var handler = events[CompletedEvent] as EventHandler;
 
-		/// <summary>
-		/// Raises the on completed event
-		/// </summary>
-		private void RaiseOnCompleted()
-		{
-			EventHandler handler = (EventHandler)events[CompletedEvent];
-
-			if (handler != null)
-			{
-				handler(this, EventArgs.Empty);
-			}
-		}
-	}
+            if (handler != null) {
+                handler(this, EventArgs.Empty);
+            }
+        }
+    }
 }

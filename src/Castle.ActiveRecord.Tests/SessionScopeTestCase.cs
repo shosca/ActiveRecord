@@ -33,16 +33,16 @@ namespace Castle.ActiveRecord.Tests
         {
             using (var scope1 = new SessionScope())
             using (var scope2 = new SessionScope()) {
-                var session1 = scope1.CreateSession<Blog>();
-                var session2 = scope2.CreateSession<Blog>();
+                var session1 = scope1.OpenSession<Blog>();
+                var session2 = scope2.OpenSession<Blog>();
                 Assert.IsNotNull( session1 );
                 Assert.IsNotNull( session2 );
                 Assert.IsTrue( session1 != session2 );
             }
 
             using (var scope = new SessionScope()) {
-                var session1 = scope.CreateSession<Blog>();
-                var session2 = scope.CreateSession<Blog>();
+                var session1 = scope.OpenSession<Blog>();
+                var session2 = scope.OpenSession<Blog>();
                 Assert.IsNotNull( session1 );
                 Assert.IsNotNull( session2 );
                 Assert.IsTrue( session1 == session2 );
@@ -268,7 +268,7 @@ namespace Castle.ActiveRecord.Tests
 
                 //Assert.AreEqual(FlushMode.Auto, blog.CurrentSession.FlushMode);
                 //Assert.IsTrue(blog.CurrentSession.Transaction.IsActive);
-                Assert.AreEqual(DefaultFlushType.Classic, AR.Holder.ConfigurationSource.DefaultFlushType);
+                Assert.AreEqual(DefaultFlushType.Auto, AR.Holder.ConfigurationSource.DefaultFlushType);
 
                 // Flushes automatically
                 Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBarBaz").Count());

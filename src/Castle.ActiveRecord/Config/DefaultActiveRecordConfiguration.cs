@@ -30,7 +30,7 @@ namespace Castle.ActiveRecord.Config
         /// Initializes a new instance of the <see cref="DefaultActiveRecordConfiguration"/> class.
         /// </summary>
         public DefaultActiveRecordConfiguration() {
-            DefaultFlushType = DefaultFlushType.Classic;
+            DefaultFlushType = DefaultFlushType.Auto;
             AutoImport = true;
             Lazy = true;
         }

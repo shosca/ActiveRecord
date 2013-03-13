@@ -42,7 +42,7 @@ namespace Castle.ActiveRecord.Tests.Testing
 			using (var scope = new SessionScope())
 			{
 				Blog.FindAll();
-				Assert.AreEqual(FlushMode.Commit, scope.CreateSession<Blog>().FlushMode);
+				Assert.AreEqual(FlushMode.Commit, scope.OpenSession<Blog>().FlushMode);
 			}
 		}
 	}

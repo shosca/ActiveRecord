@@ -39,7 +39,7 @@ namespace Castle.ActiveRecord.Scopes
 		/// <param name="sessionFactory">From where to open the session</param>
 		/// <param name="interceptor">the NHibernate interceptor</param>
 		/// <returns>the newly created session</returns>
-		protected override ISession OpenSession(ISessionFactory sessionFactory, IInterceptor interceptor)
+		protected override ISession CreateSession(ISessionFactory sessionFactory, IInterceptor interceptor)
 		{
 			ISession session = new StatelessSessionWrapper(sessionFactory.OpenStatelessSession());
 

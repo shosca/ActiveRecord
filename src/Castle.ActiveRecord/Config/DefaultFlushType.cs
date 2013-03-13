@@ -23,13 +23,6 @@ namespace Castle.ActiveRecord.Config
 	public enum DefaultFlushType
 	{
 		/// <summary>
-		/// Classic flushing behaviour like in RC3 and before. <see cref="SessionScope"/>
-		/// flushes automatically, <see cref="TransactionScope"/> flushes on Disposal if
-		/// the transaction was committed.
-		/// </summary>
-		Classic,
-
-		/// <summary>
 		/// New recommended behaviour. Both types of scope flush automatically, consolidating behaviour between
 		/// scoped and non-scoped code.
 		/// </summary>

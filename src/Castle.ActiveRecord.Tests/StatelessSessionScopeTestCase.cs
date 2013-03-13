@@ -36,7 +36,7 @@ namespace Castle.ActiveRecord.Tests
         {
             using (var scope = new StatelessSessionScope())
             {
-                Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), scope.CreateSession<Blog>());
+                Assert.IsAssignableFrom(typeof(StatelessSessionWrapper), scope.OpenSession<Blog>());
             }
         }
 
@@ -46,7 +46,7 @@ namespace Castle.ActiveRecord.Tests
             using (var scope = new StatelessSessionScope())
             {
                 Assert.Throws<NotWrappedException>(() =>
-                    scope.CreateSession<Blog>().Merge(null)
+                    scope.OpenSession<Blog>().Merge(null)
                 );
             }
         }
