@@ -18,91 +18,69 @@ using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Metadata;
 
-namespace Castle.ActiveRecord
-{
-	/// <summary>
-	/// Keeps an association of SessionFactories to a object model 
-	/// tree;
-	/// </summary>
-	public interface ISessionFactoryHolder : IDisposable
-	{
-		/// <summary>
-		/// Pendent
-		/// </summary>
-		/// <returns></returns>
-		Configuration[] GetAllConfigurations();
+namespace Castle.ActiveRecord {
+    /// <summary>
+    /// Keeps an association of SessionFactories to a object model 
+    /// tree;
+    /// </summary>
+    public interface ISessionFactoryHolder : IDisposable {
+        /// <summary>
+        /// Pendent
+        /// </summary>
+        /// <returns></returns>
+        Configuration[] GetAllConfigurations();
 
         IActiveRecordConfiguration ConfigurationSource { get; }
 
-		/// <summary>
-		/// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
-		/// </summary>
-		IThreadScopeInfo ThreadScopeInfo { get; }
+        /// <summary>
+        /// Gets or sets the implementation of <see cref="IThreadScopeInfo"/>
+        /// </summary>
+        IThreadScopeInfo ThreadScopeInfo { get; }
 
-		/// <summary>
-		/// Requests the registered types
-		/// </summary>
-		Type[] GetRegisteredTypes();
+        /// <summary>
+        /// Requests the registered types
+        /// </summary>
+        Type[] GetRegisteredTypes();
 
-		/// <summary>
-		/// Requests the Configuration associated to the type.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		Configuration GetConfiguration(Type type);
+        /// <summary>
+        /// Requests the Configuration associated to the type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        Configuration GetConfiguration(Type type);
 
-		/// <summary>
-		/// Obtains the SessionFactory associated to the type.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		ISessionFactory GetSessionFactory(Type type);
+        /// <summary>
+        /// Obtains the SessionFactory associated to the type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        ISessionFactory GetSessionFactory(Type type);
 
-		/// <summary>
-		/// Obtains the IClassMetadata of the type.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		IClassMetadata GetClassMetadata(Type type);
+        /// <summary>
+        /// Obtains the IClassMetadata of the type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        IClassMetadata GetClassMetadata(Type type);
 
-		/// <summary>
-		/// Obtains the Model of the type.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		Model GetModel(Type type);
+        /// <summary>
+        /// Obtains the Model of the type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        Model GetModel(Type type);
 
-		/// <summary>
-		/// Checks if type config is initialized
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		bool IsInitialized(Type type);
+        /// <summary>
+        /// Checks if type config is initialized
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        bool IsInitialized(Type type);
 
-		/// <summary>
-		/// Gets the all the session factories.
-		/// </summary>
-		/// <returns></returns>
-		ISessionFactory[] GetSessionFactories();
-/*
-		/// <summary>
-		/// Creates a session for the associated type
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		ISession CreateSession(Type type);
-
-		/// <summary>
-		/// Releases the specified session
-		/// </summary>
-		/// <param name="session"></param>
-		void ReleaseSession(ISession session);
-
-		/// <summary>
-		/// Called if an action on the session fails
-		/// </summary>
-		/// <param name="session"></param>
-		void FailSession(ISession session);
-*/
-	}
+        /// <summary>
+        /// Gets the all the session factories.
+        /// </summary>
+        /// <returns></returns>
+        ISessionFactory[] GetSessionFactories();
+    }
 }

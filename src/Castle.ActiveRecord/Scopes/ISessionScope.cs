@@ -31,6 +31,17 @@ namespace Castle.ActiveRecord.Scopes {
     /// can create new scopes adding new semantics.
     /// </remarks>
     public interface ISessionScope : IDisposable {
+
+        /// <summary>
+        /// The holder for the session factories.
+        /// </summary>
+        ISessionFactoryHolder Holder { get; }
+
+        /// <summary>
+        /// Gets or sets the thread scope into to be used by the session scope
+        /// </summary>
+        IThreadScopeInfo ScopeInfo { get; }
+
         /// <summary>
         /// Returns the <see cref="FlushAction"/> defined 
         /// for this scope

@@ -30,9 +30,10 @@ namespace Castle.ActiveRecord.Scopes {
         public DifferentDatabaseScope(
             IDbConnection connection,
             FlushAction flushAction = FlushAction.Auto,
-            ISessionFactoryHolder holder = null
+            ISessionFactoryHolder holder = null,
+            IThreadScopeInfo scopeinfo = null
             )
-            : base(flushAction, holder: holder) {
+            : base(flushAction, holder: holder, scopeinfo: scopeinfo) {
             if (connection == null) throw new ArgumentNullException("connection");
 
             _connection = connection;

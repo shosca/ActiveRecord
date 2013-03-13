@@ -39,9 +39,10 @@ namespace Castle.ActiveRecord.Scopes {
             TransactionMode mode = TransactionMode.New,
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
-            ISessionFactoryHolder holder = null
+            ISessionFactoryHolder holder = null,
+            IThreadScopeInfo scopeinfo = null
             )
-            : base(FlushAction.Config, isolation, ondispose, holder) {
+            : base(FlushAction.Config, isolation, ondispose, holder, scopeinfo) {
             this.mode = mode;
 
             parentTransactionScope = ParentScope as TransactionScope;
@@ -153,7 +154,7 @@ namespace Castle.ActiveRecord.Scopes {
 
 
         public override void Dispose() {
-            Holder.ThreadScopeInfo.UnRegisterScope(this);
+            ScopeInfo.UnRegisterScope(this);
 
             PerformDisposal(ParentScope == null, parentTransactionScope == null);
 

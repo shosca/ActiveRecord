@@ -35,7 +35,8 @@ namespace Castle.ActiveRecord.Scopes
     /// </summary>
     public class SessionScope : MarshalByRefObject, ISessionScope
     {
-        protected ISessionFactoryHolder Holder;
+        public ISessionFactoryHolder Holder { get; protected set; }
+        public IThreadScopeInfo ScopeInfo { get; protected set; }
 
         /// <summary>
         /// Map between a key to its session
@@ -51,7 +52,9 @@ namespace Castle.ActiveRecord.Scopes
             FlushAction flushAction = FlushAction.Config,
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
-            ISessionFactoryHolder holder = null ) {
+            ISessionFactoryHolder holder = null,
+            IThreadScopeInfo scopeinfo = null
+            ) {
 
             FlushAction = flushAction;
             IsolationLevel = isolation;
@@ -60,10 +63,12 @@ namespace Castle.ActiveRecord.Scopes
 
             Holder = holder ?? AR.Holder;
 
-            if (Holder.ThreadScopeInfo.HasInitializedScope)
-                ParentScope = Holder.ThreadScopeInfo.GetRegisteredScope();
+            ScopeInfo = scopeinfo ?? AR.Holder.ThreadScopeInfo;
 
-            Holder.ThreadScopeInfo.RegisterScope(this);
+            if (ScopeInfo.HasInitializedScope)
+                ParentScope = ScopeInfo.GetRegisteredScope();
+
+            ScopeInfo.RegisterScope(this);
         }
 
         /// <summary>
@@ -99,7 +104,7 @@ namespace Castle.ActiveRecord.Scopes
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public virtual void Dispose() {
-            Holder.ThreadScopeInfo.UnRegisterScope(this);
+            ScopeInfo.UnRegisterScope(this);
 
             PerformDisposal();
 #if DEBUG
