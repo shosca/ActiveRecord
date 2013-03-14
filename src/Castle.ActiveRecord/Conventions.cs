@@ -2,11 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using NHibernate.Mapping.ByCode;
+using NHibernate.Mapping.ByCode.Conformist;
 
 namespace Castle.ActiveRecord {
 	public static class Conventions
 	{
+        public static MemberInfo DecodeMemberInfo<TEntity, TResult>(this Expression<Func<TEntity, TResult>> expression) {
+            if (expression.Body.NodeType != ExpressionType.MemberAccess) {
+                throw new ActiveRecordException("Invalid member expression type");
+            }
+            return ((MemberExpression) expression.Body).Member;
+        }
+
 		public static ModelMapper ClassMap<TRootEntity>(this ModelMapper mapper, Action<IClassMapper<TRootEntity>> mapaction) where TRootEntity : class {
 			mapper.Class(mapaction);
 			return mapper;
@@ -54,9 +63,8 @@ namespace Castle.ActiveRecord {
 			Expression<Func<TControllingEntity, IEnumerable<TInverseEntity>>> controllingProperty,
 			Expression<Func<TInverseEntity, IEnumerable<TControllingEntity>>> inverseProperty,
 			string columnformat, string tableformat
-		) where TControllingEntity : class where TInverseEntity : class
-		{
-			var controllingPropertyName = ((MemberExpression)controllingProperty.Body).Member.Name.ToLowerInvariant();
+		) where TControllingEntity : class where TInverseEntity : class {
+			var controllingPropertyName = controllingProperty.DecodeMemberInfo().Name.ToLowerInvariant();
 			var controllingColumnName = string.Format(columnformat, controllingPropertyName).ToLowerInvariant();
 			var inverseColumnName = string.Format(columnformat, typeof(TControllingEntity).Name).ToLowerInvariant();
 			var tableName = string.Format(tableformat, typeof (TControllingEntity).Name, controllingPropertyName).ToLowerInvariant();
@@ -83,6 +91,60 @@ namespace Castle.ActiveRecord {
 
 			return mapper;
 		}
+
+        public static void  ManyToManySet<TControllingEntity, TInverseEntity>(
+            this ClassMapping<TControllingEntity> classmapping,
+            Expression<Func<TControllingEntity, IEnumerable<TInverseEntity>>> controllingProperty,
+            Action<ISetPropertiesMapper<TControllingEntity, TInverseEntity>> collectionMapping = null,
+            Action<ICollectionElementRelation<TInverseEntity>> mapping = null,
+            string columnformat = "{0}_key",
+            string tableformat = "{0}{1}"
+            ) where TControllingEntity : class where TInverseEntity : class {
+                var controllingPropertyName = controllingProperty.DecodeMemberInfo().Name.ToLowerInvariant();
+                var controllingColumnName = string.Format(columnformat, typeof(TControllingEntity).Name).ToLowerInvariant();
+                var inverseColumnName = string.Format(columnformat, controllingPropertyName).ToLowerInvariant();
+                var tableName = string.Format(tableformat, typeof (TControllingEntity).Name, controllingPropertyName).ToLowerInvariant();
+                classmapping.Set(
+                    controllingProperty,
+                    cm => {
+                         cm.Table(tableName);
+                         cm.Key(km => km.Column(controllingColumnName));
+                         if (collectionMapping != null) collectionMapping(cm);
+                    }
+                    , t => {
+                        t.ManyToMany(c => c.Column(inverseColumnName));
+                        if (mapping != null) mapping(t);
+                    }
+                );
+        }
+
+        public static void  ManyToManySetInverse<TControllingEntity, TInverseEntity>(
+            this ClassMapping<TInverseEntity> classmapping,
+            Expression<Func<TControllingEntity, IEnumerable<TInverseEntity>>> controllingProperty,
+            Expression<Func<TInverseEntity, IEnumerable<TControllingEntity>>> inverseProperty,
+            Action<ISetPropertiesMapper<TInverseEntity, TControllingEntity>> collectionMapping = null,
+            Action<ICollectionElementRelation<TControllingEntity>> mapping = null,
+            string columnformat = "{0}_id",
+            string tableformat = "{0}{1}"
+            ) where TControllingEntity : class where TInverseEntity : class {
+                var controllingPropertyName = controllingProperty.DecodeMemberInfo().Name.ToLowerInvariant();
+                var controllingColumnName = string.Format(columnformat, typeof(TControllingEntity).Name).ToLowerInvariant();
+                var inverseColumnName = string.Format(columnformat, controllingPropertyName).ToLowerInvariant();
+                var tableName = string.Format(tableformat, typeof (TControllingEntity).Name, controllingPropertyName).ToLowerInvariant();
+                classmapping.Set(
+                    inverseProperty,
+                    cm => {
+                        cm.Table(tableName);
+                        cm.Inverse(true);
+                        cm.Key(km => km.Column(inverseColumnName));
+                        if (collectionMapping != null) collectionMapping(cm);
+                    }
+                    , t => {
+                        t.ManyToMany(c => c.Column(controllingColumnName));
+                        if (mapping != null) mapping(t);
+                    }
+                );
+        }
 
 		public static ModelMapper ManyToManySet<TControllingEntity, TInverseEntity>
 		(

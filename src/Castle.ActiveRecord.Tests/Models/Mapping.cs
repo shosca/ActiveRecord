@@ -49,10 +49,10 @@ namespace Castle.ActiveRecord.Tests.Models
 				Id(x => x.Id, m => m.Generator(Generators.Native));
                 Set(x => x.People,
                     cm => {
-                        cm.Table("CompanyPeople");
-                        cm.Key(k => k.Column("CompanyId"));
+                        cm.Table("companypeople");
+                        cm.Key(k => k.Column("company_id"));
                     }
-                    ,t => t.ManyToMany(c => c.Column("PersonId")));
+                    ,t => t.ManyToMany(c => c.Column("person_id")));
 			}
 		}
 
@@ -75,11 +75,11 @@ namespace Castle.ActiveRecord.Tests.Models
 				Id(x => x.Id, m => m.Generator(Generators.Native));
                 Set(x => x.Companies,
                     cm => {
-                        cm.Table("CompanyPeople");
+                        cm.Table("companypeople");
                         cm.Inverse(true);
-                        cm.Key(k => k.Column("PersonId"));
+                        cm.Key(k => k.Column("person_id"));
                     }
-                    ,t => t.ManyToMany(c => c.Column("CompanyId")));
+                    ,t => t.ManyToMany(c => c.Column("company_id")));
 			}
 		}
 		public class MapProduct : ClassMapping<Product> {
