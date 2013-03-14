@@ -462,28 +462,28 @@ namespace Castle.ActiveRecord.Scopes {
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        IQueryOver<T> QueryOver<T>() where T : class;
+        IQueryOver<T, T> QueryOver<T>() where T : class;
 
         /// <summary>
         /// The QueryOver method is used as a Linq collection
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        IQueryOver<T> QueryOver<T>(Expression<Func<T>> alias) where T : class;
+        IQueryOver<T, T> QueryOver<T>(Expression<Func<T>> alias) where T : class;
 
         /// <summary>
         /// The QueryOver method is used as a Linq collection
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        IQueryOver<T> QueryOver<T>(string entityname) where T : class;
+        IQueryOver<T, T> QueryOver<T>(string entityname) where T : class;
 
         /// <summary>
         /// The QueryOver method is used as a Linq collection
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        IQueryOver<T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class;
+        IQueryOver<T, T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class;
 
         /// <summary>
         /// Invokes the specified delegate passing a valid 

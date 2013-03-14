@@ -1042,9 +1042,9 @@ namespace Castle.ActiveRecord.Scopes
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public IQueryOver<T> QueryOver<T>() where T : class
+        public IQueryOver<T,T> QueryOver<T>() where T : class
         {
-            return Execute<T, IQueryOver<T>>(s => s.QueryOver<T>());
+            return Execute<T, IQueryOver<T,T>>(s => s.QueryOver<T>());
         }
 
         /// <summary>
@@ -1052,9 +1052,9 @@ namespace Castle.ActiveRecord.Scopes
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public IQueryOver<T> QueryOver<T>(Expression<Func<T>> alias) where T : class
+        public IQueryOver<T,T> QueryOver<T>(Expression<Func<T>> alias) where T : class
         {
-            return Execute<T, IQueryOver<T>>(s => s.QueryOver<T>(alias));
+            return Execute<T, IQueryOver<T,T>>(s => s.QueryOver<T>(alias));
         }
 
         /// <summary>
@@ -1062,9 +1062,9 @@ namespace Castle.ActiveRecord.Scopes
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public IQueryOver<T> QueryOver<T>(string entityname) where T : class
+        public IQueryOver<T,T> QueryOver<T>(string entityname) where T : class
         {
-            return Execute<T, IQueryOver<T>>(s => s.QueryOver<T>(entityname));
+            return Execute<T, IQueryOver<T,T>>(s => s.QueryOver<T>(entityname));
         }
 
         /// <summary>
@@ -1072,9 +1072,9 @@ namespace Castle.ActiveRecord.Scopes
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public IQueryOver<T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class
+        public IQueryOver<T,T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class
         {
-            return Execute<T, IQueryOver<T>>(s => s.QueryOver<T>(entityname, alias));
+            return Execute<T, IQueryOver<T,T>>(s => s.QueryOver<T>(entityname, alias));
         }
 
         #endregion
