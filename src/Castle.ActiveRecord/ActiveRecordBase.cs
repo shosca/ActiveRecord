@@ -594,7 +594,7 @@ namespace Castle.ActiveRecord
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public static IQueryOver<T> QueryOver() {
+        public static IQueryOver<T, T> QueryOver() {
             return AR.CurrentScope().QueryOver<T>();
         }
 
@@ -603,7 +603,7 @@ namespace Castle.ActiveRecord
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public static IQueryOver<T> QueryOver(Expression<Func<T>> alias) {
+        public static IQueryOver<T, T> QueryOver(Expression<Func<T>> alias) {
             return AR.CurrentScope().QueryOver<T>(alias);
         }
 
@@ -612,7 +612,7 @@ namespace Castle.ActiveRecord
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public static IQueryOver<T> QueryOver(string entityname) {
+        public static IQueryOver<T, T> QueryOver(string entityname) {
             return AR.CurrentScope().QueryOver<T>(entityname);
         }
 
@@ -621,7 +621,7 @@ namespace Castle.ActiveRecord
         /// or as the in argument in a Linq expression. 
         /// </summary>
         /// <remarks>You must have an open Session Scope.</remarks>
-        public static IQueryOver<T> QueryOver(string entityname, Expression<Func<T>> alias) {
+        public static IQueryOver<T, T> QueryOver(string entityname, Expression<Func<T>> alias) {
             return AR.CurrentScope().QueryOver<T>(entityname, alias);
         }
 
