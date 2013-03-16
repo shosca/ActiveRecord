@@ -30,10 +30,11 @@ namespace Castle.ActiveRecord.Scopes {
         public DifferentDatabaseScope(
             IDbConnection connection,
             FlushAction flushAction = FlushAction.Auto,
+            ISessionScope parent = null,
             ISessionFactoryHolder holder = null,
             IThreadScopeInfo scopeinfo = null
             )
-            : base(flushAction, holder: holder, scopeinfo: scopeinfo) {
+            : base(flushAction, parent: parent, holder: holder, scopeinfo: scopeinfo) {
             if (connection == null) throw new ArgumentNullException("connection");
 
             _connection = connection;
@@ -93,6 +94,11 @@ namespace Castle.ActiveRecord.Scopes {
             }
 
             return base.GetSession(key);
+        }
+
+        protected override ISession OpenSession(Type type)
+        {
+            return base.OpenSession(type);
         }
 
         public override void Dispose() {

@@ -511,9 +511,7 @@ namespace Castle.ActiveRecord.Tests {
                 var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
                 blog.Save();
 
-                DetachedCriteria.For<Blog>()
-                                .Add(Restrictions.Where<Blog>(b => b.Author == "hamilton verissimo"))
-                                .DeleteAll<Blog>();
+                Blog.DeleteAll(Restrictions.Where<Blog>(b => b.Author == "hamilton verissimo"));
 
                 var blogs = Blog.FindAll();
                 Assert.IsNotNull(blogs);
@@ -523,12 +521,12 @@ namespace Castle.ActiveRecord.Tests {
 
         [Test]
         public void DeleteWithQueryOverExtension() {
-            using (new SessionScope()) {
+            using (var scope = new SessionScope()) {
 
                 var blog = new Blog {Name = "hammett's blog", Author = "hamilton verissimo"};
                 blog.Save();
 
-                QueryOver.Of<Blog>().Where(b => b.Author == "hamilton verissimo").DeleteAll();
+                scope.DeleteAll<Blog>(b => b.Author == "hamilton verissimo");
 
                 var blogs = Blog.FindAll();
                 Assert.IsNotNull(blogs);

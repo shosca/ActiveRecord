@@ -22,6 +22,7 @@ using System.Runtime.CompilerServices;
 using Castle.ActiveRecord.Config;
 using NHibernate;
 using NHibernate.Criterion;
+using NHibernate.Impl;
 using NHibernate.Linq;
 using NHibernate.Transform;
 using Remotion.Linq.Utilities;
@@ -52,6 +53,7 @@ namespace Castle.ActiveRecord.Scopes
             FlushAction flushAction = FlushAction.Config,
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
+            ISessionScope parent = null,
             ISessionFactoryHolder holder = null,
             IThreadScopeInfo scopeinfo = null
             ) {
@@ -65,8 +67,11 @@ namespace Castle.ActiveRecord.Scopes
 
             ScopeInfo = scopeinfo ?? AR.Holder.ThreadScopeInfo;
 
-            if (ScopeInfo.HasInitializedScope)
-                ParentScope = ScopeInfo.GetRegisteredScope();
+            if (parent != null)
+                ParentScope = parent;
+            else
+                if (ScopeInfo.HasInitializedScope)
+                    ParentScope = ScopeInfo.GetRegisteredScope();
 
             ScopeInfo.RegisterScope(this);
         }
@@ -84,6 +89,9 @@ namespace Castle.ActiveRecord.Scopes
         /// is maintaining
         /// </summary>
         public virtual void Flush() {
+            if (ParentScope != null) {
+                ParentScope.Flush();
+            }
             Key2Session.Values.ForEach(s => s.Flush());
         }
 
@@ -98,7 +106,9 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>
         ///     <c>true</c> if the key exists within this scope instance
         /// </returns>
-        public virtual bool IsKeyKnown(object key) { return Key2Session.ContainsKey(key); }
+        public virtual bool IsKeyKnown(object key) {
+            return ParentScope != null ? ParentScope.IsKeyKnown(key) : Key2Session.ContainsKey(key);
+        }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -106,30 +116,33 @@ namespace Castle.ActiveRecord.Scopes
         public virtual void Dispose() {
             ScopeInfo.UnRegisterScope(this);
 
-            PerformDisposal();
+            PerformDisposal(ParentScope == null);
 #if DEBUG
             System.Diagnostics.Debug.Assert(Key2Session.Count == 0);
 #endif
         }
 
         protected readonly OnDispose OnDisposeBehavior;
+
         /// <summary>
         /// Votes to roll back the transaction
         /// </summary>
-        public virtual void VoteRollBack()
-        {
+        public virtual void VoteRollBack() {
+            if (ParentScope != null)
+                ParentScope.VoteRollBack();
             Rollback = true;
         }
 
         /// <summary>
         /// Votes to commit the transaction
         /// </summary>
-        public virtual void VoteCommit()
-        {
-            if (Rollback)
-            {
+        public virtual void VoteCommit() {
+            if (Rollback) {
                 throw new NHibernate.TransactionException("The transaction was marked as rollback " +
                                                           "only - by itself or one of the nested transactions");
+            }
+            if (ParentScope != null) {
+                ParentScope.VoteCommit();
             }
             SetForCommit = true;
         }
@@ -188,30 +201,6 @@ namespace Castle.ActiveRecord.Scopes
         }
 
         /// <summary>
-        /// Removes the session.
-        /// </summary>
-        /// <param name="session">The session.</param>
-        protected virtual void RemoveSession(ISession session)
-        {
-            var exceptions = new List<Exception>();
-            foreach (var key in Key2Session.Keys.ToArray())
-            {
-                if (ReferenceEquals(Key2Session[key], session))
-                {
-                    try {
-                        session.Close();
-                        Key2Session.Remove(key);
-                    } catch (Exception e) {
-                        exceptions.Add(e);
-                    }
-                }
-            }
-            if (exceptions.Count > 0) {
-                throw new AggregateException(exceptions);
-            }
-        }
-
-        /// <summary>
         /// Creates a session for the associated type
         /// </summary>
         public virtual ISession OpenSession<T>() {
@@ -253,6 +242,10 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="key">an object instance</param>
         /// <param name="session">An instance of <c>ISession</c></param>
         public virtual void RegisterSession(object key, ISession session) {
+            if (ParentScope != null) {
+                ParentScope.RegisterSession(key, session);
+                return;
+            }
             Key2Session.Add(key, session);
         }
 
@@ -264,6 +257,9 @@ namespace Castle.ActiveRecord.Scopes
         /// the session instance or null if none was found
         /// </returns>
         public virtual ISession GetSession(object key) {
+            if (ParentScope != null) {
+                return ParentScope.GetSession(key);
+            }
             return Key2Session[key];
         }
 
@@ -453,9 +449,8 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         /// <param name="expression">The criteria expression</param>
         /// <returns>The count result</returns>
-        public int Count<T>(Expression<Func<T, bool>> expression) where T : class
-        {
-            return NHibernate.Criterion.QueryOver.Of<T>().Where(expression).Count();
+        public int Count<T>(Expression<Func<T, bool>> expression) where T : class {
+            return Execute<T, int>(session => session.QueryOver<T>().Where(expression).RowCount());
         }
 
         /// <summary>
@@ -466,7 +461,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>The count result</returns>
         public int Count<T>(QueryOver<T, T> queryover) where T : class
         {
-            return queryover.Count();
+            return Execute<T, int>(session => queryover.GetExecutableQueryOver(session).RowCount());
         }
 
         /// <summary>
@@ -475,9 +470,10 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         /// <param name="detachedCriteria">The criteria expression</param>
         /// <returns>The count result</returns>
-        public int Count<T>(DetachedCriteria detachedCriteria) where T : class
-        {
-            return detachedCriteria.SetProjection(Projections.RowCount()).UniqueResult<T, int>();
+        public int Count<T>(DetachedCriteria detachedCriteria) where T : class {
+            return Execute<T, int>(session => detachedCriteria.GetExecutableCriteria(session)
+                                                  .SetProjection(Projections.RowCount()).UniqueResult<int>()
+            );
         }
 
         #endregion
@@ -567,7 +563,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>A <c>targetType</c> instance or <c>null</c></returns>
         public T FindOne<T>(QueryOver<T,T> queryover) where T : class
         {
-            return queryover.FindOne();
+            return Execute<T,T>(session => queryover.GetExecutableQueryOver(session).SingleOrDefault());
         }
 
         /// <summary>
@@ -630,13 +626,13 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="property">A property name (not a column name)</param>
         /// <param name="value">The value to be equals to</param>
         /// <returns></returns>
-        public IEnumerable<T> FindAllByProperty<T>(string orderByColumn, string property, object value) where T : class
-        {
-            return DetachedCriteria.For<T>()
-                .Add(
-                    (value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value)
-                ).AddOrder(Order.Asc(orderByColumn))
-                .List<T>();
+        public IEnumerable<T> FindAllByProperty<T>(string orderByColumn, string property, object value) where T : class {
+            return Execute<T, IEnumerable<T>>(session =>
+                session.CreateCriteria<T>()
+                   .Add((value == null) ? Restrictions.IsNull(property) : Restrictions.Eq(property, value))
+                   .AddOrder(Order.Asc(orderByColumn))
+                .List<T>()
+            );
         }
 
         #endregion
@@ -662,13 +658,12 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="orders"></param>
         /// <param name="criterias"></param>
         /// <returns></returns>
-        public IEnumerable<T> FindAll<T>(Order[] orders, params ICriterion[] criterias) where T : class 
-        {
-            return DetachedCriteria.For<T>()
-                .SetResultTransformer(Transformers.DistinctRootEntity)
-                .AddCriterias(criterias)
-                .AddOrders(orders)
-                .List<T>();
+        public IEnumerable<T> FindAll<T>(Order[] orders, params ICriterion[] criterias) where T : class {
+            return FindAll<T>(DetachedCriteria.For<T>()
+                                    .SetResultTransformer(Transformers.DistinctRootEntity)
+                                    .AddCriterias(criterias)
+                                    .AddOrders(orders)
+            );
         }
 
         /// <summary>
@@ -679,10 +674,10 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns></returns>
         public IEnumerable<T> FindAll<T>(params ICriterion[] criterias) where T : class
         {
-            return DetachedCriteria.For<T>()
+            var query = DetachedCriteria.For<T>()
                 .SetResultTransformer(Transformers.DistinctRootEntity)
-                .AddCriterias(criterias)
-                .List<T>();
+                .AddCriterias(criterias);
+            return Execute<T, IEnumerable<T>>(session => query.GetExecutableCriteria(session).List<T>());
         }
 
         /// <summary>
@@ -690,15 +685,15 @@ namespace Castle.ActiveRecord.Scopes
         /// </summary>
         public IEnumerable<T> FindAll<T>(QueryOver<T, T> queryover) where T : class
         {
-            return queryover.List();
+            return Execute<T, IEnumerable<T>>(session => queryover.GetExecutableQueryOver(session).List<T>());
         }
 
         /// <summary>
         /// Returns all instances found for the specified type according to the criteria
         /// </summary>
-        public IEnumerable<T> FindAll<T>(DetachedCriteria detachedCriteria, params Order[] orders) where T : class
-        {
-            return detachedCriteria.AddOrders(orders).List<T>();
+        public IEnumerable<T> FindAll<T>(DetachedCriteria detachedCriteria, params Order[] orders) where T : class {
+            detachedCriteria.AddOrders(orders);
+            return AR.Execute<T, IEnumerable<T>>(session => detachedCriteria.GetExecutableCriteria(session).List<T>());
         }
 
         /// <summary>
@@ -708,7 +703,7 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>The <see cref="Array"/> of results.</returns>
         public IEnumerable<T> FindAll<T>(IDetachedQuery detachedQuery) where T : class
         {
-            return detachedQuery.List<T>();
+            return Execute<T, IEnumerable<T>>(session => detachedQuery.GetExecutableQuery(session).List<T>());
         }
 
         #endregion
@@ -761,11 +756,12 @@ namespace Castle.ActiveRecord.Scopes
         /// <param name="orders">An <see cref="Array"/> of <see cref="NHibernate.Criterion.Order"/> objects.</param>
         /// <param name="criteria">The criteria expression</param>
         /// <returns>The sliced query results.</returns>
-        public IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders) where T : class
-        {
-            return criteria
-                .AddOrders(orders)
-                .SlicedFindAll<T>(firstResult, maxResults);
+        public IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders) where T : class {
+            criteria.AddOrders(orders); 
+            return AR.Execute<T, IEnumerable<T>>(session => criteria.GetExecutableCriteria(session)
+                                                                 .SetFirstResult(firstResult)
+                                                                 .SetMaxResults(maxResults)
+                                                                 .List<T>());
         }
 
         /// <summary>
@@ -777,7 +773,10 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>The sliced query results.</returns>
         public IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, IDetachedQuery detachedQuery) where T : class
         {
-            return detachedQuery.SlicedFindAll<T>(firstResult, maxResults);
+            return Execute<T, IEnumerable<T>>(session => detachedQuery.GetExecutableQuery(session)
+                .SetFirstResult(firstResult)
+                .SetMaxResults(maxResults)
+                .List<T>());
         }
 
         /// <summary>
@@ -789,7 +788,10 @@ namespace Castle.ActiveRecord.Scopes
         /// <returns>The sliced query results.</returns>
         public IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, QueryOver<T, T> queryover) where T : class
         {
-            return queryover.SlicedFindAll<T>(firstResult, maxResults);
+            return Execute<T, IEnumerable<T>>(session => queryover.GetExecutableQueryOver(session)
+                .Skip(firstResult)
+                .Take(maxResults)
+                .List<T>());
         }
 
         #endregion
@@ -800,9 +802,8 @@ namespace Castle.ActiveRecord.Scopes
         /// Deletes all rows for the specified ActiveRecord type that matches
         /// the supplied criteria
         /// </summary>
-        public void DeleteAll<T>(DetachedCriteria criteria) where T : class
-        {
-            var pks = criteria.SetProjection(Projections.Id()).List<T, object>();
+        public void DeleteAll<T>(DetachedCriteria criteria) where T : class {
+            var pks = Execute<T, IEnumerable<object>>(session => criteria.GetExecutableCriteria(session).SetProjection(Projections.Id()).List<object>());
             DeleteAll<T>(pks);
         }
 
@@ -825,9 +826,10 @@ namespace Castle.ActiveRecord.Scopes
         /// Deletes all rows for the specified ActiveRecord type that matches
         /// the supplied expression criteria
         /// </summary>
-        public void DeleteAll<T>(Expression<Func<T, bool>> expression) where T : class
-        {
-            var pks = NHibernate.Criterion.QueryOver.Of<T>().Where(expression).Select(Projections.Id()).List<T, object>();
+        public void DeleteAll<T>(Expression<Func<T, bool>> expression) where T : class {
+            var pks = Execute<T, IEnumerable<Object>>(session => 
+                session.QueryOver<T>().Where(expression).Select(Projections.Id()).List<object>()
+            );
             DeleteAll<T>(pks);
         }
 
@@ -835,9 +837,10 @@ namespace Castle.ActiveRecord.Scopes
         /// Deletes all rows for the specified ActiveRecord type that matches
         /// the supplied queryover
         /// </summary>
-        public void DeleteAll<T>(QueryOver<T, T> queryover) where T : class
-        {
-            var pks = queryover.Select(Projections.Id()).List<T, object>();
+        public void DeleteAll<T>(QueryOver<T, T> queryover) where T : class {
+            var pks = Execute<T, IEnumerable<Object>>(session =>
+                queryover.GetExecutableQueryOver(session).Select(Projections.Id()).List<object>()
+            );
             DeleteAll<T>(pks);
         }
 
@@ -1025,7 +1028,7 @@ namespace Castle.ActiveRecord.Scopes
 
         #endregion
 
-        #region Linq/QueryOver
+        #region Linq/QueryOver/Criteria/Query
 
         /// <summary>
         /// Provide an IQueryable.
@@ -1035,7 +1038,6 @@ namespace Castle.ActiveRecord.Scopes
         {
             return Execute<T, IQueryable<T>>(s => s.Query<T>());
         }
-
 
         /// <summary>
         /// The QueryOver method is used as a Linq collection
@@ -1071,15 +1073,47 @@ namespace Castle.ActiveRecord.Scopes
         /// The QueryOver method is used as a Linq collection
         /// or as the in argument in a Linq expression. 
         /// </summary>
-        /// <remarks>You must have an open Session Scope.</remarks>
         public IQueryOver<T,T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class
         {
             return Execute<T, IQueryOver<T,T>>(s => s.QueryOver<T>(entityname, alias));
         }
 
+        public IQueryOver<T, T> MakeExecutable<T>(QueryOver<T, T> query) where T : class {
+            return Execute<T, IQueryOver<T, T>>(query.GetExecutableQueryOver);
+        }
+
+        /// <summary>
+        /// Create nhibernate criteria
+        /// </summary>
+        public ICriteria CreateCriteria<T>() where T : class {
+            return Execute<T, ICriteria>(s => s.CreateCriteria<T>());
+        }
+
+        public ICriteria MakeExecutable<T>(DetachedCriteria criteria) where T : class {
+            return Execute<T, ICriteria>(criteria.GetExecutableCriteria);
+        }
+
+        /// <summary>
+        /// Create an hql query
+        /// </summary>
+        public IQuery CreateQuery<T>(string hql) where T : class {
+            return Execute<T, IQuery>(s => s.CreateQuery(hql));
+        }
+
+        public IQuery MakeExecutable<T>(DetachedQuery query) where T : class {
+            return Execute<T, IQuery>(query.GetExecutableQuery);
+        }
+
+        /// <summary>
+        /// Create a sql query
+        /// </summary>
+        public ISQLQuery CreateSqlQuery<T>(string sql) where T : class {
+            return Execute<T, ISQLQuery>(s => s.CreateSQLQuery(sql));
+        }
+
         #endregion
 
-        #region Execute/ExecuteStateless
+        #region Execute
 
         /// <summary>
         /// Invokes the specified delegate passing a valid 
@@ -1158,7 +1192,6 @@ namespace Castle.ActiveRecord.Scopes
                 HasSessionError = true;
                 FailScope();
                 throw new ActiveRecordException("Error performing Execute for " + typeof (T).Name, ex);
-
             }
         }
 

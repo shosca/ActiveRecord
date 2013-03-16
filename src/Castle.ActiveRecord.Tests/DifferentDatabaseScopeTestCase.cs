@@ -219,9 +219,8 @@ namespace Castle.ActiveRecord.Tests
         [Test]
         public void MoreThanOneConnectionWithinTheSessionScope()
         {
-            var conn = CreateSqlConnection();
-            var conn2 = CreateSqlConnection2();
-
+            using(var conn = CreateSqlConnection())
+            using(var conn2 = CreateSqlConnection2())
             using(new SessionScope())
             {
                 foreach(var connection in new [] { conn, conn2 })

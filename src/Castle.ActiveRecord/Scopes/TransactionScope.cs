@@ -39,10 +39,11 @@ namespace Castle.ActiveRecord.Scopes {
             TransactionMode mode = TransactionMode.New,
             IsolationLevel isolation = IsolationLevel.Unspecified,
             OnDispose ondispose = OnDispose.Commit,
+            ISessionScope parent = null,
             ISessionFactoryHolder holder = null,
             IThreadScopeInfo scopeinfo = null
             )
-            : base(FlushAction.Config, isolation, ondispose, holder, scopeinfo) {
+            : base(FlushAction.Config, isolation, ondispose, parent, holder, scopeinfo) {
             this.mode = mode;
 
             parentTransactionScope = ParentScope as TransactionScope;

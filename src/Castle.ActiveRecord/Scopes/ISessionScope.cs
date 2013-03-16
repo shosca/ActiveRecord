@@ -19,6 +19,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using NHibernate;
 using NHibernate.Criterion;
+using NHibernate.Impl;
 
 namespace Castle.ActiveRecord.Scopes {
     /// <summary>
@@ -485,6 +486,17 @@ namespace Castle.ActiveRecord.Scopes {
         /// <remarks>You must have an open Session Scope.</remarks>
         IQueryOver<T, T> QueryOver<T>(string entityname, Expression<Func<T>> alias) where T : class;
 
+        ICriteria CreateCriteria<T>() where T : class;
+
+        IQuery CreateQuery<T>(string hql) where T : class;
+
+        ISQLQuery CreateSqlQuery<T>(string sql) where T : class;
+
+        ICriteria MakeExecutable<T>(DetachedCriteria criteria) where T : class;
+
+        IQuery MakeExecutable<T>(DetachedQuery query) where T : class;
+
+        IQueryOver<T, T> MakeExecutable<T>(QueryOver<T, T> queryover) where T : class;
         /// <summary>
         /// Invokes the specified delegate passing a valid 
         /// NHibernate session. Used for custom NHibernate queries.
@@ -566,5 +578,15 @@ namespace Castle.ActiveRecord.Scopes {
         ///     <c>true</c> if the key exists within this scope instance
         /// </returns>
         bool IsKeyKnown(object key);
+
+        /// <summary>
+        /// Votes to roll back the transaction
+        /// </summary>
+        void VoteRollBack();
+
+        /// <summary>
+        /// Votes to commit the transaction
+        /// </summary>
+        void VoteCommit();
     }
 }

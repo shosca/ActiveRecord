@@ -35,7 +35,7 @@ namespace Castle.ActiveRecord
     /// </summary>
     public static partial class AR {
 
-        #region Execute/ExecuteStateless
+        #region Execute
 
         public static TK Execute<T, TK>(Func<ISession, T, TK> func, T instance) where T : class {
             return AR.CurrentScope().Execute<T, TK>(func, instance);
@@ -344,7 +344,7 @@ namespace Castle.ActiveRecord
         /// <returns>The <see cref="Array"/> of results.</returns>
         public static IEnumerable<T> FindAll<T>(Order order, params ICriterion[] criteria) where T : class
         {
-            return FindAll<T>(new[] {order}, criteria);
+            return AR.CurrentScope().FindAll<T>(order, criteria);
         }
 
         /// <summary>
@@ -356,11 +356,7 @@ namespace Castle.ActiveRecord
         /// <returns></returns>
         public static IEnumerable<T> FindAll<T>(Order[] orders, params ICriterion[] criterias) where T : class 
         {
-            return DetachedCriteria.For<T>()
-                .SetResultTransformer(Transformers.DistinctRootEntity)
-                .AddCriterias(criterias)
-                .AddOrders(orders)
-                .List<T>();
+            return AR.CurrentScope().FindAll<T>(orders, criterias);
         }
 
         /// <summary>
@@ -371,10 +367,7 @@ namespace Castle.ActiveRecord
         /// <returns></returns>
         public static IEnumerable<T> FindAll<T>(params ICriterion[] criterias) where T : class
         {
-            return DetachedCriteria.For<T>()
-                .SetResultTransformer(Transformers.DistinctRootEntity)
-                .AddCriterias(criterias)
-                .List<T>();
+            return AR.CurrentScope().FindAll<T>(criterias);
         }
 
         /// <summary>
@@ -382,7 +375,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public static IEnumerable<T> FindAll<T>(QueryOver<T, T> queryover) where T : class
         {
-            return queryover.List();
+            return AR.CurrentScope().FindAll<T>(queryover);
         }
 
         /// <summary>
@@ -390,7 +383,7 @@ namespace Castle.ActiveRecord
         /// </summary>
         public static IEnumerable<T> FindAll<T>(DetachedCriteria detachedCriteria, params Order[] orders) where T : class
         {
-            return detachedCriteria.AddOrders(orders).List<T>();
+            return AR.CurrentScope().FindAll<T>(detachedCriteria, orders);
         }
 
         /// <summary>
@@ -400,7 +393,7 @@ namespace Castle.ActiveRecord
         /// <returns>The <see cref="Array"/> of results.</returns>
         public static IEnumerable<T> FindAll<T>(IDetachedQuery detachedQuery) where T : class
         {
-            return detachedQuery.List<T>();
+            return AR.CurrentScope().FindAll<T>(detachedQuery);
         }
 
         #endregion
@@ -417,7 +410,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, Order order, params ICriterion[] criteria) where T : class
         {
-            return SlicedFindAll<T>(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), order);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, order, criteria);
         }
 
         /// <summary>
@@ -430,7 +423,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, Order[] orders, params ICriterion[] criteria) where T : class
         {
-            return SlicedFindAll<T>(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria), orders);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, orders, criteria);
         }
 
         /// <summary>
@@ -442,7 +435,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, params ICriterion[] criteria) where T : class
         {
-            return SlicedFindAll<T>(firstResult, maxResults, DetachedCriteria.For<T>().AddCriterias(criteria));
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, criteria);
         }
 
         /// <summary>
@@ -455,9 +448,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, DetachedCriteria criteria, params Order[] orders) where T : class
         {
-            return criteria
-                .AddOrders(orders)
-                .SlicedFindAll<T>(firstResult, maxResults);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, criteria, orders);
         }
 
         /// <summary>
@@ -469,7 +460,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, IDetachedQuery detachedQuery) where T : class
         {
-            return detachedQuery.SlicedFindAll<T>(firstResult, maxResults);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, detachedQuery);
         }
 
         /// <summary>
@@ -481,7 +472,7 @@ namespace Castle.ActiveRecord
         /// <returns>The sliced query results.</returns>
         public static IEnumerable<T> SlicedFindAll<T>(int firstResult, int maxResults, QueryOver<T, T> queryover) where T : class
         {
-            return queryover.SlicedFindAll<T>(firstResult, maxResults);
+            return AR.CurrentScope().SlicedFindAll<T>(firstResult, maxResults, queryover);
         }
 
         #endregion
@@ -605,8 +596,7 @@ namespace Castle.ActiveRecord
         /// <param name="instance">The ActiveRecord instance to be reloaded</param>
         public static void Refresh<T>(T instance) where T : class
         {
-            if (instance == null) throw new ArgumentNullException("instance");
-            Execute<T>(session => session.Refresh(instance));
+            AR.CurrentScope().Refresh(instance);
         }
 
         /// <summary>
@@ -615,18 +605,16 @@ namespace Castle.ActiveRecord
         /// <param name="instance"></param>
         public static void Merge<T>(T instance) where T : class
         {
-            if (instance == null) throw new ArgumentNullException("instance");
-            Execute<T>(session => session.Merge(instance));
+            AR.CurrentScope().Merge(instance);
         }
 
         /// <summary>
         /// Evict the instance from scope session
         /// </summary>
         /// <param name="instance"></param>
-        public static void Evict<T>(object instance) where T : class
+        public static void Evict<T>(T instance) where T : class
         {
-            if (instance == null) throw new ArgumentNullException("instance");
-            Execute<T>(session => session.Evict(instance));
+            AR.CurrentScope().Evict<T>(instance);
         }
 
         /// <summary>
@@ -638,8 +626,7 @@ namespace Castle.ActiveRecord
         /// <param name="replicationMode">The replication mode.</param>
         public static void Replicate<T>(object instance, ReplicationMode replicationMode) where T : class
         {
-            if (instance == null) { throw new ArgumentNullException("instance"); }
-            Execute<T>(session => session.Replicate(instance, replicationMode));
+            AR.CurrentScope().Replicate<T>(instance, replicationMode);
         }
 
         #endregion
@@ -697,7 +684,5 @@ namespace Castle.ActiveRecord
         }
 
         #endregion
-
-
     }
 }

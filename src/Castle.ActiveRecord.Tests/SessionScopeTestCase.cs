@@ -37,7 +37,7 @@ namespace Castle.ActiveRecord.Tests
                 var session2 = scope2.OpenSession<Blog>();
                 Assert.IsNotNull( session1 );
                 Assert.IsNotNull( session2 );
-                Assert.IsTrue( session1 != session2 );
+                Assert.IsTrue( session1 == session2 ); // will use parent scope's sessions
             }
 
             using (var scope = new SessionScope()) {
@@ -281,8 +281,8 @@ namespace Castle.ActiveRecord.Tests
 
                 using (new SessionScope())
                 {
-                    // Not flushed here
-                    Assert.AreEqual(0, Blog.FindAllByProperty("Name", "FooBar").Count());
+                    // Will use parent's sessions
+                    Assert.AreEqual(1, Blog.FindAllByProperty("Name", "FooBar").Count());
                 }
             }
             // Here it is flushed
