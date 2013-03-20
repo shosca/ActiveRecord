@@ -260,7 +260,11 @@ namespace Castle.ActiveRecord.Scopes
             if (ParentScope != null) {
                 return ParentScope.GetSession(key);
             }
-            return Key2Session[key];
+            var session = Key2Session[key];
+            if (!session.Transaction.IsActive)
+                session.BeginTransaction(IsolationLevel);
+
+            return session;
         }
 
         /// <summary>
