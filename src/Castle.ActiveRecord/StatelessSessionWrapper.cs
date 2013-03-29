@@ -56,14 +56,48 @@ namespace Castle.ActiveRecord
 			set { }
 		}
 
+		public bool IsOpen
+		{
+			get { return statelessSession.IsOpen; }
+		}
+
 		public ITransaction Transaction
 		{
 			get { return statelessSession.Transaction; }
 		}
 
+		public ITransaction BeginTransaction(System.Data.IsolationLevel isolationLevel) {
+			return statelessSession.BeginTransaction(isolationLevel);
+		}
+
 		public ITransaction BeginTransaction()
 		{
 			return statelessSession.BeginTransaction();
+		}
+
+		public void Clear() { }
+
+		public bool Contains(object obj) { return false; }
+
+		public void Evict(object obj) { }
+
+		public void Flush() { }
+
+		public FlushMode FlushMode
+		{
+			get
+			{
+				return FlushMode.Always;
+			}
+			set { }
+		}
+
+		public bool IsDirty() { return false; }
+
+		public ISession SetBatchSize(int batchSize)
+		{
+			statelessSession.SetBatchSize(batchSize);
+			return this;
 		}
 
 		public System.Data.IDbConnection Close()
@@ -112,6 +146,11 @@ namespace Castle.ActiveRecord
 		public IQueryOver<T, T> QueryOver<T>(System.Linq.Expressions.Expression<Func<T>> alias) where T : class
 		{
 			return statelessSession.QueryOver<T>(alias);
+		}
+
+		public IQueryOver<T, T> QueryOver<T>() where T : class
+		{
+			return statelessSession.QueryOver<T>();
 		}
 
 		public IQuery CreateQuery(string queryString)
@@ -227,9 +266,11 @@ namespace Castle.ActiveRecord
 			get { throw new NotWrappedException(); }
 		}
 
-		public ITransaction BeginTransaction(System.Data.IsolationLevel isolationLevel) {
-		    return statelessSession.BeginTransaction(isolationLevel);
+		public IQuery CreateQuery(IQueryExpression queryExpression)
+		{
+			throw new NotWrappedException();
 		}
+
 
 		public CacheMode CacheMode
 		{
@@ -244,16 +285,6 @@ namespace Castle.ActiveRecord
 		}
 
 		public void CancelQuery()
-		{
-			throw new NotWrappedException();
-		}
-
-		public void Clear()
-		{
-			throw new NotWrappedException();
-		}
-
-		public bool Contains(object obj)
 		{
 			throw new NotWrappedException();
 		}
@@ -328,11 +359,6 @@ namespace Castle.ActiveRecord
 			throw new NotWrappedException();
 		}
 
-		public void Evict(object obj)
-		{
-			throw new NotWrappedException();
-		}
-
 		public System.Collections.ICollection Filter(object collection, string filter, object[] values, NHibernate.Type.IType[] types)
 		{
 			throw new NotWrappedException();
@@ -361,20 +387,6 @@ namespace Castle.ActiveRecord
 		public System.Collections.IList Find(string query)
 		{
 			throw new NotWrappedException();
-		}
-
-		public void Flush() { }
-
-		public FlushMode FlushMode
-		{
-			get
-			{
-				throw new NotWrappedException();
-			}
-			set
-			{
-				throw new NotWrappedException();
-			}
 		}
 
 		public LockMode GetCurrentLockMode(object obj)
@@ -407,19 +419,9 @@ namespace Castle.ActiveRecord
 			throw new NotWrappedException();
 		}
 
-		public bool IsDirty()
-		{
-			throw new NotWrappedException();
-		}
-
 		public bool IsReadOnly(object entityOrProxy)
 		{
 			throw new NotWrappedException();
-		}
-
-		public bool IsOpen
-		{
-			get { throw new NotWrappedException(); }
 		}
 
 		public void Load(object obj, object id)
@@ -525,11 +527,6 @@ namespace Castle.ActiveRecord
 			get { throw new NotWrappedException(); }
 		}
 
-		public ISession SetBatchSize(int batchSize)
-		{
-			throw new NotWrappedException();
-		}
-
 		public NHibernate.Stat.ISessionStatistics Statistics
 		{
 			get { throw new NotWrappedException(); }
@@ -540,28 +537,11 @@ namespace Castle.ActiveRecord
 			throw new NotWrappedException();
 		}
 
-		/// <summary>
-		/// Creates a new <c>IQueryOver&lt;T&gt;</c> for the entity class.
-		/// </summary>
-		/// <typeparam name="T">The entity class</typeparam>
-		/// <returns>
-		/// An ICriteria&lt;T&gt; object
-		/// </returns>
-		public IQueryOver<T, T> QueryOver<T>() where T : class
-		{
-			throw new NotWrappedException();
-		}
-
 		public IQueryOver<T, T> QueryOver<T>(string entityName) where T : class {
 			throw new NotWrappedException();
 		}
 
 		public IQueryOver<T, T> QueryOver<T>(string entityName, Expression<Func<T>> alias) where T : class {
-			throw new NotWrappedException();
-		}
-
-		public IQuery CreateQuery(IQueryExpression queryExpression)
-		{
 			throw new NotWrappedException();
 		}
 
