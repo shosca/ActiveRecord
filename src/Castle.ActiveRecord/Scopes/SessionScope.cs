@@ -1236,6 +1236,10 @@ namespace Castle.ActiveRecord.Scopes
                 return id;
             }
 
+            if (pktype.ReturnedClass == typeof (System.Guid)) {
+                return Guid.Parse(id.ToString());
+            }
+
             if (typeof(ValueType).IsAssignableFrom(pktype.ReturnedClass)) {
                 return Convert.ChangeType(id, pktype.ReturnedClass);
             }

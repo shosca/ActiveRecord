@@ -10,7 +10,7 @@ FW=v4.0
 FILES:=$(shell find src -name '*.cs' -print)
 
 ifdef WINDIR
-MSBUILD=MSBuild.exe
+MSBUILD=$(WINDIR)/Microsoft.Net/Framework64/v4.0.30319/MsBuild.exe
 else
 MSBUILD=xbuild
 endif
